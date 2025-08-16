@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Payment Successful - 3D Jumpstart</title>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.39.3/dist/umd/supabase.min.js"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <style>
         * {
@@ -163,6 +164,34 @@
             margin-top: 2rem;
         }
 
+        .loading {
+            text-align: center;
+            padding: 2rem;
+        }
+
+        .loading-spinner {
+            width: 40px;
+            height: 40px;
+            border: 4px solid #e5e7eb;
+            border-top: 4px solid #ea580c;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 1rem;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .error {
+            background: #fef2f2;
+            color: #dc2626;
+            padding: 1rem;
+            border-radius: 0.5rem;
+            margin-bottom: 1rem;
+        }
+
         @media (max-width: 768px) {
             .container {
                 padding: 2rem;
@@ -180,56 +209,175 @@
 </head>
 <body>
     <div class="container">
-        <div class="success-icon">✓</div>
-        
-        <h1 class="title">Payment Successful!</h1>
-        <p class="subtitle">Your enrollment in 3D Jumpstart Level 1 is confirmed</p>
-        
-        <div class="details-box">
-            <div class="detail-row">
-                <span class="detail-label">Order Number:</span>
-                <span class="detail-value" id="order-number">Loading...</span>
+        <div id="loading-state" class="loading">
+            <div class="loading-spinner"></div>
+            <p>Processing your enrollment...</p>
+        </div>
+
+        <div id="success-state" style="display: none;">
+            <div class="success-icon">✓</div>
+            
+            <h1 class="title">Payment Successful!</h1>
+            <p class="subtitle">Your enrollment in 3D Jumpstart Level 1 is confirmed</p>
+            
+            <div class="details-box">
+                <div class="detail-row">
+                    <span class="detail-label">Order Number:</span>
+                    <span class="detail-value" id="order-number">Loading...</span>
+                </div>
+                <div class="detail-row">
+                    <span class="detail-label">Amount Paid:</span>
+                    <span class="detail-value" id="amount-paid">Loading...</span>
+                </div>
+                <div class="detail-row">
+                    <span class="detail-label">Course Start Date:</span>
+                    <span class="detail-value">September 9, 2025</span>
+                </div>
+                <div class="detail-row">
+                    <span class="detail-label">Location:</span>
+                    <span class="detail-value">Shadowbrook Church, Suwanee</span>
+                </div>
             </div>
-            <div class="detail-row">
-                <span class="detail-label">Amount Paid:</span>
-                <span class="detail-value" id="amount-paid">Loading...</span>
+
+            <div class="next-steps">
+                <h3>What Happens Next?</h3>
+                <ul>
+                    <li>Confirmation email sent to your inbox</li>
+                    <li>Class reminders will be sent before September 9th</li>
+                    <li>Instructions for Fusion360 software installation</li>
+                    <li>Welcome packet with what to bring to first class</li>
+                </ul>
             </div>
-            <div class="detail-row">
-                <span class="detail-label">Course Start Date:</span>
-                <span class="detail-value">September 9, 2025</span>
-            </div>
-            <div class="detail-row">
-                <span class="detail-label">Location:</span>
-                <span class="detail-value">Shadowbrook Church, Suwanee</span>
+
+            <div class="actions">
+                <a href="app.html" class="btn btn-primary">View My Account</a>
+                <a href="index.html" class="btn btn-outline">Return Home</a>
             </div>
         </div>
 
-        <div class="next-steps">
-            <h3>What Happens Next?</h3>
-            <ul>
-                <li>Confirmation email sent to your inbox</li>
-                <li>Class reminders will be sent before September 9th</li>
-                <li>Instructions for Fusion360 software installation</li>
-                <li>Welcome packet with what to bring to first class</li>
-            </ul>
-        </div>
-
-        <div class="actions">
-            <a href="app.html" class="btn btn-primary">View My Account</a>
-            <a href="index.html" class="btn btn-outline">Return Home</a>
+        <div id="error-state" style="display: none;">
+            <div class="error">
+                <h3>Oops! Something went wrong</h3>
+                <p id="error-message">We couldn't save your enrollment. Please contact support at jeremiah@3djumpstart.com with your session ID.</p>
+            </div>
+            <div class="actions">
+                <a href="app.html" class="btn btn-primary">Try Again</a>
+                <a href="mailto:jeremiah@3djumpstart.com" class="btn btn-outline">Contact Support</a>
+            </div>
         </div>
     </div>
 
     <script>
-        // Get session ID from URL parameters
+        // Configuration
+        const SUPABASE_URL = 'https://hucjmggkasahwpjgnwia.supabase.co';
+        const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imh1Y2ptZ2drYXNhaHdwamdud2lhIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTQ2MTI2MDIsImV4cCI6MjA3MDE4ODYwMn0.hxFmoZexaKverih9crJfP9fjWItOTfC_6D_CM7hr_Rg';
+        
+        const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+        // Get session ID from URL
         const urlParams = new URLSearchParams(window.location.search);
         const sessionId = urlParams.get('session_id');
 
-        // You can fetch session details from Stripe if needed
-        // For now, we'll show basic success message
-        
+        async function processEnrollment() {
+            try {
+                // Check if user is logged in
+                const { data: { session } } = await supabase.auth.getSession();
+                if (!session) {
+                    throw new Error('Not logged in');
+                }
+
+                // Get enrollment data from localStorage (saved before payment)
+                const enrollmentData = localStorage.getItem('pendingEnrollment');
+                if (!enrollmentData) {
+                    // If no data in localStorage, just show success
+                    // (This happens if they refresh the page)
+                    showSuccess();
+                    return;
+                }
+
+                const enrollment = JSON.parse(enrollmentData);
+                
+                // Generate order number
+                const orderNumber = `ORD-${Date.now()}`;
+                
+                // Create order in database
+                const { data: order, error: orderError } = await supabase
+                    .from('orders')
+                    .insert([{
+                        parent_id: session.user.id,
+                        order_number: orderNumber,
+                        payment_method: enrollment.paymentType,
+                        total_amount: enrollment.amounts.total,
+                        amount_paid: enrollment.amounts.paid,
+                        balance_due: enrollment.amounts.balance || 0,
+                        second_payment_due: enrollment.paymentType === 'split' ? '2025-10-15' : null,
+                        status: 'confirmed',
+                        stripe_session_id: sessionId
+                    }])
+                    .select()
+                    .single();
+
+                if (orderError) throw orderError;
+
+                // Create enrollment records for each student
+                const enrollmentRecords = enrollment.students.map(item => ({
+                    order_id: order.id,
+                    student_id: item.student.id,
+                    time_slot: item.timeSlot,
+                    price: enrollment.paymentType === 'full' ? 700 : 720
+                }));
+
+                const { error: enrollmentError } = await supabase
+                    .from('enrollments')
+                    .insert(enrollmentRecords);
+
+                if (enrollmentError) {
+                    console.error('Enrollment error:', enrollmentError);
+                    // Continue anyway - order is saved
+                }
+
+                // Clear the pending enrollment data
+                localStorage.removeItem('pendingEnrollment');
+
+                // Show success with order details
+                document.getElementById('order-number').textContent = orderNumber;
+                document.getElementById('amount-paid').textContent = `$${enrollment.amounts.paid}`;
+                
+                showSuccess();
+
+            } catch (error) {
+                console.error('Error processing enrollment:', error);
+                showError(error.message);
+            }
+        }
+
+        function showSuccess() {
+            document.getElementById('loading-state').style.display = 'none';
+            document.getElementById('success-state').style.display = 'block';
+            document.getElementById('error-state').style.display = 'none';
+            
+            // If we have a session ID, display it
+            if (sessionId) {
+                document.getElementById('order-number').textContent = sessionId.substring(0, 15) + '...';
+            }
+        }
+
+        function showError(message) {
+            document.getElementById('loading-state').style.display = 'none';
+            document.getElementById('success-state').style.display = 'none';
+            document.getElementById('error-state').style.display = 'block';
+            
+            if (message) {
+                document.getElementById('error-message').textContent = message;
+            }
+        }
+
+        // Process enrollment on page load
         if (sessionId) {
-            document.getElementById('order-number').textContent = sessionId.substring(0, 15) + '...';
+            processEnrollment();
+        } else {
+            // No session ID - probably direct navigation
+            showSuccess();
         }
     </script>
 </body>
