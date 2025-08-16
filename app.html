@@ -522,6 +522,16 @@
             overflow-y: auto;
         }
 
+        /* Grade validation warning */
+        .grade-warning {
+            background: #fef3c7;
+            border: 1px solid #f59e0b;
+            border-radius: 0.5rem;
+            padding: 1rem;
+            margin: 1rem 0;
+            color: #92400e;
+        }
+
         /* Responsive */
         @media (max-width: 768px) {
             .form-row {
@@ -636,21 +646,22 @@
                 <div id="cart-message-area"></div>
 
                 <div class="card">
-                    <h2 class="card-title">Available Time Slots</h2>
-                    <p style="color: #6b7280; margin-bottom: 1.5rem;">Tuesday classes at Shadowbrook Church, Suwanee • Level 1 (12 weeks)</p>
+                    <h2 class="card-title">Level 1 Course Information</h2>
+                    <div style="background: #fef3c7; padding: 1.5rem; border-radius: 0.5rem; border-left: 4px solid #f59e0b; margin-bottom: 1.5rem;">
+                        <h3 style="color: #92400e; margin-bottom: 0.5rem;">Professional 3D Design Fundamentals - 12 Week Program</h3>
+                        <p style="color: #92400e; margin: 0;">Students will learn professional Fusion360 CAD software and create their first 3D printed projects. This comprehensive 12-week Level 1 course starts September 9th at Shadowbrook Church, Suwanee.</p>
+                    </div>
                     
-                    <div class="time-slots">
-                        <div class="time-slot" onclick="selectTimeSlot('4:30-5:30pm', '4th-7th Grade')">
-                            <div style="font-weight: 700; color: #ea580c; font-size: 1.125rem;">4:30 - 5:30 PM</div>
-                            <div style="font-size: 0.875rem; color: #6b7280; margin-top: 0.5rem;">4th - 7th Grade</div>
-                            <div style="font-size: 0.875rem; margin-top: 0.5rem;">Ages 9-13</div>
-                            <div style="font-size: 0.75rem; color: #16a34a; margin-top: 0.5rem;">8 spots available</div>
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+                        <div style="background: #f0f9ff; padding: 1rem; border-radius: 0.5rem; border: 2px solid #0ea5e9;">
+                            <div style="font-weight: 700; color: #0ea5e9; font-size: 1.125rem; margin-bottom: 0.5rem;">Tuesday 4:30 - 5:30 PM</div>
+                            <div style="font-size: 0.875rem; color: #0369a1; margin-bottom: 0.25rem;">4th - 7th Grade (Ages 9-13)</div>
+                            <div style="font-size: 0.75rem; color: #16a34a;">8 spots available</div>
                         </div>
-                        <div class="time-slot" onclick="selectTimeSlot('5:30-6:30pm', '8th-12th Grade')">
-                            <div style="font-weight: 700; color: #ea580c; font-size: 1.125rem;">5:30 - 6:30 PM</div>
-                            <div style="font-size: 0.875rem; color: #6b7280; margin-top: 0.5rem;">8th - 12th Grade</div>
-                            <div style="font-size: 0.875rem; margin-top: 0.5rem;">Ages 14-18</div>
-                            <div style="font-size: 0.75rem; color: #16a34a; margin-top: 0.5rem;">10 spots available</div>
+                        <div style="background: #f0f9ff; padding: 1rem; border-radius: 0.5rem; border: 2px solid #0ea5e9;">
+                            <div style="font-weight: 700; color: #0ea5e9; font-size: 1.125rem; margin-bottom: 0.5rem;">Tuesday 5:30 - 6:30 PM</div>
+                            <div style="font-size: 0.875rem; color: #0369a1; margin-bottom: 0.25rem;">8th - 12th Grade (Ages 14-18)</div>
+                            <div style="font-size: 0.75rem; color: #16a34a;">10 spots available</div>
                         </div>
                     </div>
                 </div>
@@ -767,6 +778,18 @@
         </div>
     </div>
 
+    <!-- Grade Validation Modal -->
+    <div id="grade-validation-modal" class="modal hidden">
+        <div class="modal-content">
+            <h3 style="margin-bottom: 1.5rem; font-size: 1.5rem; font-weight: 700;">Confirm Class Assignment</h3>
+            <div id="grade-validation-content"></div>
+            <div style="display: flex; gap: 1rem; margin-top: 2rem; justify-content: flex-end;">
+                <button type="button" onclick="cancelGradeAssignment()" class="btn btn-secondary">Cancel</button>
+                <button type="button" onclick="confirmGradeAssignment()" class="btn btn-primary">Continue Anyway</button>
+            </div>
+        </div>
+    </div>
+
     <script>
         // Configuration
         const SUPABASE_URL = 'https://hucjmggkasahwpjgnwia.supabase.co';
@@ -779,6 +802,7 @@
         let students = [];
         let cart = [];
         let selectedPaymentOption = null;
+        let pendingTimeSlotAssignment = null; // For grade validation
 
         // Initialize app
         document.addEventListener('DOMContentLoaded', async () => {
@@ -1050,14 +1074,14 @@
                         <div style="font-size: 0.875rem; margin-top: 0.5rem;">
                             ${item.timeSlot ? 
                                 `<span style="color: #16a34a; font-weight: 600;">✓ Tuesday ${item.timeSlot}</span>` : 
-                                '<span style="color: #ea580c;">⚠ Select time slot above</span>'
+                                '<span style="color: #ea580c;">⚠ Click "Assign Time" to select class</span>'
                             }
                         </div>
                     </div>
                     <div style="display: flex; flex-direction: column; gap: 0.5rem;">
-                        ${item.timeSlot ? 
-                            `<button onclick="clearTimeSlot(${index})" class="btn btn-secondary" style="font-size: 0.75rem;">Change Time</button>` : 
-                            ''
+                        ${!item.timeSlot ? 
+                            `<button onclick="assignTimeSlot(${index})" class="btn btn-primary" style="font-size: 0.75rem;">Assign Time</button>` : 
+                            `<button onclick="clearTimeSlot(${index})" class="btn btn-secondary" style="font-size: 0.75rem;">Change Time</button>`
                         }
                         <button onclick="removeFromCart(${index})" class="btn btn-danger">Remove</button>
                     </div>
@@ -1081,74 +1105,157 @@
             renderCart();
         }
 
-        // Time slot selection
-        function selectTimeSlot(timeSlot, ageGroup) {
-            if (cart.length === 0) {
-                showMessage('Add students to cart first', 'error', 'cart');
-                return;
-            }
-
-            const availableStudents = cart.filter(item => !item.timeSlot);
-            
-            if (availableStudents.length === 0) {
-                showMessage('All students have time slots assigned', 'info', 'cart');
-                return;
-            }
-
-            if (availableStudents.length === 1) {
-                // Auto-assign to the only available student
-                availableStudents[0].timeSlot = timeSlot;
-                renderCart();
-                showMessage(`${availableStudents[0].student.first_name} assigned to ${timeSlot}`, 'success', 'cart');
-                return;
-            }
-
-            // Show selection modal for multiple students
-            showStudentSelectionModal(availableStudents, timeSlot, ageGroup);
+        // Grade checking helper functions
+        function getGradeLevel(grade) {
+            const gradeMap = {
+                '4th': 4, '5th': 5, '6th': 6, '7th': 7,
+                '8th': 8, '9th': 9, '10th': 10, '11th': 11, '12th': 12
+            };
+            return gradeMap[grade] || 0;
         }
 
-        function showStudentSelectionModal(availableStudents, timeSlot, ageGroup) {
+        function isGradeAppropriate(grade, timeSlot) {
+            const gradeLevel = getGradeLevel(grade);
+            if (timeSlot === '4:30-5:30pm') {
+                return gradeLevel >= 4 && gradeLevel <= 7;
+            } else if (timeSlot === '5:30-6:30pm') {
+                return gradeLevel >= 8 && gradeLevel <= 12;
+            }
+            return false;
+        }
+
+        function getRecommendedTimeSlot(grade) {
+            const gradeLevel = getGradeLevel(grade);
+            if (gradeLevel >= 4 && gradeLevel <= 7) {
+                return '4:30-5:30pm';
+            } else if (gradeLevel >= 8 && gradeLevel <= 12) {
+                return '5:30-6:30pm';
+            }
+            return null;
+        }
+
+        // Solution 3: Individual student time slot assignment
+        function assignTimeSlot(studentIndex) {
+            if (studentIndex < 0 || studentIndex >= cart.length) return;
+            
+            const student = cart[studentIndex].student;
+            const recommendedSlot = getRecommendedTimeSlot(student.grade);
+            
+            if (recommendedSlot) {
+                // Auto-assign to recommended slot
+                cart[studentIndex].timeSlot = recommendedSlot;
+                renderCart();
+                showMessage(`${student.first_name} assigned to recommended time slot`, 'success', 'cart');
+            } else {
+                // Show manual selection for edge cases
+                showTimeSlotSelectionModal(studentIndex);
+            }
+        }
+
+        function showTimeSlotSelectionModal(studentIndex) {
+            const student = cart[studentIndex].student;
+            
             const modalHtml = `
-                <div id="student-selection-modal" class="modal">
+                <div id="time-slot-selection-modal" class="modal">
                     <div class="modal-content">
-                        <h3 style="margin-bottom: 1rem;">Select Student for ${timeSlot}</h3>
-                        <p style="color: #6b7280; margin-bottom: 1.5rem;">Choose which student to enroll in the ${ageGroup} class</p>
-                        <div style="display: flex; flex-direction: column; gap: 0.5rem;">
-             ${availableStudents.map((item, index) => `
-    <button onclick="assignTimeSlot(${index}, '${timeSlot}')" 
-        class="btn btn-outline" 
-        style="width: 100%; text-align: left; padding: 1rem;">
-        <div style="display: flex; justify-content: space-between; align-items: center;">
-            <div>
-                <div style="font-weight: 600;">${item.student.first_name} ${item.student.last_name}</div>
-                <div style="font-size: 0.875rem; color: #6b7280;">
-                    Age ${item.student.age} • ${item.student.grade}
-                </div>
-            </div>
-            <span style="color: #ea580c;">Select →</span>
-        </div>
-    </button>
-`).join('')}
+                        <h3 style="margin-bottom: 1rem;">Select Time Slot for ${student.first_name}</h3>
+                        <p style="color: #6b7280; margin-bottom: 1.5rem;">Choose the appropriate class time for ${student.first_name} (${student.grade})</p>
+                        
+                        <div style="display: flex; flex-direction: column; gap: 1rem;">
+                            <button onclick="selectTimeSlotForStudent(${studentIndex}, '4:30-5:30pm')" 
+                                class="btn ${isGradeAppropriate(student.grade, '4:30-5:30pm') ? 'btn-primary' : 'btn-outline'}" 
+                                style="width: 100%; text-align: left; padding: 1rem;">
+                                <div>
+                                    <div style="font-weight: 600;">Tuesday 4:30-5:30 PM</div>
+                                    <div style="font-size: 0.875rem; color: #6b7280;">4th-7th Grade (Ages 9-13)</div>
+                                    ${!isGradeAppropriate(student.grade, '4:30-5:30pm') ? '<div style="font-size: 0.75rem; color: #dc2626;">⚠ Not typical for this grade</div>' : ''}
+                                </div>
+                            </button>
+                            
+                            <button onclick="selectTimeSlotForStudent(${studentIndex}, '5:30-6:30pm')" 
+                                class="btn ${isGradeAppropriate(student.grade, '5:30-6:30pm') ? 'btn-primary' : 'btn-outline'}" 
+                                style="width: 100%; text-align: left; padding: 1rem;">
+                                <div>
+                                    <div style="font-weight: 600;">Tuesday 5:30-6:30 PM</div>
+                                    <div style="font-size: 0.875rem; color: #6b7280;">8th-12th Grade (Ages 14-18)</div>
+                                    ${!isGradeAppropriate(student.grade, '5:30-6:30pm') ? '<div style="font-size: 0.75rem; color: #dc2626;">⚠ Not typical for this grade</div>' : ''}
+                                </div>
+                            </button>
                         </div>
-                        <button onclick="closeStudentSelectionModal()" class="btn btn-secondary" style="width: 100%; margin-top: 1rem;">Cancel</button>
+                        
+                        <button onclick="closeTimeSlotSelectionModal()" class="btn btn-secondary" style="width: 100%; margin-top: 1rem;">Cancel</button>
                     </div>
                 </div>
             `;
             document.body.insertAdjacentHTML('beforeend', modalHtml);
         }
 
-      function assignTimeSlot(studentIndex, timeSlot) {
-    const studentsWithoutSlot = cart.filter(item => !item.timeSlot);
-    if (studentsWithoutSlot[studentIndex]) {
-        studentsWithoutSlot[studentIndex].timeSlot = timeSlot;
-        closeStudentSelectionModal();
-        renderCart();
-        showMessage(`Time slot assigned successfully`, 'success', 'cart');
-    }
-}
+        // Solution 5: Grade validation with flexibility
+        function selectTimeSlotForStudent(studentIndex, timeSlot) {
+            if (studentIndex < 0 || studentIndex >= cart.length) return;
+            
+            const student = cart[studentIndex].student;
+            
+            if (isGradeAppropriate(student.grade, timeSlot)) {
+                // Grade is appropriate, assign directly
+                cart[studentIndex].timeSlot = timeSlot;
+                closeTimeSlotSelectionModal();
+                renderCart();
+                showMessage(`${student.first_name} assigned to ${timeSlot}`, 'success', 'cart');
+            } else {
+                // Grade validation warning
+                pendingTimeSlotAssignment = { studentIndex, timeSlot };
+                showGradeValidationModal(student, timeSlot);
+            }
+        }
 
-        function closeStudentSelectionModal() {
-            const modal = document.getElementById('student-selection-modal');
+        function showGradeValidationModal(student, timeSlot) {
+            const gradeLevel = getGradeLevel(student.grade);
+            const timeSlotName = timeSlot === '4:30-5:30pm' ? '4:30-5:30 PM (4th-7th Grade)' : '5:30-6:30 PM (8th-12th Grade)';
+            const recommendedSlot = getRecommendedTimeSlot(student.grade);
+            const recommendedName = recommendedSlot === '4:30-5:30pm' ? '4:30-5:30 PM (4th-7th Grade)' : '5:30-6:30 PM (8th-12th Grade)';
+            
+            document.getElementById('grade-validation-content').innerHTML = `
+                <div class="grade-warning">
+                    <h4 style="margin-bottom: 0.5rem;">⚠ Grade Level Notice</h4>
+                    <p style="margin-bottom: 1rem;">
+                        <strong>${student.first_name}</strong> is in <strong>${student.grade}</strong> but you're enrolling them in the <strong>${timeSlotName}</strong> class.
+                    </p>
+                    <p style="margin-bottom: 1rem;">
+                        Based on their grade, we typically recommend the <strong>${recommendedName}</strong> class.
+                    </p>
+                    <p style="margin: 0;">
+                        This is unusual but allowed. Students may benefit from being with peers in different grade ranges. Would you like to continue with this assignment?
+                    </p>
+                </div>
+            `;
+            
+            document.getElementById('grade-validation-modal').classList.remove('hidden');
+        }
+
+        function confirmGradeAssignment() {
+            if (pendingTimeSlotAssignment) {
+                const { studentIndex, timeSlot } = pendingTimeSlotAssignment;
+                cart[studentIndex].timeSlot = timeSlot;
+                
+                document.getElementById('grade-validation-modal').classList.add('hidden');
+                closeTimeSlotSelectionModal();
+                renderCart();
+                
+                const student = cart[studentIndex].student;
+                showMessage(`${student.first_name} assigned to ${timeSlot} (grade override)`, 'success', 'cart');
+                
+                pendingTimeSlotAssignment = null;
+            }
+        }
+
+        function cancelGradeAssignment() {
+            document.getElementById('grade-validation-modal').classList.add('hidden');
+            pendingTimeSlotAssignment = null;
+        }
+
+        function closeTimeSlotSelectionModal() {
+            const modal = document.getElementById('time-slot-selection-modal');
             if (modal) modal.remove();
         }
 
@@ -1254,8 +1361,6 @@
                 btn.disabled = false;
             }
         }
-
-
 
 async function completeOrder() {
     try {
@@ -1391,10 +1496,6 @@ async function completeOrder() {
         }
     }
 }
-
-
-
-
         
         async function logout() {
             await supabase.auth.signOut();
