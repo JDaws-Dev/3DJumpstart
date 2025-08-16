@@ -319,20 +319,20 @@
 
                 if (orderError) throw orderError;
 
-                // Create enrollment records for each student
-                const enrollmentRecords = enrollment.students.map(item => ({
+                // Create order items for each student
+                const orderItems = enrollment.students.map(item => ({
                     order_id: order.id,
                     student_id: item.student.id,
                     time_slot: item.timeSlot,
                     price: enrollment.paymentType === 'full' ? 700 : 720
                 }));
 
-                const { error: enrollmentError } = await supabase
-                    .from('enrollments')
-                    .insert(enrollmentRecords);
+                const { error: itemsError } = await supabase
+                    .from('order_items')
+                    .insert(orderItems);
 
-                if (enrollmentError) {
-                    console.error('Enrollment error:', enrollmentError);
+                if (itemsError) {
+                    console.error('Order items error:', itemsError);
                     // Continue anyway - order is saved
                 }
 
