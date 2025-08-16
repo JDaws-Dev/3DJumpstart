@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>3D Jumpstart Enrollment</title>
+    <title>3D Jumpstart - Parent Portal</title>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.39.3/dist/umd/supabase.min.js"></script>
     <script src="https://js.stripe.com/v3/"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
@@ -70,6 +70,7 @@
             padding: 0.5rem 1rem;
             border-radius: 0.5rem;
             transition: all 0.2s;
+            cursor: pointer;
         }
 
         .nav-link.active, .nav-link:hover {
@@ -99,9 +100,14 @@
             box-shadow: 0 4px 6px -1px rgba(234, 88, 12, 0.25);
         }
 
-        .btn-primary:hover {
+        .btn-primary:hover:not(:disabled) {
             transform: translateY(-1px);
             box-shadow: 0 10px 15px -3px rgba(234, 88, 12, 0.25);
+        }
+
+        .btn-primary:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
         }
 
         .btn-outline {
@@ -127,6 +133,8 @@
         .btn-danger {
             background: #dc2626;
             color: white;
+            padding: 0.5rem 1rem;
+            font-size: 0.75rem;
         }
 
         /* Loading states */
@@ -196,10 +204,6 @@
             margin-bottom: 2rem;
         }
 
-        .card:hover {
-            border-color: #fed7aa;
-        }
-
         .card-title {
             font-size: 1.5rem;
             font-weight: 700;
@@ -219,16 +223,17 @@
             color: #111827;
         }
 
-        .form-input {
+        .form-input, .form-select {
             width: 100%;
             padding: 0.875rem;
             border: 2px solid #e5e7eb;
             border-radius: 0.5rem;
             font-size: 1rem;
             transition: all 0.2s ease;
+            background: white;
         }
 
-        .form-input:focus {
+        .form-input:focus, .form-select:focus {
             outline: none;
             border-color: #ea580c;
             box-shadow: 0 0 0 3px rgba(234, 88, 12, 0.1);
@@ -243,7 +248,7 @@
         /* Students Grid */
         .students-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
             gap: 1.5rem;
             margin-bottom: 2rem;
         }
@@ -255,6 +260,7 @@
             padding: 1.5rem;
             transition: all 0.3s ease;
             box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1);
+            position: relative;
         }
 
         .student-card:hover {
@@ -262,20 +268,47 @@
             transform: translateY(-2px);
         }
 
+        .student-card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: start;
+            margin-bottom: 1rem;
+        }
+
+        .remove-student-btn {
+            background: none;
+            border: none;
+            color: #dc2626;
+            cursor: pointer;
+            font-size: 1.5rem;
+            padding: 0;
+            width: 24px;
+            height: 24px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 0.25rem;
+            transition: background 0.2s;
+        }
+
+        .remove-student-btn:hover {
+            background: #fef2f2;
+        }
+
         .add-student-card {
-            background: linear-gradient(135deg, #ea580c 0%, #dc2626 100%);
-            color: white;
+            background: linear-gradient(135deg, #fed7aa 0%, #fb923c 100%);
             display: flex;
             align-items: center;
             justify-content: center;
             text-align: center;
             cursor: pointer;
-            border: none;
+            border: 2px dashed #ea580c;
             min-height: 200px;
         }
 
         .add-student-card:hover {
             transform: translateY(-4px);
+            background: linear-gradient(135deg, #fb923c 0%, #ea580c 100%);
         }
 
         /* Cart */
@@ -333,6 +366,7 @@
 
         .time-slot:hover {
             border-color: #ea580c;
+            transform: translateY(-2px);
         }
 
         .time-slot.selected {
@@ -352,6 +386,18 @@
             border-radius: 0.5rem;
             margin-bottom: 1rem;
             font-weight: 600;
+            animation: slideIn 0.3s ease;
+        }
+
+        @keyframes slideIn {
+            from {
+                transform: translateY(-10px);
+                opacity: 0;
+            }
+            to {
+                transform: translateY(0);
+                opacity: 1;
+            }
         }
 
         .message.success {
@@ -377,12 +423,15 @@
             display: flex;
             justify-content: center;
             margin-bottom: 2rem;
+            flex-wrap: wrap;
+            gap: 0.5rem;
         }
 
         .progress-step {
             display: flex;
             align-items: center;
             color: #9ca3af;
+            font-weight: 500;
         }
 
         .progress-step.active {
@@ -419,10 +468,12 @@
             padding: 1.5rem;
             cursor: pointer;
             transition: all 0.2s;
+            text-align: center;
         }
 
         .payment-option:hover {
             border-color: #ea580c;
+            transform: translateY(-2px);
         }
 
         .payment-option.selected {
@@ -447,6 +498,30 @@
             color: #6b7280;
         }
 
+        /* Modal */
+        .modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0,0,0,0.7);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+        }
+
+        .modal-content {
+            background: white;
+            border-radius: 1rem;
+            padding: 2rem;
+            max-width: 600px;
+            width: 90%;
+            max-height: 80vh;
+            overflow-y: auto;
+        }
+
         /* Responsive */
         @media (max-width: 768px) {
             .form-row {
@@ -462,7 +537,17 @@
             }
 
             .nav-links {
-                display: none;
+                gap: 0.5rem;
+            }
+
+            .nav-link {
+                padding: 0.5rem;
+                font-size: 0.875rem;
+            }
+
+            .step-divider {
+                width: 1rem;
+                margin: 0 0.5rem;
             }
         }
 
@@ -472,10 +557,10 @@
     </style>
 </head>
 <body>
-    <div id="auth-check" class="loading-screen" style="display: flex; align-items: center; justify-content: center; min-height: 100vh; background: #f9fafb;">
+    <div id="auth-check" style="display: flex; align-items: center; justify-content: center; min-height: 100vh; background: #f9fafb;">
         <div style="text-align: center;">
             <div style="width: 40px; height: 40px; border: 4px solid #ea580c; border-top: 4px solid transparent; border-radius: 50%; animation: spin 1s linear infinite; margin: 0 auto 1rem;"></div>
-            <p style="color: #6b7280;">Verifying access...</p>
+            <p style="color: #6b7280;">Loading enrollment system...</p>
         </div>
     </div>
 
@@ -489,10 +574,10 @@
                     </a>
                     <nav>
                         <ul class="nav-links">
-                            <li><a href="#" onclick="showSection('students')" class="nav-link active">My Students</a></li>
-                            <li><a href="#" onclick="showSection('cart')" class="nav-link">Cart <span id="cart-count" class="hidden">(0)</span></a></li>
-                            <li><a href="#" onclick="showSection('orders')" class="nav-link">My Orders</a></li>
-                            <li><a href="#" onclick="logout()" class="btn btn-secondary">Logout</a></li>
+                            <li><a class="nav-link active" onclick="showSection('students', event)">Students</a></li>
+                            <li><a class="nav-link" onclick="showSection('cart', event)">Cart <span id="cart-count" class="hidden">(0)</span></a></li>
+                            <li><a class="nav-link" onclick="showSection('orders', event)">Orders</a></li>
+                            <li><a class="btn btn-secondary" onclick="logout()">Logout</a></li>
                         </ul>
                     </nav>
                 </div>
@@ -526,8 +611,8 @@
                     <div class="student-card add-student-card" onclick="showAddStudentForm()">
                         <div>
                             <div style="font-size: 3rem; margin-bottom: 1rem;">+</div>
-                            <h3 style="font-weight: 700; margin-bottom: 0.5rem;">Add Student</h3>
-                            <p>Add your child to get started with enrollment</p>
+                            <h3 style="font-weight: 700; margin-bottom: 0.5rem; color: #7c2d12;">Add Student</h3>
+                            <p style="color: #9a3412;">Click to add your child</p>
                         </div>
                     </div>
                 </div>
@@ -552,18 +637,20 @@
 
                 <div class="card">
                     <h2 class="card-title">Available Time Slots</h2>
-                    <p style="color: #6b7280; margin-bottom: 1.5rem;">Tuesday classes at Shadowbrook Church, Suwanee</p>
+                    <p style="color: #6b7280; margin-bottom: 1.5rem;">Tuesday classes at Shadowbrook Church, Suwanee • Level 1 (12 weeks)</p>
                     
                     <div class="time-slots">
-                        <div class="time-slot" data-slot="4:30-5:30" data-ages="4th-7th Grade">
-                            <div style="font-weight: 700; color: #ea580c;">4:30 - 5:30 PM</div>
-                            <div style="font-size: 0.875rem; color: #6b7280;">4th - 7th Grade</div>
+                        <div class="time-slot" onclick="selectTimeSlot('4:30-5:30pm', '4th-7th Grade')">
+                            <div style="font-weight: 700; color: #ea580c; font-size: 1.125rem;">4:30 - 5:30 PM</div>
+                            <div style="font-size: 0.875rem; color: #6b7280; margin-top: 0.5rem;">4th - 7th Grade</div>
                             <div style="font-size: 0.875rem; margin-top: 0.5rem;">Ages 9-13</div>
+                            <div style="font-size: 0.75rem; color: #16a34a; margin-top: 0.5rem;">8 spots available</div>
                         </div>
-                        <div class="time-slot" data-slot="5:30-6:30" data-ages="8th-12th Grade">
-                            <div style="font-weight: 700; color: #ea580c;">5:30 - 6:30 PM</div>
-                            <div style="font-size: 0.875rem; color: #6b7280;">8th - 12th Grade</div>
+                        <div class="time-slot" onclick="selectTimeSlot('5:30-6:30pm', '8th-12th Grade')">
+                            <div style="font-weight: 700; color: #ea580c; font-size: 1.125rem;">5:30 - 6:30 PM</div>
+                            <div style="font-size: 0.875rem; color: #6b7280; margin-top: 0.5rem;">8th - 12th Grade</div>
                             <div style="font-size: 0.875rem; margin-top: 0.5rem;">Ages 14-18</div>
+                            <div style="font-size: 0.75rem; color: #16a34a; margin-top: 0.5rem;">10 spots available</div>
                         </div>
                     </div>
                 </div>
@@ -571,31 +658,31 @@
                 <div class="card">
                     <h2 class="card-title">Your Cart</h2>
                     <div id="cart-items">
-                        <p style="color: #6b7280; font-style: italic;">Select time slots for your students above</p>
+                        <p style="color: #6b7280; font-style: italic;">No students in cart yet. Add students from the previous step.</p>
                     </div>
+                </div>
 
-                    <div id="cart-summary" class="hidden">
-                        <div class="cart-summary">
-                            <h3 style="margin-bottom: 1rem;">Order Summary</h3>
-                            <div id="pricing-breakdown"></div>
-                            
-                            <div class="payment-options">
-                                <div class="payment-option" onclick="selectPaymentOption('full')" id="payment-full">
-                                    <div class="payment-title">Pay in Full</div>
-                                    <div class="payment-amount" id="full-amount">$700</div>
-                                    <div class="payment-description">Complete payment today<br>Save $20!</div>
-                                </div>
-                                <div class="payment-option" onclick="selectPaymentOption('split')" id="payment-split">
-                                    <div class="payment-title">Payment Plan</div>
-                                    <div class="payment-amount" id="split-amount">$360</div>
-                                    <div class="payment-description">$360 today<br>$360 due Oct 15th</div>
-                                </div>
+                <div id="cart-summary" class="hidden">
+                    <div class="cart-summary">
+                        <h3 style="margin-bottom: 1rem;">Order Summary</h3>
+                        <div id="pricing-breakdown"></div>
+                        
+                        <div class="payment-options">
+                            <div class="payment-option" onclick="selectPaymentOption('full')" id="payment-full">
+                                <div class="payment-title">Pay in Full</div>
+                                <div class="payment-amount" id="full-amount">$700</div>
+                                <div class="payment-description">Complete payment today<br><span style="color: #16a34a; font-weight: 600;">Save $20!</span></div>
                             </div>
-
-                            <button onclick="proceedToPayment()" class="btn btn-primary" id="proceed-to-payment-btn" style="width: 100%; margin-top: 1rem;" disabled>
-                                Proceed to Payment
-                            </button>
+                            <div class="payment-option" onclick="selectPaymentOption('split')" id="payment-split">
+                                <div class="payment-title">Payment Plan</div>
+                                <div class="payment-amount" id="split-amount">$360</div>
+                                <div class="payment-description">$360 today<br>$360 due Oct 15th</div>
+                            </div>
                         </div>
+
+                        <button onclick="proceedToPayment()" class="btn btn-primary" id="proceed-to-payment-btn" style="width: 100%; margin-top: 1rem;" disabled>
+                            Proceed to Payment
+                        </button>
                     </div>
                 </div>
             </div>
@@ -619,8 +706,8 @@
     </div>
 
     <!-- Add Student Modal -->
-    <div id="add-student-modal" class="hidden" style="position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.7); display: flex; align-items: center; justify-content: center; z-index: 1000;">
-        <div style="background: white; border-radius: 1rem; padding: 2rem; max-width: 600px; width: 90%; max-height: 80vh; overflow-y: auto;">
+    <div id="add-student-modal" class="modal hidden">
+        <div class="modal-content">
             <h3 style="margin-bottom: 1.5rem; font-size: 1.5rem; font-weight: 700;">Add Student</h3>
             <form id="add-student-form">
                 <div class="form-row">
@@ -637,11 +724,11 @@
                 <div class="form-row">
                     <div class="form-group">
                         <label for="student-age" class="form-label">Age</label>
-                        <input type="number" id="student-age" name="age" class="form-input" min="8" max="18" required>
+                        <input type="number" id="student-age" name="age" class="form-input" min="9" max="18" required>
                     </div>
                     <div class="form-group">
                         <label for="student-grade" class="form-label">Grade</label>
-                        <select id="student-grade" name="grade" class="form-input" required>
+                        <select id="student-grade" name="grade" class="form-select" required>
                             <option value="">Select Grade</option>
                             <option value="4th">4th Grade</option>
                             <option value="5th">5th Grade</option>
@@ -658,10 +745,10 @@
 
                 <div class="form-group">
                     <label for="experience-level" class="form-label">3D Design Experience</label>
-                    <select id="experience-level" name="experienceLevel" class="form-input" required>
+                    <select id="experience-level" name="experienceLevel" class="form-select" required>
                         <option value="">Select Experience Level</option>
                         <option value="None">No prior experience</option>
-                        <option value="Beginner">Some basic experience</option>
+                        <option value="Beginner">Some basic experience (TinkerCAD, etc.)</option>
                         <option value="Intermediate">Comfortable with design software</option>
                         <option value="Advanced">Experienced with CAD/3D modeling</option>
                     </select>
@@ -684,10 +771,8 @@
         // Configuration
         const SUPABASE_URL = 'https://hucjmggkasahwpjgnwia.supabase.co';
         const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imh1Y2ptZ2drYXNhaHdwamdud2lhIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTQ2MTI2MDIsImV4cCI6MjA3MDE4ODYwMn0.hxFmoZexaKverih9crJfP9fjWItOTfC_6D_CM7hr_Rg';
-        const STRIPE_PUBLISHABLE_KEY = 'pk_test_51RtgcnKgkIT46sg7eot6vK6wU29NhxrKr7HLwSW0xsDV1HDsfAGG7Ep3HIvTUms6bfVOzYwiYqBCkPMbJZRnpa3l00jDnP1WuG';
         
         const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-        const stripe = Stripe(STRIPE_PUBLISHABLE_KEY);
 
         // Global variables
         let currentUser = null;
@@ -695,7 +780,7 @@
         let cart = [];
         let selectedPaymentOption = null;
 
-        // App initialization
+        // Initialize app
         document.addEventListener('DOMContentLoaded', async () => {
             await checkAuthAndInit();
         });
@@ -723,7 +808,9 @@
         }
 
         // Navigation
-        function showSection(sectionName) {
+        function showSection(sectionName, event) {
+            if (event) event.preventDefault();
+            
             document.querySelectorAll('.app-section').forEach(section => {
                 section.classList.remove('active');
             });
@@ -732,9 +819,15 @@
             });
             
             document.getElementById(`${sectionName}-section`).classList.add('active');
-            event.target.classList.add('active');
+            
+            const navLink = document.querySelector(`.nav-link[onclick*="${sectionName}"]`);
+            if (navLink) navLink.classList.add('active');
             
             updateProgressSteps(sectionName);
+
+            if (sectionName === 'cart') {
+                renderCart();
+            }
         }
 
         function updateProgressSteps(currentSection) {
@@ -745,13 +838,16 @@
                 const stepElement = document.getElementById(`step-${step}`);
                 const dividers = document.querySelectorAll('.step-divider');
                 
-                if (index < currentIndex) {
-                    stepElement.className = 'progress-step completed';
-                    if (dividers[index]) dividers[index].classList.add('completed');
-                } else if (index === currentIndex) {
-                    stepElement.className = 'progress-step active';
-                } else {
-                    stepElement.className = 'progress-step';
+                if (stepElement) {
+                    if (index < currentIndex) {
+                        stepElement.className = 'progress-step completed';
+                        if (dividers[index]) dividers[index].classList.add('completed');
+                    } else if (index === currentIndex) {
+                        stepElement.className = 'progress-step active';
+                    } else {
+                        stepElement.className = 'progress-step';
+                        if (dividers[index - 1]) dividers[index - 1].classList.remove('completed');
+                    }
                 }
             });
         }
@@ -773,7 +869,7 @@
                 
             } catch (error) {
                 console.error('Error loading students:', error);
-                showMessage('Error loading students', 'error');
+                showMessage('Error loading students. Please refresh the page.', 'error');
             }
         }
 
@@ -783,30 +879,35 @@
             // Clear existing cards except add button
             const addCard = grid.querySelector('.add-student-card');
             grid.innerHTML = '';
-            grid.appendChild(addCard);
-
-            students.forEach((student, index) => {
+            
+            students.forEach(student => {
                 const studentCard = document.createElement('div');
                 studentCard.className = 'student-card';
                 
+                const inCart = cart.some(item => item.student.id === student.id);
+                
                 studentCard.innerHTML = `
-                    <div style="display: flex; justify-content: between; align-items: start; margin-bottom: 1rem;">
+                    <div class="student-card-header">
                         <h3 style="font-weight: 700; margin: 0;">${student.first_name} ${student.last_name}</h3>
-                        <button onclick="removeStudent(${student.id})" style="background: none; border: none; color: #dc2626; cursor: pointer; padding: 0.25rem;">×</button>
+                        <button onclick="removeStudent(${student.id})" class="remove-student-btn" title="Remove student">×</button>
                     </div>
                     <p style="margin-bottom: 0.5rem;"><strong>Age:</strong> ${student.age} • <strong>Grade:</strong> ${student.grade}</p>
                     <p style="margin-bottom: 1rem;"><strong>Experience:</strong> ${student.experience_level}</p>
                     ${student.special_considerations ? `<p style="font-size: 0.875rem; color: #6b7280; margin-bottom: 1rem;"><strong>Notes:</strong> ${student.special_considerations}</p>` : ''}
                     
-                    <div style="margin-top: 1rem;">
-                        <button onclick="addToCart(${student.id})" class="btn btn-outline" style="font-size: 0.75rem;">
-                            Add to Cart
-                        </button>
+                    <div style="margin-top: auto;">
+                        ${inCart ? 
+                            '<button class="btn btn-success" style="width: 100%;" disabled>✓ In Cart</button>' :
+                            `<button onclick="addToCart(${student.id})" class="btn btn-outline" style="width: 100%;">Add to Cart</button>`
+                        }
                     </div>
                 `;
                 
                 grid.appendChild(studentCard);
             });
+
+            // Add the "Add Student" card at the end
+            grid.appendChild(addCard);
         }
 
         function showAddStudentForm() {
@@ -828,6 +929,10 @@
                     .eq('id', studentId);
 
                 if (error) throw error;
+
+                // Also remove from cart if present
+                cart = cart.filter(item => item.student.id !== studentId);
+                updateCartCount();
 
                 await loadStudents();
                 showMessage('Student removed successfully', 'success');
@@ -869,7 +974,7 @@
                 
             } catch (error) {
                 console.error('Error adding student:', error);
-                showMessage('Error adding student', 'error');
+                showMessage('Error adding student. Please try again.', 'error');
             } finally {
                 submitBtn.classList.remove('loading');
                 submitBtn.disabled = false;
@@ -883,7 +988,7 @@
 
             // Check if student already in cart
             if (cart.find(item => item.student.id === studentId)) {
-                showMessage(`${student.first_name} is already in your cart`, 'error');
+                showMessage(`${student.first_name} is already in your cart`, 'info');
                 return;
             }
 
@@ -894,7 +999,8 @@
             });
 
             updateCartCount();
-            showMessage(`${student.first_name} added to cart`, 'success');
+            renderStudents(); // Update button states
+            showMessage(`${student.first_name} added to cart!`, 'success');
         }
 
         function updateCartCount() {
@@ -905,18 +1011,27 @@
             } else {
                 countElement.classList.add('hidden');
             }
+            updateProceedButton();
+        }
+
+        function updateProceedButton() {
+            const btn = document.getElementById('proceed-to-cart-btn');
+            btn.disabled = cart.length === 0;
         }
 
         function proceedToCart() {
+            if (cart.length === 0) {
+                showMessage('Add at least one student to continue', 'error');
+                return;
+            }
             showSection('cart');
-            renderCart();
         }
 
         function renderCart() {
             const cartItems = document.getElementById('cart-items');
             
             if (cart.length === 0) {
-                cartItems.innerHTML = '<p style="color: #6b7280; font-style: italic;">Your cart is empty. Add students from the previous step.</p>';
+                cartItems.innerHTML = '<p style="color: #6b7280; font-style: italic;">No students in cart yet. Add students from the previous step.</p>';
                 document.getElementById('cart-summary').classList.add('hidden');
                 return;
             }
@@ -924,19 +1039,23 @@
             cartItems.innerHTML = cart.map((item, index) => `
                 <div class="cart-item">
                     <div>
-                        <div style="font-weight: 600;">${item.student.first_name} ${item.student.last_name}</div>
+                        <div style="font-weight: 600; font-size: 1.125rem;">${item.student.first_name} ${item.student.last_name}</div>
                         <div style="font-size: 0.875rem; color: #6b7280;">
-                            Age ${item.student.age} • ${item.student.grade} • ${item.student.experience_level}
+                            Age ${item.student.age} • ${item.student.grade} • ${item.student.experience_level} experience
                         </div>
                         <div style="font-size: 0.875rem; margin-top: 0.5rem;">
                             ${item.timeSlot ? 
-                                `<span style="color: #16a34a; font-weight: 600;">✓ ${item.timeSlot}</span>` : 
-                                '<span style="color: #ea580c;">Select time slot above</span>'
+                                `<span style="color: #16a34a; font-weight: 600;">✓ Tuesday ${item.timeSlot}</span>` : 
+                                '<span style="color: #ea580c;">⚠ Select time slot above</span>'
                             }
                         </div>
                     </div>
-                    <div>
-                        <button onclick="removeFromCart(${index})" class="btn btn-danger" style="font-size: 0.75rem; padding: 0.5rem;">Remove</button>
+                    <div style="display: flex; flex-direction: column; gap: 0.5rem;">
+                        ${item.timeSlot ? 
+                            `<button onclick="clearTimeSlot(${index})" class="btn btn-secondary" style="font-size: 0.75rem;">Change Time</button>` : 
+                            ''
+                        }
+                        <button onclick="removeFromCart(${index})" class="btn btn-danger">Remove</button>
                     </div>
                 </div>
             `).join('');
@@ -945,48 +1064,88 @@
         }
 
         function removeFromCart(index) {
+            const student = cart[index].student;
             cart.splice(index, 1);
             updateCartCount();
+            renderCart();
+            renderStudents(); // Update button states
+            showMessage(`${student.first_name} removed from cart`, 'info', 'cart');
+        }
+
+        function clearTimeSlot(index) {
+            cart[index].timeSlot = null;
             renderCart();
         }
 
         // Time slot selection
-        document.querySelectorAll('.time-slot').forEach(slot => {
-            slot.addEventListener('click', () => {
-                // Show modal to select which student
-                selectStudentForTimeSlot(slot.dataset.slot, slot.dataset.ages);
-            });
-        });
-
-        function selectStudentForTimeSlot(timeSlot, ageGroup) {
-            const studentsWithoutSlot = cart.filter(item => !item.timeSlot);
-            
-            if (studentsWithoutSlot.length === 0) {
-                showMessage('All students already have time slots selected', 'error', 'cart');
+        function selectTimeSlot(timeSlot, ageGroup) {
+            if (cart.length === 0) {
+                showMessage('Add students to cart first', 'error', 'cart');
                 return;
             }
 
-            if (studentsWithoutSlot.length === 1) {
-                // Auto-assign to the only student without a slot
-                studentsWithoutSlot[0].timeSlot = timeSlot;
-                renderCart();
-                showMessage(`Time slot assigned to ${studentsWithoutSlot[0].student.first_name}`, 'success', 'cart');
+            const availableStudents = cart.filter(item => !item.timeSlot);
+            
+            if (availableStudents.length === 0) {
+                showMessage('All students have time slots assigned', 'info', 'cart');
                 return;
             }
 
-            // Multiple students - show selection modal (simplified for now)
-            const studentNames = studentsWithoutSlot.map((item, index) => 
-                `${index + 1}. ${item.student.first_name} ${item.student.last_name}`
-            ).join('\n');
-            
-            const selection = prompt(`Select student for ${timeSlot} (${ageGroup}):\n${studentNames}\n\nEnter number:`);
-            const selectedIndex = parseInt(selection) - 1;
-            
-            if (selectedIndex >= 0 && selectedIndex < studentsWithoutSlot.length) {
-                studentsWithoutSlot[selectedIndex].timeSlot = timeSlot;
+            if (availableStudents.length === 1) {
+                // Auto-assign to the only available student
+                availableStudents[0].timeSlot = timeSlot;
                 renderCart();
-                showMessage(`Time slot assigned to ${studentsWithoutSlot[selectedIndex].student.first_name}`, 'success', 'cart');
+                showMessage(`${availableStudents[0].student.first_name} assigned to ${timeSlot}`, 'success', 'cart');
+                return;
             }
+
+            // Show selection modal for multiple students
+            showStudentSelectionModal(availableStudents, timeSlot, ageGroup);
+        }
+
+        function showStudentSelectionModal(availableStudents, timeSlot, ageGroup) {
+            const modalHtml = `
+                <div id="student-selection-modal" class="modal">
+                    <div class="modal-content">
+                        <h3 style="margin-bottom: 1rem;">Select Student for ${timeSlot}</h3>
+                        <p style="color: #6b7280; margin-bottom: 1.5rem;">Choose which student to enroll in the ${ageGroup} class</p>
+                        <div style="display: flex; flex-direction: column; gap: 0.5rem;">
+                            ${availableStudents.map(item => `
+                                <button onclick="assignTimeSlot('${item.student.id}', '${timeSlot}')" 
+                                    class="btn btn-outline" 
+                                    style="width: 100%; text-align: left; padding: 1rem;">
+                                    <div style="display: flex; justify-content: space-between; align-items: center;">
+                                        <div>
+                                            <div style="font-weight: 600;">${item.student.first_name} ${item.student.last_name}</div>
+                                            <div style="font-size: 0.875rem; color: #6b7280;">
+                                                Age ${item.student.age} • ${item.student.grade}
+                                            </div>
+                                        </div>
+                                        <span style="color: #ea580c;">Select →</span>
+                                    </div>
+                                </button>
+                            `).join('')}
+                        </div>
+                        <button onclick="closeStudentSelectionModal()" class="btn btn-secondary" style="width: 100%; margin-top: 1rem;">Cancel</button>
+                    </div>
+                </div>
+            `;
+            document.body.insertAdjacentHTML('beforeend', modalHtml);
+        }
+
+        function assignTimeSlot(studentId, timeSlot) {
+            const cartItem = cart.find(item => item.student.id === parseInt(studentId));
+            if (cartItem) {
+                cartItem.timeSlot = timeSlot;
+                closeStudentSelectionModal();
+                renderCart();
+                showMessage(`Time slot assigned successfully`, 'success', 'cart');
+            }
+        }
+
+        function closeStudentSelectionModal() {
+            const modal = document.getElementById('student-selection-modal');
+            if (modal) modal.remove();
         }
 
         function updateCartSummary() {
@@ -999,41 +1158,53 @@
 
             document.getElementById('cart-summary').classList.remove('hidden');
             
-            const basePrice = 720; // $720 per student (was $700 + $20 for split payment)
-            const subtotal = studentsWithSlots.length * basePrice;
+            // Pricing: $720 split payment, $700 pay in full
+            const splitPrice = 720;
+            const fullPrice = 700;
             const multiChildDiscount = studentsWithSlots.length > 1 ? 50 : 0;
-            const total = subtotal - multiChildDiscount;
             
-            // Payment options
-            const fullPayDiscount = 20;
-            const fullPayTotal = total - (studentsWithSlots.length * fullPayDiscount);
-            const splitPayFirst = Math.ceil(total / 2);
+            const splitTotal = (studentsWithSlots.length * splitPrice) - multiChildDiscount;
+            const fullTotal = (studentsWithSlots.length * fullPrice) - multiChildDiscount;
+            
+            const splitFirst = 360 * studentsWithSlots.length - (multiChildDiscount > 0 ? 25 : 0);
+            const splitSecond = splitTotal - splitFirst;
             
             document.getElementById('pricing-breakdown').innerHTML = `
                 <div class="price-row">
-                    <span>Students (${studentsWithSlots.length} × $720)</span>
-                    <span>$${subtotal}</span>
+                    <span>${studentsWithSlots.length} student${studentsWithSlots.length > 1 ? 's' : ''}</span>
+                    <span>$${studentsWithSlots.length * splitPrice}</span>
                 </div>
                 ${multiChildDiscount > 0 ? `
                 <div class="price-row">
                     <span>Multi-child discount</span>
-                    <span>-$${multiChildDiscount}</span>
+                    <span style="color: #16a34a;">-$${multiChildDiscount}</span>
                 </div>
                 ` : ''}
-                <div class="price-row">
-                    <span>Subtotal</span>
-                    <span>$${total}</span>
-                </div>
             `;
 
-            document.getElementById('full-amount').textContent = `$${fullPayTotal}`;
-            document.getElementById('split-amount').textContent = `$${splitPayFirst}`;
+            document.getElementById('full-amount').textContent = `$${fullTotal}`;
+            document.getElementById('split-amount').textContent = `$${splitFirst}`;
             
-            // Update payment option descriptions
+            const savings = splitTotal - fullTotal;
             document.querySelector('#payment-full .payment-description').innerHTML = 
-                `Complete payment today<br>Save $${studentsWithSlots.length * fullPayDiscount}!`;
+                `Complete payment today<br><span style="color: #16a34a; font-weight: 600;">Save $${savings}!</span>`;
             document.querySelector('#payment-split .payment-description').innerHTML = 
-                `$${splitPayFirst} today<br>$${total - splitPayFirst} due Oct 15th`;
+                `$${splitFirst} today<br>$${splitSecond} due Oct 15th`;
+
+            // Store amounts for payment processing
+            window.paymentAmounts = {
+                full: fullTotal,
+                splitFirst: splitFirst,
+                splitSecond: splitSecond,
+                splitTotal: splitTotal,
+                students: studentsWithSlots
+            };
+
+            // Enable payment button if all students have slots
+            const allHaveSlots = cart.length > 0 && cart.every(item => item.timeSlot);
+            if (allHaveSlots && selectedPaymentOption) {
+                document.getElementById('proceed-to-payment-btn').disabled = false;
+            }
         }
 
         function selectPaymentOption(option) {
@@ -1044,22 +1215,115 @@
             });
             
             document.getElementById(`payment-${option}`).classList.add('selected');
-            document.getElementById('proceed-to-payment-btn').disabled = false;
+            
+            const allHaveSlots = cart.length > 0 && cart.every(item => item.timeSlot);
+            document.getElementById('proceed-to-payment-btn').disabled = !allHaveSlots;
         }
 
-        function proceedToPayment() {
+        async function proceedToPayment() {
             if (!selectedPaymentOption) {
                 showMessage('Please select a payment option', 'error', 'cart');
                 return;
             }
 
-            // Here you would integrate with Stripe
-            showMessage('Payment processing would happen here...', 'info', 'cart');
+            const btn = document.getElementById('proceed-to-payment-btn');
+            btn.classList.add('loading');
+            btn.disabled = true;
+
+            try {
+                // Simulate payment processing
+                showMessage('Processing payment...', 'info', 'cart');
+                
+                // In production, you would:
+                // 1. Create Stripe checkout session
+                // 2. Redirect to Stripe
+                // 3. Handle webhook callback
+                
+                setTimeout(() => {
+                    completeOrder();
+                }, 2000);
+                
+            } catch (error) {
+                console.error('Payment error:', error);
+                showMessage('Payment processing error. Please try again.', 'error', 'cart');
+                btn.classList.remove('loading');
+                btn.disabled = false;
+            }
         }
 
-        function updateProceedButton() {
-            const btn = document.getElementById('proceed-to-cart-btn');
-            btn.disabled = students.length === 0;
+        function completeOrder() {
+            const orderData = {
+                payment_method: selectedPaymentOption,
+                amount_paid: selectedPaymentOption === 'full' ? 
+                    window.paymentAmounts.full : 
+                    window.paymentAmounts.splitFirst,
+                balance_due: selectedPaymentOption === 'split' ? 
+                    window.paymentAmounts.splitSecond : 0,
+                students: cart.map(item => ({
+                    name: `${item.student.first_name} ${item.student.last_name}`,
+                    timeSlot: item.timeSlot
+                }))
+            };
+
+            // Clear cart
+            cart = [];
+            updateCartCount();
+            selectedPaymentOption = null;
+            
+            // Show confirmation
+            showSection('orders');
+            updateProgressSteps('complete');
+            
+            document.getElementById('orders-list').innerHTML = `
+                <div class="card" style="border-color: #16a34a; background: linear-gradient(135deg, #f0fdf4 0%, #dcfce7 100%);">
+                    <h2 style="color: #16a34a; margin-bottom: 1.5rem; font-size: 2rem;">✓ Enrollment Complete!</h2>
+                    
+                    <div style="background: white; padding: 1.5rem; border-radius: 0.5rem; margin-bottom: 1.5rem;">
+                        <h3 style="margin-bottom: 1rem;">Enrolled Students:</h3>
+                        ${orderData.students.map(s => `
+                            <div style="padding: 0.75rem; border-bottom: 1px solid #e5e7eb;">
+                                <strong style="font-size: 1.125rem;">${s.name}</strong><br>
+                                <span style="color: #6b7280;">Tuesday ${s.timeSlot} • Level 1</span>
+                            </div>
+                        `).join('')}
+                    </div>
+                    
+                    <div style="background: white; padding: 1.5rem; border-radius: 0.5rem; margin-bottom: 1.5rem;">
+                        <h3 style="margin-bottom: 1rem;">Payment Details:</h3>
+                        <div style="display: flex; justify-content: space-between; margin-bottom: 0.5rem;">
+                            <span>Payment Method:</span>
+                            <strong>${orderData.payment_method === 'full' ? 'Paid in Full' : 'Payment Plan'}</strong>
+                        </div>
+                        <div style="display: flex; justify-content: space-between; margin-bottom: 0.5rem;">
+                            <span>Amount Paid:</span>
+                            <strong style="color: #16a34a;">$${orderData.amount_paid}</strong>
+                        </div>
+                        ${orderData.balance_due > 0 ? `
+                        <div style="display: flex; justify-content: space-between; padding-top: 0.5rem; border-top: 1px solid #e5e7eb;">
+                            <span>Balance Due Oct 15:</span>
+                            <strong style="color: #ea580c;">$${orderData.balance_due}</strong>
+                        </div>
+                        ` : ''}
+                    </div>
+                    
+                    <div style="background: #fef3c7; padding: 1.5rem; border-radius: 0.5rem; border-left: 4px solid #f59e0b;">
+                        <h3 style="margin-bottom: 1rem; color: #92400e;">Important Information:</h3>
+                        <ul style="list-style: none; padding: 0;">
+                            <li style="margin-bottom: 0.5rem;">📅 Classes begin: <strong>September 9, 2025</strong></li>
+                            <li style="margin-bottom: 0.5rem;">📍 Location: <strong>Shadowbrook Church, Suwanee</strong></li>
+                            <li style="margin-bottom: 0.5rem;">📧 Confirmation email sent to: <strong>${currentUser.email}</strong></li>
+                            <li style="margin-bottom: 0.5rem;">💻 Students will need: <strong>Laptop with Fusion360 installed</strong></li>
+                            <li>❓ Questions? Email <strong>jeremiah@3djumpstart.com</strong></li>
+                        </ul>
+                    </div>
+                    
+                    <div style="text-align: center; margin-top: 2rem;">
+                        <button onclick="window.location.href='index.html'" class="btn btn-primary">
+                            Return to Homepage
+                        </button>
+                    </div>
+                </div>
+            `;
         }
 
         async function logout() {
@@ -1067,8 +1331,10 @@
             window.location.href = 'index.html';
         }
 
-        function showMessage(message, type, section = 'students') {
-            const messageArea = document.getElementById(`${section === 'cart' ? 'cart-' : ''}message-area`);
+        function showMessage(message, type, section = 'message') {
+            const messageArea = document.getElementById(`${section}-area`) || document.getElementById('message-area');
+            if (!messageArea) return;
+            
             messageArea.innerHTML = `<div class="message ${type}">${message}</div>`;
             
             setTimeout(() => {
