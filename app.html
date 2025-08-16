@@ -1353,7 +1353,7 @@
             document.getElementById('proceed-to-payment-btn').disabled = !allHaveSlots;
         }
 
-        async function proceedToPayment() {
+async function proceedToPayment() {
             if (!selectedPaymentOption) {
                 showMessage('Please select a payment option', 'error', 'cart');
                 return;
@@ -1364,21 +1364,37 @@
             btn.disabled = true;
 
             try {
-                // Simulate payment processing
-                showMessage('Processing payment...', 'info', 'cart');
+                showMessage('Creating secure payment session...', 'info', 'cart');
                 
-                // In production, you would:
-                // 1. Create Stripe checkout session
-                // 2. Redirect to Stripe
-                // 3. Handle webhook callback
+                // Prepare payment data
+                const paymentData = {
+                    paymentType: selectedPaymentOption,
+                    students: cart.filter(item => item.timeSlot),
+                    amounts: window.paymentAmounts,
+                    customerEmail: currentUser.email
+                };
+
+                // Call our Vercel API to create Stripe checkout session
+                const response = await fetch('/api/create-checkout', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(paymentData)
+                });
+
+                if (!response.ok) {
+                    throw new Error('Failed to create payment session');
+                }
+
+                const { url } = await response.json();
                 
-                setTimeout(() => {
-                    completeOrder();
-                }, 2000);
+                // Redirect to Stripe Checkout
+                window.location.href = url;
                 
             } catch (error) {
                 console.error('Payment error:', error);
-                showMessage('Payment processing error. Please try again.', 'error', 'cart');
+                showMessage('Payment setup failed. Please try again or contact support.', 'error', 'cart');
                 btn.classList.remove('loading');
                 btn.disabled = false;
             }
