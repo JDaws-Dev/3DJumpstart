@@ -3,8 +3,88 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>3D Jumpstart - Professional 3D Design Classes | North Gwinnett</title>
+    <title>3D Jumpstart - Professional 3D Design Classes | Suwanee, GA | North Gwinnett STEM Education</title>
+    
+    <!-- SEO Meta Tags -->
+    <meta name="description" content="Professional 3D design and printing classes for students 4th grade+ in North Gwinnett. Learn Fusion360 CAD software at Shadowbrook Church, Suwanee. Level 1 starts Sept 9th.">
+    <meta name="keywords" content="3D printing classes, Fusion360 training, STEM education, Suwanee Georgia, North Gwinnett, after school programs, CAD classes, 3D design for kids">
+    <meta name="author" content="3D Jumpstart">
+    <link rel="canonical" href="https://3djumpstart.com/">
+
+    <!-- Open Graph for Facebook/LinkedIn -->
+    <meta property="og:title" content="3D Jumpstart - Professional 3D Design Classes | North Gwinnett">
+    <meta property="og:description" content="Professional 3D design and printing classes for students 4th grade+. Learn Fusion360 CAD software. Level 1 starts Sept 9th at Shadowbrook Church, Suwanee.">
+    <meta property="og:image" content="https://raw.githubusercontent.com/JDaws-Dev/3DJumpstart/main/3d-jumpstart-social-thumbnail.jpg">
+    <meta property="og:url" content="https://3djumpstart.com/">
+    <meta property="og:type" content="website">
+    <meta property="og:site_name" content="3D Jumpstart">
+
+    <!-- Twitter Cards -->
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="3D Jumpstart - Professional 3D Design Classes">
+    <meta name="twitter:description" content="Professional 3D design and printing classes for students 4th grade+. Learn Fusion360 CAD software.">
+    <meta name="twitter:image" content="https://raw.githubusercontent.com/JDaws-Dev/3DJumpstart/main/3d-jumpstart-social-thumbnail.jpg">
+
+    <!-- Favicon -->
+    <link rel="icon" type="image/x-icon" href="https://raw.githubusercontent.com/JDaws-Dev/3DJumpstart/main/favicon.ico">
+    <link rel="apple-touch-icon" href="https://raw.githubusercontent.com/JDaws-Dev/3DJumpstart/main/apple-touch-icon.png">
+
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    
+    <!-- Local Business Structured Data -->
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "EducationalOrganization",
+      "name": "3D Jumpstart",
+      "description": "Professional 3D design and printing classes for students 4th grade and up",
+      "url": "https://3djumpstart.com",
+      "logo": "https://raw.githubusercontent.com/JDaws-Dev/3DJumpstart/main/3d-jumpstart-logo.png",
+      "image": "https://raw.githubusercontent.com/JDaws-Dev/3DJumpstart/main/3d-jumpstart-social-thumbnail.jpg",
+      "address": {
+        "@type": "PostalAddress",
+        "streetAddress": "Shadowbrook Church",
+        "addressLocality": "Suwanee",
+        "addressRegion": "GA",
+        "addressCountry": "US"
+      },
+      "contactPoint": {
+        "@type": "ContactPoint",
+        "email": "jeremiah@3djumpstart.com",
+        "contactType": "customer service"
+      },
+      "offers": [
+        {
+          "@type": "Offer",
+          "name": "Level 1 3D Design Course - Pay in Full",
+          "price": "700",
+          "priceCurrency": "USD",
+          "description": "12-week professional 3D design course using Fusion360 software"
+        },
+        {
+          "@type": "Offer", 
+          "name": "Level 1 3D Design Course - Payment Plan",
+          "price": "720",
+          "priceCurrency": "USD",
+          "description": "12-week professional 3D design course with split payment option"
+        }
+      ],
+      "areaServed": {
+        "@type": "GeoCircle",
+        "geoMidpoint": {
+          "@type": "GeoCoordinates",
+          "latitude": 34.051,
+          "longitude": -84.071
+        },
+        "geoRadius": "25000"
+      },
+      "audience": {
+        "@type": "EducationalAudience",
+        "educationalRole": "student",
+        "audienceType": "children ages 9-18"
+      }
+    }
+    </script>
     <style>
         * {
             margin: 0;
@@ -77,6 +157,48 @@
         }
 
         .nav-links a:hover {
+            color: #ea580c;
+        }
+
+        .mobile-menu-toggle {
+            display: none;
+            background: none;
+            border: none;
+            font-size: 1.5rem;
+            color: #6b7280;
+            cursor: pointer;
+            padding: 0.5rem;
+        }
+
+        .mobile-menu {
+            display: none;
+            position: absolute;
+            top: 100%;
+            right: 0;
+            background: white;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+            border-radius: 0.5rem;
+            padding: 1rem;
+            min-width: 200px;
+            z-index: 100;
+        }
+
+        .mobile-menu.active {
+            display: block;
+        }
+
+        .mobile-menu a {
+            display: block;
+            padding: 0.75rem 1rem;
+            color: #6b7280;
+            text-decoration: none;
+            border-radius: 0.5rem;
+            margin-bottom: 0.5rem;
+            transition: all 0.2s;
+        }
+
+        .mobile-menu a:hover {
+            background: #fed7aa;
             color: #ea580c;
         }
 
@@ -441,6 +563,10 @@
             .nav-links {
                 display: none;
             }
+
+            .mobile-menu-toggle {
+                display: block;
+            }
             
             .logo-image {
                 height: 6rem;
@@ -480,7 +606,7 @@
                 <a href="index.html" class="logo">
                     <img src="https://raw.githubusercontent.com/JDaws-Dev/3DJumpstart/main/3d-jumpstart-logo.png" alt="3D Jumpstart Logo" class="logo-image">
                 </a>
-                <nav>
+                <nav style="position: relative;">
                     <ul class="nav-links">
                         <li><a href="#home">Home</a></li>
                         <li><a href="#projects">Projects</a></li>
@@ -488,6 +614,16 @@
                         <li><a href="#pricing">Pricing</a></li>
                         <li><a href="login.html" class="btn btn-primary">Sign Up / Login</a></li>
                     </ul>
+                    
+                    <button class="mobile-menu-toggle" onclick="toggleMobileMenu()">☰</button>
+                    
+                    <div class="mobile-menu" id="mobile-menu">
+                        <a href="#home" onclick="closeMobileMenu()">Home</a>
+                        <a href="#projects" onclick="closeMobileMenu()">Projects</a>
+                        <a href="#instructor" onclick="closeMobileMenu()">Instructor</a>
+                        <a href="#pricing" onclick="closeMobileMenu()">Pricing</a>
+                        <a href="login.html" class="btn btn-primary" style="margin-top: 0.5rem;">Sign Up / Login</a>
+                    </div>
                 </nav>
             </div>
         </div>
@@ -913,6 +1049,27 @@
 
             if (videoSection) {
                 observer.observe(videoSection);
+            }
+        });
+
+        // Mobile menu functions
+        function toggleMobileMenu() {
+            const menu = document.getElementById('mobile-menu');
+            menu.classList.toggle('active');
+        }
+
+        function closeMobileMenu() {
+            const menu = document.getElementById('mobile-menu');
+            menu.classList.remove('active');
+        }
+
+        // Close mobile menu when clicking outside
+        document.addEventListener('click', function(e) {
+            const menu = document.getElementById('mobile-menu');
+            const toggle = document.querySelector('.mobile-menu-toggle');
+            
+            if (!menu.contains(e.target) && !toggle.contains(e.target)) {
+                menu.classList.remove('active');
             }
         });
     </script>
