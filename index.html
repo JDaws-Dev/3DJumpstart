@@ -52,7 +52,7 @@
         }
 
         .logo-image {
-            height: 6rem;
+            height: 8rem;
             width: auto;
             transition: transform 0.3s ease;
         }
@@ -257,6 +257,10 @@
             grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
             gap: 2rem;
             margin-top: 3rem;
+            justify-items: center;
+            max-width: 1000px;
+            margin-left: auto;
+            margin-right: auto;
         }
 
         .feature-card {
@@ -439,7 +443,7 @@
             }
             
             .logo-image {
-                height: 4.5rem;
+                height: 6rem;
             }
             
             .hero-actions {
@@ -882,7 +886,7 @@
             }
         });
 
-        // Auto-play video when scrolled into view
+        // Auto-play video when scrolled into view (with delay)
         document.addEventListener('DOMContentLoaded', function() {
             const video = document.getElementById('intro-video');
             const videoSection = video.closest('section');
@@ -890,19 +894,21 @@
             const observer = new IntersectionObserver((entries) => {
                 entries.forEach(entry => {
                     if (entry.isIntersecting) {
-                        // Video is in view - ensure autoplay is triggered
-                        const currentSrc = video.src;
-                        if (!currentSrc.includes('autoplay=1')) {
-                            // Add autoplay if not already present
-                            const separator = currentSrc.includes('?') ? '&' : '?';
-                            video.src = currentSrc + separator + 'autoplay=1&mute=1';
-                        }
+                        // Add a 2-second delay to give people time to unmute
+                        setTimeout(() => {
+                            const currentSrc = video.src;
+                            if (!currentSrc.includes('autoplay=1')) {
+                                // Add autoplay if not already present
+                                const separator = currentSrc.includes('?') ? '&' : '?';
+                                video.src = currentSrc + separator + 'autoplay=1&mute=1';
+                            }
+                        }, 2000);
                         // Stop observing once triggered
                         observer.unobserve(entry.target);
                     }
                 });
             }, {
-                threshold: 0.5 // Trigger when 50% of video section is visible
+                threshold: 0.3 // Trigger when 30% of video section is visible
             });
 
             if (videoSection) {
