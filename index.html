@@ -4,8 +4,6 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>3D Jumpstart - Professional 3D Design Classes | North Gwinnett</title>
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.39.3/dist/umd/supabase.min.js"></script>
-    <script src="https://js.stripe.com/v3/"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <style>
         * {
@@ -63,12 +61,6 @@
             transform: scale(1.05);
         }
 
-        .logo-text {
-            font-size: 1.5rem;
-            font-weight: 700;
-            color: #111827;
-        }
-
         .nav-links {
             display: flex;
             align-items: center;
@@ -86,10 +78,6 @@
 
         .nav-links a:hover {
             color: #ea580c;
-        }
-
-        .hidden {
-            display: none !important;
         }
 
         /* Buttons */
@@ -127,60 +115,6 @@
 
         .btn-outline:hover {
             background: #fed7aa;
-        }
-
-        .btn-secondary {
-            background: #6b7280;
-            color: white;
-        }
-
-        .btn-secondary:hover {
-            background: #4b5563;
-        }
-
-        .btn-success {
-            background: #16a34a;
-            color: white;
-        }
-
-        .btn-success:hover {
-            background: #15803d;
-        }
-
-        .btn-danger {
-            background: #dc2626;
-            color: white;
-        }
-
-        .btn-danger:hover {
-            background: #b91c1c;
-        }
-
-        /* Loading states */
-        .btn.loading {
-            position: relative;
-            color: transparent;
-            pointer-events: none;
-        }
-
-        .btn.loading::after {
-            content: '';
-            position: absolute;
-            top: 50%;
-            left: 50%;
-            width: 20px;
-            height: 20px;
-            margin-left: -10px;
-            margin-top: -10px;
-            border: 2px solid rgba(255, 255, 255, 0.3);
-            border-top: 2px solid white;
-            border-radius: 50%;
-            animation: spin 1s linear infinite;
-        }
-
-        @keyframes spin {
-            0% { transform: rotate(0deg); }
-            100% { transform: rotate(360deg); }
         }
 
         /* Hero Section */
@@ -253,88 +187,108 @@
             margin-bottom: 2rem;
         }
 
-        /* Cards */
-        .card {
-            background: white;
-            border: 2px solid #e5e7eb;
+        .hero-actions {
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+            align-items: center;
+            margin-bottom: 3rem;
+        }
+
+        .location-highlight {
+            background: rgba(255, 255, 255, 0.9);
+            padding: 1.5rem;
             border-radius: 1rem;
+            margin-bottom: 2rem;
+            border: 2px solid #ea580c;
+        }
+
+        .location-title {
+            text-align: center;
+            font-weight: 700;
+            color: #ea580c;
+            margin-bottom: 0.5rem;
+        }
+
+        .location-details {
+            text-align: center;
+            color: #6b7280;
+        }
+
+        /* Section Styling */
+        .section {
+            padding: 6rem 0;
+        }
+
+        .section-title {
+            text-align: center;
+            font-size: 2.5rem;
+            font-weight: 800;
+            color: #111827;
+            margin-bottom: 1rem;
+        }
+
+        .section-subtitle {
+            text-align: center;
+            font-size: 1.25rem;
+            color: #6b7280;
+            margin-bottom: 4rem;
+            max-width: 48rem;
+            margin-left: auto;
+            margin-right: auto;
+        }
+
+        .badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            background: #fed7aa;
+            color: #9a3412;
+            padding: 0.5rem 1rem;
+            border-radius: 9999px;
+            font-size: 0.875rem;
+            font-weight: 600;
+            margin-bottom: 2rem;
+        }
+
+        /* Feature Grid */
+        .feature-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 2rem;
+            margin-top: 3rem;
+        }
+
+        .feature-card {
+            background: white;
             padding: 2rem;
+            border-radius: 1rem;
+            border: 2px solid #e5e7eb;
+            text-align: center;
             transition: all 0.3s ease;
             box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1);
         }
 
-        .card:hover {
+        .feature-card:hover {
             border-color: #fed7aa;
             transform: translateY(-4px);
-            box-shadow: 0 20px 25px -5px rgba(0,0,0,0.1);
         }
 
-        .card-header {
-            text-align: center;
-            margin-bottom: 1.5rem;
+        .feature-icon {
+            font-size: 3rem;
+            margin-bottom: 1rem;
         }
 
-        .card-title {
-            font-size: 1.5rem;
+        .feature-card h3 {
+            font-size: 1.25rem;
             font-weight: 700;
             color: #111827;
             margin-bottom: 0.5rem;
         }
 
-        .card-content {
+        .feature-card p {
             color: #6b7280;
             line-height: 1.6;
-        }
-
-        /* Payment Cards */
-        .payment-method-card {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            padding: 1rem;
-            border: 2px solid #e5e7eb;
-            border-radius: 0.5rem;
-            margin-bottom: 0.5rem;
-            transition: all 0.2s ease;
-        }
-
-        .payment-method-card:hover {
-            border-color: #ea580c;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-        }
-
-        .payment-method-card.default {
-            border-color: #16a34a;
-            background: #f0fdf4;
-        }
-
-        .payment-info {
-            display: flex;
-            align-items: center;
-            gap: 1rem;
-        }
-
-        .card-brand {
-            font-weight: 600;
-            text-transform: capitalize;
-        }
-
-        .card-last4 {
-            color: #6b7280;
-        }
-
-        .default-badge {
-            background: #dcfce7;
-            color: #15803d;
-            padding: 0.25rem 0.5rem;
-            border-radius: 9999px;
-            font-size: 0.75rem;
-            font-weight: 600;
-        }
-
-        .payment-actions {
-            display: flex;
-            gap: 0.5rem;
         }
 
         /* Student Projects Gallery */
@@ -458,161 +412,8 @@
             box-shadow: 0 10px 15px -3px rgba(0,0,0,0.1);
         }
 
-        /* Auth Section */
-        .auth-section {
-            background: linear-gradient(135deg, #ea580c 0%, #dc2626 100%);
-            color: white;
-            padding: 6rem 0;
-        }
-
-        .auth-form-container {
-            max-width: 500px;
-            margin: 0 auto;
-            background: white;
-            color: #111827;
-            padding: 3rem;
-            border-radius: 1.5rem;
-            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
-        }
-
-        .form-group {
-            margin-bottom: 1.5rem;
-        }
-
-        .form-label {
-            display: block;
-            margin-bottom: 0.5rem;
-            font-weight: 600;
-            color: #111827;
-        }
-
-        .form-input {
-            width: 100%;
-            padding: 0.875rem;
-            border: 2px solid #e5e7eb;
-            border-radius: 0.5rem;
-            font-size: 1rem;
-            transition: all 0.2s ease;
-        }
-
-        .form-input:focus {
-            outline: none;
-            border-color: #ea580c;
-            box-shadow: 0 0 0 3px rgba(234, 88, 12, 0.1);
-            transform: translateY(-1px);
-        }
-
-        .form-input.error {
-            border-color: #dc2626;
-            box-shadow: 0 0 0 3px rgba(220, 38, 38, 0.1);
-        }
-
-        .form-input.success {
-            border-color: #16a34a;
-            box-shadow: 0 0 0 3px rgba(22, 163, 74, 0.1);
-        }
-
-        .form-row {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 1rem;
-        }
-
-        .message {
-            padding: 1rem;
-            border-radius: 0.5rem;
-            text-align: center;
-            margin-bottom: 1rem;
-            font-weight: 600;
-            position: relative;
-            animation: slideIn 0.3s ease-out;
-        }
-
-        @keyframes slideIn {
-            from {
-                opacity: 0;
-                transform: translateY(-10px);
-            }
-            to {
-                opacity: 1;
-                transform: translateY(0);
-            }
-        }
-
-        .message.success {
-            background: linear-gradient(135deg, #dcfce7 0%, #bbf7d0 100%);
-            color: #15803d;
-            border: 2px solid #86efac;
-            box-shadow: 0 4px 6px -1px rgba(34, 197, 94, 0.1);
-        }
-
-        .message.success::before {
-            content: '🎉';
-            margin-right: 0.5rem;
-            font-size: 1.2em;
-        }
-
-        .message.error {
-            background: linear-gradient(135deg, #fef2f2 0%, #fecaca 100%);
-            color: #dc2626;
-            border: 2px solid #fca5a5;
-            box-shadow: 0 4px 6px -1px rgba(239, 68, 68, 0.1);
-        }
-
-        .message.error::before {
-            content: '⚠️';
-            margin-right: 0.5rem;
-            font-size: 1.2em;
-        }
-
-        .form-toggle {
-            text-align: center;
-            margin-top: 1rem;
-        }
-
-        .form-toggle a {
-            color: #ea580c;
-            text-decoration: none;
-            cursor: pointer;
-            font-weight: 600;
-        }
-
-        .form-toggle a:hover {
-            text-decoration: underline;
-        }
-
-        /* Dashboard */
-        .dashboard-section {
-            background: #f9fafb;
-            min-height: 100vh;
-            padding: 2rem 0;
-        }
-
-        .dashboard-header {
-            background: white;
-            padding: 2rem;
-            border-radius: 1rem;
-            box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1);
-            margin-bottom: 2rem;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-
-        .dashboard-title {
-            font-size: 2rem;
-            font-weight: 700;
-            color: #111827;
-        }
-
-        .student-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
-            gap: 1.5rem;
-            margin-bottom: 2rem;
-        }
-
-        .student-card {
+        /* Cards */
+        .card {
             background: white;
             border: 2px solid #e5e7eb;
             border-radius: 1rem;
@@ -621,693 +422,13 @@
             box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1);
         }
 
-        .student-card:hover {
-            border-color: #fed7aa;
-            transform: translateY(-2px);
-            box-shadow: 0 10px 15px -3px rgba(0,0,0,0.1);
-        }
-
-        .add-student-card {
-            background: linear-gradient(135deg, #ea580c 0%, #dc2626 100%);
-            color: white;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            text-align: center;
-            cursor: pointer;
-            border: none;
-        }
-
-        .add-student-card:hover {
-            transform: translateY(-4px);
-        }
-
-        .student-form {
-            background: white;
-            border: 2px solid #e5e7eb;
-            border-radius: 1rem;
-            padding: 2rem;
-            margin-bottom: 2rem;
-            box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1);
-        }
-
-        .student-form h3 {
-            font-size: 1.5rem;
-            font-weight: 700;
-            color: #111827;
-            margin-bottom: 1.5rem;
-        }
-
-        /* Class Schedule */
-        .class-schedule {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-            gap: 1rem;
-            margin: 2rem 0;
-        }
-
-        .time-slot-card {
-            background: #f9fafb;
-            border: 2px solid #e5e7eb;
-            border-radius: 1rem;
-            padding: 1.5rem;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            text-align: center;
-        }
-
-        .time-slot-card:hover {
-            border-color: #ea580c;
-            transform: translateY(-2px);
-            box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1);
-        }
-
-        .time-slot-card.selected {
-            border-color: #ea580c;
-            background: linear-gradient(135deg, #ea580c 0%, #dc2626 100%);
-            color: white;
-        }
-
-        .time-slot-card.full {
-            background: #fef2f2;
-            border-color: #dc2626;
-            cursor: not-allowed;
-            opacity: 0.7;
-        }
-
-        .time-slot-card.enrolled {
-            background: #dcfce7;
-            border-color: #16a34a;
-            color: #15803d;
-        }
-
-        .age-group-badge {
-            background: #ea580c;
-            color: white;
-            padding: 0.25rem 0.75rem;
-            border-radius: 9999px;
-            font-size: 0.75rem;
-            font-weight: 600;
-            margin-bottom: 0.5rem;
-            display: inline-block;
-        }
-
-        .availability-info {
-            font-size: 0.875rem;
-            color: #6b7280;
-            margin-top: 0.5rem;
-        }
-
-        .enrollment-status {
-            background: #16a34a;
-            color: white;
-            padding: 0.5rem 1rem;
-            border-radius: 9999px;
-            font-size: 0.875rem;
-            font-weight: 600;
-            margin-top: 1rem;
-            display: inline-block;
-        }
-
-        .weekly-schedule {
-            background: #f9fafb;
-            padding: 1.5rem;
-            border-radius: 0.75rem;
-            margin-top: 1rem;
-            border: 1px solid #e5e7eb;
-        }
-
-        .weekly-schedule h4 {
-            font-weight: 700;
-            color: #111827;
-            margin-bottom: 0.5rem;
-        }
-
-        /* Billing Section */
-        .billing-summary {
-            background: white;
-            border: 2px solid #e5e7eb;
-            border-radius: 1rem;
-            padding: 2rem;
-            margin-bottom: 2rem;
-            box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1);
-        }
-
-        .billing-row {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding: 0.75rem 0;
-            border-bottom: 1px solid #f3f4f6;
-        }
-
-        .billing-row:last-child {
-            border-bottom: none;
-            font-weight: 700;
-            color: #111827;
-        }
-
-        .billing-total {
-            background: #f9fafb;
-            padding: 1rem;
-            border-radius: 0.5rem;
-            margin-top: 1rem;
-        }
-
-        /* Section Styling */
-        .section {
-            padding: 6rem 0;
-        }
-
-        .section-title {
-            text-align: center;
-            font-size: 2.5rem;
-            font-weight: 800;
-            color: #111827;
-            margin-bottom: 1rem;
-        }
-
-        .section-subtitle {
-            text-align: center;
-            font-size: 1.25rem;
-            color: #6b7280;
-            margin-bottom: 4rem;
-            max-width: 3xl;
-            margin-left: auto;
-            margin-right: auto;
-        }
-
-        .badge {
-            display: inline-flex;
-            align-items: center;
-            gap: 0.5rem;
-            background: #fed7aa;
-            color: #9a3412;
-            padding: 0.5rem 1rem;
-            border-radius: 9999px;
-            font-size: 0.875rem;
-            font-weight: 600;
-            margin-bottom: 2rem;
-        }
-
-        /* Feature Grid */
-        .feature-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-            gap: 2rem;
-            margin-top: 3rem;
-        }
-
-        .feature-card {
-            background: white;
-            padding: 2rem;
-            border-radius: 1rem;
-            border: 2px solid #e5e7eb;
-            text-align: center;
-            transition: all 0.3s ease;
-            box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1);
-        }
-
-        .feature-card:hover {
+        .card:hover {
             border-color: #fed7aa;
             transform: translateY(-4px);
+            box-shadow: 0 20px 25px -5px rgba(0,0,0,0.1);
         }
 
-        .feature-icon {
-            font-size: 3rem;
-            margin-bottom: 1rem;
-        }
-
-        .feature-card h3 {
-            font-size: 1.25rem;
-            font-weight: 700;
-            color: #111827;
-            margin-bottom: 0.5rem;
-        }
-
-        .feature-card p {
-            color: #6b7280;
-            line-height: 1.6;
-        }
-
-        /* Modal Styles */
-        .modal {
-            position: fixed;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            background: rgba(0, 0, 0, 0.7);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            z-index: 1000;
-            animation: fadeIn 0.3s ease;
-        }
-
-        .modal.hidden {
-            display: none;
-        }
-
-        .modal-content {
-            background: white;
-            border-radius: 1rem;
-            padding: 2rem;
-            max-width: 500px;
-            width: 90%;
-            max-height: 80vh;
-            overflow-y: auto;
-            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
-            animation: slideUp 0.3s ease;
-        }
-
-        @keyframes fadeIn {
-            from { opacity: 0; }
-            to { opacity: 1; }
-        }
-
-        @keyframes slideUp {
-            from {
-                opacity: 0;
-                transform: translateY(20px);
-            }
-            to {
-                opacity: 1;
-                transform: translateY(0);
-            }
-        }
-
-        /* Student Portal Styles */
-        .student-portal-section {
-            background: linear-gradient(135deg, #1e40af 0%, #3b82f6 50%, #06b6d4 100%);
-            min-height: 100vh;
-            padding: 2rem 0;
-            color: white;
-        }
-
-        .student-header {
-            background: rgba(255, 255, 255, 0.1);
-            backdrop-filter: blur(12px);
-            padding: 2rem;
-            border-radius: 1rem;
-            margin-bottom: 2rem;
-            border: 1px solid rgba(255, 255, 255, 0.2);
-        }
-
-        .student-welcome {
-            display: flex;
-            align-items: center;
-            gap: 1rem;
-            margin-bottom: 1.5rem;
-        }
-
-        .student-avatar {
-            width: 4rem;
-            height: 4rem;
-            background: linear-gradient(135deg, #f59e0b 0%, #ef4444 100%);
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 2rem;
-            font-weight: 700;
-            color: white;
-        }
-
-        .progress-ring {
-            width: 80px;
-            height: 80px;
-            position: relative;
-        }
-
-        .progress-ring-circle {
-            fill: none;
-            stroke: rgba(255, 255, 255, 0.2);
-            stroke-width: 4;
-        }
-
-        .progress-ring-circle.progress {
-            stroke: #10b981;
-            stroke-width: 4;
-            stroke-dasharray: 200;
-            stroke-dashoffset: 150;
-            stroke-linecap: round;
-            transition: stroke-dashoffset 0.5s ease;
-        }
-
-        .progress-text {
-            position: absolute;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            font-weight: 700;
-            font-size: 0.875rem;
-        }
-
-        .student-stats {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
-            gap: 1rem;
-            margin-top: 1.5rem;
-        }
-
-        .stat-card {
-            background: rgba(255, 255, 255, 0.1);
-            padding: 1rem;
-            border-radius: 0.5rem;
-            text-align: center;
-            border: 1px solid rgba(255, 255, 255, 0.2);
-        }
-
-        .stat-number {
-            font-size: 2rem;
-            font-weight: 700;
-            color: #10b981;
-        }
-
-        .stat-label {
-            font-size: 0.875rem;
-            color: rgba(255, 255, 255, 0.8);
-        }
-
-        .portal-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
-            gap: 2rem;
-            margin-bottom: 2rem;
-        }
-
-        .portal-card {
-            background: rgba(255, 255, 255, 0.95);
-            color: #111827;
-            border-radius: 1rem;
-            padding: 2rem;
-            box-shadow: 0 10px 25px -5px rgba(0,0,0,0.1);
-            transition: all 0.3s ease;
-        }
-
-        .portal-card:hover {
-            transform: translateY(-4px);
-            box-shadow: 0 20px 40px -5px rgba(0,0,0,0.2);
-        }
-
-        .portal-card-header {
-            display: flex;
-            align-items: center;
-            gap: 1rem;
-            margin-bottom: 1.5rem;
-        }
-
-        .portal-icon {
-            width: 3rem;
-            height: 3rem;
-            background: linear-gradient(135deg, #ea580c 0%, #dc2626 100%);
-            border-radius: 0.75rem;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 1.5rem;
-            color: white;
-        }
-
-        .badge-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
-            gap: 1rem;
-        }
-
-        .badge {
-            background: linear-gradient(135deg, #f3f4f6 0%, #e5e7eb 100%);
-            border: 2px solid #d1d5db;
-            border-radius: 1rem;
-            padding: 1rem;
-            text-align: center;
-            transition: all 0.3s ease;
-            position: relative;
-            overflow: hidden;
-        }
-
-        .badge.earned {
-            background: linear-gradient(135deg, #fef3c7 0%, #fbbf24 100%);
-            border-color: #f59e0b;
-            color: #92400e;
-            transform: scale(1.05);
-            box-shadow: 0 4px 12px rgba(245, 158, 11, 0.3);
-        }
-
-        .badge.earned::before {
-            content: '✨';
-            position: absolute;
-            top: -5px;
-            right: -5px;
-            font-size: 1.2rem;
-            animation: sparkle 2s infinite;
-        }
-
-        @keyframes sparkle {
-            0%, 100% { transform: scale(1) rotate(0deg); }
-            50% { transform: scale(1.2) rotate(180deg); }
-        }
-
-        .badge-icon {
-            font-size: 2rem;
-            margin-bottom: 0.5rem;
-        }
-
-        .badge-name {
-            font-size: 0.75rem;
-            font-weight: 600;
-        }
-
-        .video-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-            gap: 1.5rem;
-        }
-
-        .video-card {
-            background: white;
-            border-radius: 1rem;
-            overflow: hidden;
-            box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1);
-            transition: all 0.3s ease;
-        }
-
-        .video-card:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 10px 20px -5px rgba(0,0,0,0.2);
-        }
-
-        .video-thumbnail {
-            width: 100%;
-            height: 180px;
-            background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            position: relative;
-            cursor: pointer;
-        }
-
-        .play-button {
-            width: 4rem;
-            height: 4rem;
-            background: rgba(255, 255, 255, 0.9);
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 1.5rem;
-            color: #6366f1;
-            transition: all 0.3s ease;
-        }
-
-        .play-button:hover {
-            background: white;
-            transform: scale(1.1);
-        }
-
-        .video-info {
-            padding: 1.5rem;
-        }
-
-        .video-title {
-            font-size: 1.125rem;
-            font-weight: 700;
-            margin-bottom: 0.5rem;
-            color: #111827;
-        }
-
-        .video-description {
-            color: #6b7280;
-            font-size: 0.875rem;
-            margin-bottom: 1rem;
-        }
-
-        .video-meta {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            font-size: 0.75rem;
-            color: #9ca3af;
-        }
-
-        .difficulty-badge {
-            padding: 0.25rem 0.75rem;
-            border-radius: 9999px;
-            font-weight: 600;
-            font-size: 0.75rem;
-        }
-
-        .difficulty-beginner {
-            background: #dcfce7;
-            color: #15803d;
-        }
-
-        .difficulty-intermediate {
-            background: #dbeafe;
-            color: #1d4ed8;
-        }
-
-        .difficulty-advanced {
-            background: #fdf4ff;
-            color: #7c3aed;
-        }
-
-        .completed-badge {
-            background: #10b981;
-            color: white;
-            padding: 0.25rem 0.75rem;
-            border-radius: 9999px;
-            font-size: 0.75rem;
-            font-weight: 600;
-        }
-
-        .class-recap-card {
-            background: white;
-            border-radius: 1rem;
-            padding: 2rem;
-            margin-bottom: 1.5rem;
-            box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1);
-        }
-
-        .recap-header {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            margin-bottom: 1.5rem;
-        }
-
-        .recap-date {
-            background: #3b82f6;
-            color: white;
-            padding: 0.5rem 1rem;
-            border-radius: 0.5rem;
-            font-weight: 600;
-            font-size: 0.875rem;
-        }
-
-        .recap-content {
-            display: grid;
-            grid-template-columns: 1fr 200px;
-            gap: 2rem;
-            align-items: start;
-        }
-
-        .recap-image {
-            width: 200px;
-            height: 150px;
-            background: linear-gradient(135deg, #f3f4f6 0%, #e5e7eb 100%);
-            border-radius: 0.5rem;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            color: #6b7280;
-            font-size: 3rem;
-        }
-
-        .project-showcase {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-            gap: 2rem;
-        }
-
-        .project-card {
-            background: white;
-            border-radius: 1rem;
-            overflow: hidden;
-            box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1);
-            transition: all 0.3s ease;
-        }
-
-        .project-card:hover {
-            transform: translateY(-4px);
-            box-shadow: 0 15px 30px -5px rgba(0,0,0,0.2);
-        }
-
-        .project-image {
-            width: 100%;
-            height: 200px;
-            background: linear-gradient(135deg, #f3f4f6 0%, #e5e7eb 100%);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            position: relative;
-        }
-
-        .project-status {
-            position: absolute;
-            top: 1rem;
-            right: 1rem;
-            padding: 0.25rem 0.75rem;
-            border-radius: 9999px;
-            font-size: 0.75rem;
-            font-weight: 600;
-        }
-
-        .status-completed {
-            background: #10b981;
-            color: white;
-        }
-
-        .status-in-progress {
-            background: #f59e0b;
-            color: white;
-        }
-
-        .status-upcoming {
-            background: #6b7280;
-            color: white;
-        }
-
-        /* Responsive updates for student portal */
-        @media (max-width: 768px) {
-            .portal-grid {
-                grid-template-columns: 1fr;
-            }
-            
-            .video-grid {
-                grid-template-columns: 1fr;
-            }
-            
-            .project-showcase {
-                grid-template-columns: 1fr;
-            }
-            
-            .recap-content {
-                grid-template-columns: 1fr;
-                gap: 1rem;
-            }
-            
-            .recap-image {
-                width: 100%;
-                height: 200px;
-            }
-            
-            .student-stats {
-                grid-template-columns: repeat(2, 1fr);
-            }
-        }
+        /* Responsive */
         @media (max-width: 768px) {
             .hero h1 {
                 font-size: 2.5rem;
@@ -1321,22 +442,8 @@
                 height: 4.5rem;
             }
             
-            .form-row {
-                grid-template-columns: 1fr;
-            }
-
-            .student-grid {
-                grid-template-columns: 1fr;
-            }
-
-            .class-schedule {
-                grid-template-columns: 1fr;
-            }
-
-            .dashboard-header {
+            .hero-actions {
                 flex-direction: column;
-                align-items: flex-start;
-                gap: 1rem;
             }
 
             .instructor-content {
@@ -1347,6 +454,17 @@
             .projects-grid {
                 grid-template-columns: 1fr;
             }
+
+            .feature-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        @media (min-width: 768px) {
+            .hero-actions {
+                flex-direction: row;
+                justify-content: center;
+            }
         }
     </style>
 </head>
@@ -1355,779 +473,388 @@
     <header>
         <div class="container">
             <div class="header-content">
-                <a href="#" onclick="goToMainPage()" class="logo">
+                <a href="index.html" class="logo">
                     <img src="https://raw.githubusercontent.com/JDaws-Dev/3DJumpstart/main/3d-jumpstart-logo.png" alt="3D Jumpstart Logo" class="logo-image">
                 </a>
                 <nav>
                     <ul class="nav-links">
-                        <li id="homeNavLink"><a href="#home" onclick="showHome()">Home</a></li>
-                        <li id="projectsNavLink"><a href="#projects">Projects</a></li>
-                        <li id="instructorNavLink"><a href="#instructor">Instructor</a></li>
-                        <li id="loginLink"><a href="#" onclick="showAuth()">Sign Up / Login</a></li>
-                        <li id="dashboardLink" class="hidden"><a href="#" onclick="showDashboard()">Parent Dashboard</a></li>
-                        <li id="studentPortalLink" class="hidden"><a href="#" onclick="showStudentPortal()">Student Portal</a></li>
-                        <li id="logoutLink" class="hidden"><a href="#" onclick="logout()">Logout</a></li>
+                        <li><a href="#home">Home</a></li>
+                        <li><a href="#projects">Projects</a></li>
+                        <li><a href="#instructor">Instructor</a></li>
+                        <li><a href="#pricing">Pricing</a></li>
+                        <li><a href="login.html" class="btn btn-primary">Sign Up / Login</a></li>
                     </ul>
                 </nav>
             </div>
         </div>
     </header>
 
-    <!-- Home Section -->
-    <div id="homeSection">
-        <section class="hero">
-            <div class="container">
-                <div class="hero-content">
-                    <div class="hero-badge">
-                        📅 Starting September 2025 • $60/week
-                    </div>
-                    
-                    <div class="hero-tagline">
-                        The missing instruction manual for your kid's 3D printer
-                    </div>
-                    
-                    <h1>
-                        Learn Professional 3D Design <br>
-                        <span class="hero-highlight">That Actually Gets Used</span>
-                    </h1>
-                    
-                    <p>
-                        Weekly in-person classes teaching kids real CAD skills with Fusion360 and 3D printing.
-                        From simple fidget toys to complex mechanical designs.
-                    </p>
-                    
-                    <div style="display: flex; flex-direction: column; gap: 1rem; align-items: center; margin-bottom: 3rem;">
-                        <a href="#" onclick="showAuth()" class="btn btn-primary" style="font-size: 1.125rem; padding: 1rem 2rem;">
-                            📧 Get Started Today
-                        </a>
-                        <a href="#projects" class="btn btn-outline">
-                            🎯 See Student Projects
-                        </a>
-                    </div>
-                    
-                    <div style="display: flex; flex-wrap: wrap; justify-content: center; gap: 2rem; font-size: 0.875rem; color: #6b7280;">
-                        <div style="display: flex; align-items: center; gap: 0.5rem;">
-                            📍 Sugar Hill • Suwanee • Buford
-                        </div>
-                        <div style="display: flex; align-items: center; gap: 0.5rem;">
-                            👥 Small Class Sizes
-                        </div>
-                        <div style="display: flex; align-items: center; gap: 0.5rem;">
-                            🎓 Professional Skills
-                        </div>
-                    </div>
+    <!-- Hero Section -->
+    <section id="home" class="hero">
+        <div class="container">
+            <div class="hero-content">
+                <div class="hero-badge">
+                    NEXT Level 1 Session Begins September 9, 2025 • Limited Spots Available
                 </div>
-            </div>
-        </section>
-
-        <!-- Student Projects Section -->
-        <section id="projects" class="projects-section">
-            <div class="container">
-                <div class="badge">
-                    <span>Student Projects</span>
+                
+                <div class="hero-tagline">
+                    After-School STEM Program
                 </div>
-                <h2 class="section-title">Real Projects Students Create</h2>
-                <p class="section-subtitle">
-                    From simple fidget toys to complex mechanical designs — see what students actually build 
-                    when they master professional CAD skills
+                
+                <h1>
+                    After-School 3D Design & <br>
+                    <span class="hero-highlight">3D Printing Program</span>
+                </h1>
+                
+                <p>
+                    Professional 3D design and 3D printing classes for students 4th grade and up. 
+                    Our Level 1 session starts September 9th - give your child advanced technical skills 
+                    while building an impressive portfolio of real 3D printed projects.
                 </p>
-
-                <div class="projects-grid">
-                    <!-- Cat Vase Project -->
-                    <div class="project-card">
-                        <div class="project-image">
-                            <img src="https://hebbkx1anhila5yf.public.blob.vercel-storage.com/CAT%20VASE_RED-SivxXmXNXPPmaxc5fjQMTILzDA1Ram.png" alt="Decorative Cat Vase - Student Project">
-                        </div>
-                        <div class="project-info">
-                            <h3 class="project-title">Decorative Cat Vase</h3>
-                            <p class="project-description">
-                                Advanced organic modeling project combining artistic design with functional engineering. 
-                                Students learn complex surface creation and aesthetic design principles.
-                            </p>
-                            <span class="project-badge badge-advanced">Advanced Project</span>
-                        </div>
+                
+                <div class="hero-actions">
+                    <a href="login.html" class="btn btn-primary" style="font-size: 1.125rem; padding: 1rem 2rem;">
+                        Get Started Today
+                    </a>
+                    <a href="#instructor" class="btn btn-outline">
+                        View Locations
+                    </a>
+                </div>
+                
+                <div class="location-highlight">
+                    <div class="location-title">
+                        Shadowbrook Church, Suwanee, Georgia • Tuesday After-School
                     </div>
-
-                    <!-- Soda Mug Project -->
-                    <div class="project-card">
-                        <div class="project-image">
-                            <img src="https://hebbkx1anhila5yf.public.blob.vercel-storage.com/SODA%20MUG-jLixBY0CWm4sMcqsWznCQcHadornmN.png" alt="Functional Soda Mug - Student Project">
-                        </div>
-                        <div class="project-info">
-                            <h3 class="project-title">Functional Soda Mug</h3>
-                            <p class="project-description">
-                                Practical design project focusing on ergonomics and functionality. Students learn 
-                                handle design, volume calculations, and how to create objects for daily use.
-                            </p>
-                            <span class="project-badge badge-intermediate">Intermediate Project</span>
-                        </div>
+                    <div class="location-details">
+                        Small Classes • Ages 4th Grade+ • Advanced STEM Skills
                     </div>
-
-                    <!-- Fidget Spinner Project -->
-                    <div class="project-card">
-                        <div class="project-image">
-                            <img src="https://hebbkx1anhila5yf.public.blob.vercel-storage.com/FIDGET%20SPINNER_COLOR-C1Lls0gAh6UGqgcMMuxbTA90wUimRh.png" alt="Precision Fidget Spinner - Student Project">
-                        </div>
-                        <div class="project-info">
-                            <h3 class="project-title">Precision Fidget Spinner</h3>
-                            <p class="project-description">
-                                Mechanical design project teaching precision tolerances, assembly constraints, and real-world 
-                                manufacturing considerations for moving parts with custom colors.
-                            </p>
-                            <span class="project-badge badge-intermediate">Intermediate Project</span>
-                        </div>
+                </div>
+                
+                <div style="display: flex; flex-wrap: wrap; justify-content: center; gap: 2rem; font-size: 0.875rem; color: #6b7280;">
+                    <div style="display: flex; align-items: center; gap: 0.5rem;">
+                        LEVEL 1: 12 weeks starting Sept 9th
                     </div>
-
-                    <!-- Automata Project -->
-                    <div class="project-card">
-                        <div class="project-image">
-                            <img src="https://hebbkx1anhila5yf.public.blob.vercel-storage.com/CAM%20DRIVEN%20AUTAMATA-MuY7PY9bTcNTZ7MfcL5VCRH0I25pjH.png" alt="Cam-Driven Automata - Student Project">
-                        </div>
-                        <div class="project-info">
-                            <h3 class="project-title">Cam-Driven Automata</h3>
-                            <p class="project-description">
-                                Advanced mechanical engineering project teaching cam mechanisms and interactive motion. 
-                                Students learn complex assembly design and mechanical timing.
-                            </p>
-                            <span class="project-badge badge-advanced">Advanced Project</span>
-                        </div>
+                    <div style="display: flex; align-items: center; gap: 0.5rem;">
+                        Small Class Sizes
                     </div>
-
-                    <!-- Ring Project -->
-                    <div class="project-card">
-                        <div class="project-image">
-                            <img src="https://hebbkx1anhila5yf.public.blob.vercel-storage.com/RING_GOLD-gpnhQNMccb3rnkHuJT158cmGxGOhk7.png" alt="Custom Jewelry Ring - Student Project">
-                        </div>
-                        <div class="project-info">
-                            <h3 class="project-title">Custom Jewelry Ring</h3>
-                            <p class="project-description">
-                                Precision jewelry design teaching small-scale modeling and professional rendering techniques. 
-                                Students learn about tolerances and wearable design considerations.
-                            </p>
-                            <span class="project-badge badge-advanced">Advanced Project</span>
-                        </div>
-                    </div>
-
-                    <!-- Art Bottle Project -->
-                    <div class="project-card">
-                        <div class="project-image">
-                            <img src="https://hebbkx1anhila5yf.public.blob.vercel-storage.com/BOTTLE_COLOR-c5oexB7pN6Cp7SHYIyXDRTltMReTYZ.png" alt="Multi-Color Art Bottle - Student Project">
-                        </div>
-                        <div class="project-info">
-                            <h3 class="project-title">Multi-Color Art Bottle</h3>
-                            <p class="project-description">
-                                Complex surface modeling using advanced Fusion360 techniques and multi-material design. 
-                                Students explore artistic expression through engineering.
-                            </p>
-                            <span class="project-badge badge-advanced">Advanced Project</span>
-                        </div>
+                    <div style="display: flex; align-items: center; gap: 0.5rem;">
+                        Professional Skills
                     </div>
                 </div>
             </div>
-        </section>
+        </div>
+    </section>
 
-        <!-- Instructor Section -->
-        <section id="instructor" class="instructor-section">
-            <div class="container">
-                <div class="instructor-content">
-                    <div class="instructor-image">
-                        <img src="https://hebbkx1anhila5yf.public.blob.vercel-storage.com/IMG_2409.jpg-vCZMnbIIzE81YLhDgV7sP8yyS5WGAC.jpeg" alt="Jeremiah - 3D Jumpstart Instructor and Workshop" style="object-fit: cover;">
-                        <div class="instructor-badge">
-                            Teacher • Maker
-                        </div>
+    <!-- Video Program Overview Section -->
+    <section class="section" style="background: #f9fafb;">
+        <div class="container">
+            <div class="badge">
+                How It Works
+            </div>
+            <h2 class="section-title">Learn About Our Program</h2>
+            <p class="section-subtitle">
+                Discover how students build professional 3D design skills through our progressive multi-level program
+            </p>
+            
+            <div style="max-width: 800px; margin: 0 auto;">
+                <div style="position: relative; width: 100%; height: 0; padding-bottom: 56.25%; /* 16:9 aspect ratio */">
+                    <iframe 
+                        id="intro-video"
+                        style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; border-radius: 1rem; box-shadow: 0 20px 40px rgba(0,0,0,0.1);"
+                        src="https://www.youtube.com/embed/qks9lAGC9Tc?autoplay=1&mute=1&si=y70Dm2n6SKYosXYZ&enablejsapi=1" 
+                        title="3D Jumpstart Program Overview" 
+                        frameborder="0" 
+                        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" 
+                        referrerpolicy="strict-origin-when-cross-origin" 
+                        allowfullscreen>
+                    </iframe>
+                </div>
+                
+                <div style="text-align: center; margin-top: 1.5rem;">
+                    <p style="color: #6b7280; font-size: 0.875rem;">
+                        <em>Video will auto-play when scrolled into view (muted). Click to unmute and control playback.</em>
+                    </p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Level 1 Program Overview Section -->
+    <section class="section" style="background: #f9fafb;">
+        <div class="container">
+            <div class="badge">
+                Level 1 Program Overview
+            </div>
+            <h2 class="section-title">Professional 3D Design Skills for Students 4th Grade+</h2>
+            <p class="section-subtitle">
+                12-week comprehensive program using the same Fusion360 software that professional engineers 
+                use to create everything from medical devices to aerospace components.
+            </p>
+
+            <div class="feature-grid">
+                <div class="feature-card">
+                    <div class="feature-icon">💻</div>
+                    <h3>Fusion360 CAD Software</h3>
+                    <p>Professional-grade design software used by engineers worldwide</p>
+                </div>
+
+                <div class="feature-card">
+                    <div class="feature-icon">🖨️</div>
+                    <h3>3D Printing Technology</h3>
+                    <p>Hands-on experience with professional 3D printing processes</p>
+                </div>
+
+                <div class="feature-card">
+                    <div class="feature-icon">👥</div>
+                    <h3>Small Classes</h3>
+                    <p>Hands-on instruction with personalized attention for every student</p>
+                </div>
+
+                <div class="feature-card">
+                    <div class="feature-icon">📁</div>
+                    <h3>Portfolio Development</h3>
+                    <p>Build impressive projects for college applications</p>
+                </div>
+
+                <div class="feature-card">
+                    <div class="feature-icon">📧</div>
+                    <h3>Weekly Updates</h3>
+                    <p>Progress emails with photos of your child's projects</p>
+                </div>
+
+                <div class="feature-card">
+                    <div class="feature-icon">🚀</div>
+                    <h3>Multi-Level Program</h3>
+                    <p>Starting with Level 1 fundamentals, with advanced levels coming soon</p>
+                </div>
+            </div>
+
+            <div style="text-align: center; margin-top: 3rem;">
+                <div style="background: linear-gradient(135deg, #fed7aa 0%, #fb923c 100%); padding: 1.5rem; border-radius: 1rem; margin-bottom: 1rem; display: inline-block;">
+                    <p style="color: #111827; font-weight: 600; font-size: 1.125rem; margin: 0;">
+                        Perfect for creative kids who love hands-on building • Great alongside coding and robotics programs
+                    </p>
+                </div>
+                <div style="background: linear-gradient(135deg, #dbeafe 0%, #93c5fd 100%); padding: 1.5rem; border-radius: 1rem; display: inline-block;">
+                    <p style="color: #1e3a8a; font-weight: 600; font-size: 1.125rem; margin: 0;">
+                        These professional skills look amazing on college applications!
+                    </p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Student Projects Section -->
+    <section id="projects" class="projects-section">
+        <div class="container">
+            <div class="badge">
+                Student Projects
+            </div>
+            <h2 class="section-title">Real Projects Students Create</h2>
+            <p class="section-subtitle">
+                From simple fidget toys to complex mechanical designs — see what students actually build 
+                when they master professional CAD skills
+            </p>
+
+            <div class="projects-grid">
+                <!-- Cat Vase Project -->
+                <div class="project-card">
+                    <div class="project-image">
+                        <img src="https://hebbkx1anhila5yf.public.blob.vercel-storage.com/CAT%20VASE_RED-SivxXmXNXPPmaxc5fjQMTILzDA1Ram.png" alt="Decorative Cat Vase - Student Project">
                     </div>
-                    <div>
-                        <div class="badge">
-                            Meet Your Instructor
-                        </div>
-                        <h2 style="font-size: 3rem; font-weight: 800; margin-bottom: 1rem; color: #111827;">
-                            Hi, I'm Jeremiah
-                        </h2>
-                        <p style="font-size: 1.25rem; font-weight: 600; color: #ea580c; margin-bottom: 2rem;">
-                            I help students go from "I can't figure this out" to "Look what I made!"
+                    <div class="project-info">
+                        <h3 class="project-title">Decorative Cat Vase</h3>
+                        <p class="project-description">
+                            Advanced organic modeling project combining artistic design with functional engineering. 
+                            Students learn complex surface creation and aesthetic design principles.
                         </p>
-                        <div style="space-y: 1.5rem; color: #374151; line-height: 1.7;">
-                            <p style="margin-bottom: 1.5rem; font-weight: 500;">
-                                For the past few years, I've been teaching 3D modeling and printing to middle and high school 
-                                students. I've seen the transformation that happens when students learn to create their own 
-                                designs instead of just downloading files.
-                            </p>
-                            <div style="background: linear-gradient(135deg, #fed7aa 0%, #fb923c 100%); padding: 1.5rem; border-radius: 1rem; border-left: 4px solid #ea580c; margin: 2rem 0;">
-                                <p style="color: #111827; font-weight: 600; font-size: 1.125rem;">
-                                    "My goal is simple: teach students professional skills they can use for life, not just hobby 
-                                    projects that get forgotten."
-                                </p>
-                            </div>
-                            <p style="font-weight: 600; color: #111827; font-size: 1.125rem;">
-                                Students learn the same Fusion360 software that real engineers use in industry. These aren't toy 
-                                skills — they're career-building skills.
-                            </p>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </section>
-    </div>
-
-    <!-- Auth Section -->
-    <section id="authSection" class="auth-section hidden">
-        <div class="container">
-            <h2 style="text-align: center; font-size: 2.5rem; font-weight: 800; color: white; margin-bottom: 3rem;">Join 3D Jumpstart</h2>
-            <div class="auth-form-container">
-                <div id="authMessage"></div>
-                
-                <!-- Sign Up Form -->
-                <div id="signupForm">
-                    <h3 style="text-align: center; margin-bottom: 2rem; font-weight: 700;">Create Your Account</h3>
-                    <form id="parentSignupForm">
-                        <div class="form-row">
-                            <div class="form-group">
-                                <label for="parentName" class="form-label">Parent Name</label>
-                                <input type="text" id="parentName" name="parentName" class="form-input" required>
-                            </div>
-                            <div class="form-group">
-                                <label for="parentEmail" class="form-label">Parent Email</label>
-                                <input type="email" id="parentEmail" name="parentEmail" class="form-input" required>
-                            </div>
-                        </div>
-
-                        <div class="form-row">
-                            <div class="form-group">
-                                <label for="parentPhone" class="form-label">Phone Number</label>
-                                <input type="tel" id="parentPhone" name="parentPhone" class="form-input" required>
-                            </div>
-                            <div class="form-group">
-                                <label for="password" class="form-label">Password</label>
-                                <input type="password" id="password" name="password" class="form-input" required minlength="6">
-                            </div>
-                        </div>
-
-                        <button type="submit" class="btn btn-primary" style="width: 100%; margin-top: 2rem;">
-                            Create Account
-                        </button>
-                    </form>
-
-                    <div class="form-toggle">
-                        <p>Already have an account? <a onclick="showLogin()">Sign In</a></p>
+                        <span class="project-badge badge-advanced">Advanced Project</span>
                     </div>
                 </div>
 
-                <!-- Login Form -->
-                <div id="loginForm" class="hidden">
-                    <h3 style="text-align: center; margin-bottom: 2rem; font-weight: 700;">Welcome Back</h3>
-                    <form id="parentLoginForm">
-                        <div class="form-group">
-                            <label for="loginEmail" class="form-label">Email</label>
-                            <input type="email" id="loginEmail" name="loginEmail" class="form-input" required>
-                        </div>
-                        <div class="form-group">
-                            <label for="loginPassword" class="form-label">Password</label>
-                            <input type="password" id="loginPassword" name="loginPassword" class="form-input" required>
-                        </div>
+                <!-- Soda Mug Project -->
+                <div class="project-card">
+                    <div class="project-image">
+                        <img src="https://hebbkx1anhila5yf.public.blob.vercel-storage.com/SODA%20MUG-jLixBY0CWm4sMcqsWznCQcHadornmN.png" alt="Functional Soda Mug - Student Project">
+                    </div>
+                    <div class="project-info">
+                        <h3 class="project-title">Functional Soda Mug</h3>
+                        <p class="project-description">
+                            Practical design project focusing on ergonomics and functionality. Students learn 
+                            handle design, volume calculations, and how to create objects for daily use.
+                        </p>
+                        <span class="project-badge badge-intermediate">Intermediate Project</span>
+                    </div>
+                </div>
 
-                        <button type="submit" class="btn btn-primary" style="width: 100%; margin-top: 2rem;">
-                            Sign In
-                        </button>
-                    </form>
+                <!-- Fidget Spinner Project -->
+                <div class="project-card">
+                    <div class="project-image">
+                        <img src="https://hebbkx1anhila5yf.public.blob.vercel-storage.com/FIDGET%20SPINNER_COLOR-C1Lls0gAh6UGqgcMMuxbTA90wUimRh.png" alt="Precision Fidget Spinner - Student Project">
+                    </div>
+                    <div class="project-info">
+                        <h3 class="project-title">Precision Fidget Spinner</h3>
+                        <p class="project-description">
+                            Mechanical design project teaching precision tolerances, assembly constraints, and real-world 
+                            manufacturing considerations for moving parts with custom colors.
+                        </p>
+                        <span class="project-badge badge-intermediate">Intermediate Project</span>
+                    </div>
+                </div>
 
-                    <div class="form-toggle">
-                        <p>Need an account? <a onclick="showSignup()">Sign Up</a></p>
+                <!-- Automata Project -->
+                <div class="project-card">
+                    <div class="project-image">
+                        <img src="https://hebbkx1anhila5yf.public.blob.vercel-storage.com/CAM%20DRIVEN%20AUTAMATA-MuY7PY9bTcNTZ7MfcL5VCRH0I25pjH.png" alt="Cam-Driven Automata - Student Project">
+                    </div>
+                    <div class="project-info">
+                        <h3 class="project-title">Cam-Driven Automata</h3>
+                        <p class="project-description">
+                            Advanced mechanical engineering project teaching cam mechanisms and interactive motion. 
+                            Students learn complex assembly design and mechanical timing.
+                        </p>
+                        <span class="project-badge badge-advanced">Advanced Project</span>
+                    </div>
+                </div>
+
+                <!-- Ring Project -->
+                <div class="project-card">
+                    <div class="project-image">
+                        <img src="https://hebbkx1anhila5yf.public.blob.vercel-storage.com/RING_GOLD-gpnhQNMccb3rnkHuJT158cmGxGOhk7.png" alt="Custom Jewelry Ring - Student Project">
+                    </div>
+                    <div class="project-info">
+                        <h3 class="project-title">Custom Jewelry Ring</h3>
+                        <p class="project-description">
+                            Precision jewelry design teaching small-scale modeling and professional rendering techniques. 
+                            Students learn about tolerances and wearable design considerations.
+                        </p>
+                        <span class="project-badge badge-advanced">Advanced Project</span>
+                    </div>
+                </div>
+
+                <!-- Art Bottle Project -->
+                <div class="project-card">
+                    <div class="project-image">
+                        <img src="https://hebbkx1anhila5yf.public.blob.vercel-storage.com/BOTTLE_COLOR-c5oexB7pN6Cp7SHYIyXDRTltMReTYZ.png" alt="Decorative Art Bottle - Student Project">
+                    </div>
+                    <div class="project-info">
+                        <h3 class="project-title">Decorative Art Bottle</h3>
+                        <p class="project-description">
+                            Complex surface modeling using advanced Fusion360 techniques and artistic design principles. 
+                            Students explore creative expression through engineering.
+                        </p>
+                        <span class="project-badge badge-advanced">Advanced Project</span>
                     </div>
                 </div>
             </div>
         </div>
     </section>
 
-    <!-- Student Portal Section -->
-    <section id="studentPortalSection" class="student-portal-section hidden">
+    <!-- Instructor Section -->
+    <section id="instructor" class="instructor-section">
         <div class="container">
-            <!-- Student Header -->
-            <div class="student-header">
-                <div class="student-welcome">
-                    <div class="student-avatar" id="studentAvatar">JS</div>
-                    <div>
-                        <h2 style="font-size: 2rem; font-weight: 700; margin: 0;" id="studentWelcome">Welcome back, Jamie!</h2>
-                        <p style="color: rgba(255, 255, 255, 0.8); margin: 0;">Ready to design something awesome?</p>
-                        
-                        <!-- Student Selector for families with multiple kids -->
-                        <div id="studentSelector" style="margin-top: 1rem;" class="hidden">
-                            <select id="studentSelect" style="background: rgba(255, 255, 255, 0.1); border: 1px solid rgba(255, 255, 255, 0.3); color: white; padding: 0.5rem; border-radius: 0.5rem;" onchange="switchStudent()">
-                                <!-- Options populated by JavaScript -->
-                            </select>
-                        </div>
-                    </div>
-                    <div style="margin-left: auto;">
-                        <div class="progress-ring">
-                            <svg width="80" height="80">
-                                <circle class="progress-ring-circle" cx="40" cy="40" r="32"></circle>
-                                <circle class="progress-ring-circle progress" cx="40" cy="40" r="32" id="progressCircle"></circle>
-                            </svg>
-                            <div class="progress-text" id="progressText">75%</div>
-                        </div>
+            <div class="instructor-content">
+                <div class="instructor-image">
+                    <img src="https://hebbkx1anhila5yf.public.blob.vercel-storage.com/IMG_2409.jpg-vCZMnbIIzE81YLhDgV7sP8yyS5WGAC.jpeg" alt="Jeremiah - 3D Jumpstart Instructor and Workshop" style="object-fit: cover;">
+                    <div class="instructor-badge">
+                        Teacher • Maker
                     </div>
                 </div>
-                
-                <div class="student-stats">
-                    <div class="stat-card">
-                        <div class="stat-number" id="classesAttended">12</div>
-                        <div class="stat-label">Classes Attended</div>
-                    </div>
-                    <div class="stat-card">
-                        <div class="stat-number" id="projectsCompleted">8</div>
-                        <div class="stat-label">Projects Completed</div>
-                    </div>
-                    <div class="stat-card">
-                        <div class="stat-number" id="badgesEarned">15</div>
-                        <div class="stat-label">Badges Earned</div>
-                    </div>
-                    <div class="stat-card">
-                        <div class="stat-number" id="currentLevel">Expert</div>
-                        <div class="stat-label">Current Level</div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Portal Grid -->
-            <div class="portal-grid">
-                <!-- Badges & Achievements -->
-                <div class="portal-card">
-                    <div class="portal-card-header">
-                        <div class="portal-icon">🏆</div>
-                        <div>
-                            <h3 style="font-size: 1.5rem; font-weight: 700; margin: 0;">Badges & Achievements</h3>
-                            <p style="color: #6b7280; margin: 0;">Unlock skills as you learn</p>
-                        </div>
-                    </div>
-                    
-                    <div class="badge-grid">
-                        <div class="badge earned">
-                            <div class="badge-icon">🎯</div>
-                            <div class="badge-name">First Print</div>
-                        </div>
-                        <div class="badge earned">
-                            <div class="badge-icon">📐</div>
-                            <div class="badge-name">Sketch Master</div>
-                        </div>
-                        <div class="badge earned">
-                            <div class="badge-icon">🔧</div>
-                            <div class="badge-name">Extrude Expert</div>
-                        </div>
-                        <div class="badge earned">
-                            <div class="badge-icon">⚙️</div>
-                            <div class="badge-name">Assembly Pro</div>
-                        </div>
-                        <div class="badge earned">
-                            <div class="badge-icon">🎨</div>
-                            <div class="badge-name">Color Creator</div>
-                        </div>
-                        <div class="badge">
-                            <div class="badge-icon">🏗️</div>
-                            <div class="badge-name">Complex Build</div>
-                        </div>
-                        <div class="badge">
-                            <div class="badge-icon">🧠</div>
-                            <div class="badge-name">Problem Solver</div>
-                        </div>
-                        <div class="badge">
-                            <div class="badge-icon">🚀</div>
-                            <div class="badge-name">CAD Master</div>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Video Tutorials -->
-                <div class="portal-card">
-                    <div class="portal-card-header">
-                        <div class="portal-icon">📹</div>
-                        <div>
-                            <h3 style="font-size: 1.5rem; font-weight: 700; margin: 0;">Video Tutorials</h3>
-                            <p style="color: #6b7280; margin: 0;">Learn at your own pace</p>
-                        </div>
-                    </div>
-                    
-                    <div style="max-height: 400px; overflow-y: auto;">
-                        <div class="video-grid">
-                            <div class="video-card">
-                                <div class="video-thumbnail">
-                                    <div class="play-button">▶</div>
-                                </div>
-                                <div class="video-info">
-                                    <div class="video-title">Fusion360 Basics: Sketching</div>
-                                    <div class="video-description">Learn the fundamentals of creating 2D sketches</div>
-                                    <div class="video-meta">
-                                        <span class="difficulty-badge difficulty-beginner">Beginner</span>
-                                        <span class="completed-badge">✓ Completed</span>
-                                    </div>
-                                </div>
-                            </div>
-                            
-                            <div class="video-card">
-                                <div class="video-thumbnail">
-                                    <div class="play-button">▶</div>
-                                </div>
-                                <div class="video-info">
-                                    <div class="video-title">3D Extrusions & Features</div>
-                                    <div class="video-description">Turn your sketches into 3D objects</div>
-                                    <div class="video-meta">
-                                        <span class="difficulty-badge difficulty-beginner">Beginner</span>
-                                        <span class="completed-badge">✓ Completed</span>
-                                    </div>
-                                </div>
-                            </div>
-                            
-                            <div class="video-card">
-                                <div class="video-thumbnail">
-                                    <div class="play-button">▶</div>
-                                </div>
-                                <div class="video-info">
-                                    <div class="video-title">Creating Assemblies</div>
-                                    <div class="video-description">Combine multiple parts into working assemblies</div>
-                                    <div class="video-meta">
-                                        <span class="difficulty-badge difficulty-intermediate">Intermediate</span>
-                                        <span style="color: #3b82f6;">In Progress</span>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Class Recaps -->
-            <div class="portal-card">
-                <div class="portal-card-header">
-                    <div class="portal-icon">📚</div>
-                    <div>
-                        <h3 style="font-size: 1.5rem; font-weight: 700; margin: 0;">Recent Class Recaps</h3>
-                        <p style="color: #6b7280; margin: 0;">What you learned in your latest classes</p>
-                    </div>
-                </div>
-                
-                <div class="class-recap-card">
-                    <div class="recap-header">
-                        <h4 style="font-size: 1.25rem; font-weight: 700; margin: 0;">Advanced Assemblies: Mechanical Joints</h4>
-                        <div class="recap-date">Jan 15, 2025</div>
-                    </div>
-                    <div class="recap-content">
-                        <div>
-                            <h5 style="font-weight: 600; margin-bottom: 0.5rem; color: #ea580c;">What You Learned:</h5>
-                            <ul style="color: #6b7280; margin-bottom: 1rem;">
-                                <li>How to create revolute joints in assemblies</li>
-                                <li>Setting up motion constraints between parts</li>
-                                <li>Testing your assembly motion before 3D printing</li>
-                            </ul>
-                            
-                            <h5 style="font-weight: 600; margin-bottom: 0.5rem; color: #ea580c;">Your Project:</h5>
-                            <p style="color: #6b7280; margin-bottom: 1rem;">
-                                You designed a working mechanical claw with moving joints! The servo mount and grabber arms 
-                                move smoothly together. Great job solving the alignment challenge!
-                            </p>
-                            
-                            <h5 style="font-weight: 600; margin-bottom: 0.5rem; color: #ea580c;">Next Class Preview:</h5>
-                            <p style="color: #6b7280;">We'll add motors and electronics to make your claw actually move!</p>
-                        </div>
-                        <div class="recap-image">
-                            🦾
-                        </div>
-                    </div>
-                </div>
-                
-                <div class="class-recap-card">
-                    <div class="recap-header">
-                        <h4 style="font-size: 1.25rem; font-weight: 700; margin: 0;">Surface Modeling: Organic Shapes</h4>
-                        <div class="recap-date">Jan 12, 2025</div>
-                    </div>
-                    <div class="recap-content">
-                        <div>
-                            <h5 style="font-weight: 600; margin-bottom: 0.5rem; color: #ea580c;">What You Learned:</h5>
-                            <ul style="color: #6b7280; margin-bottom: 1rem;">
-                                <li>Using the sculpting workspace in Fusion360</li>
-                                <li>Creating smooth, curved surfaces</li>
-                                <li>Combining organic shapes with mechanical features</li>
-                            </ul>
-                            
-                            <h5 style="font-weight: 600; margin-bottom: 0.5rem; color: #ea580c;">Your Project:</h5>
-                            <p style="color: #6b7280; margin-bottom: 1rem;">
-                                You created a custom phone stand with flowing, artistic curves. The combination of 
-                                functional engineering and artistic design was impressive!
-                            </p>
-                        </div>
-                        <div class="recap-image">
-                            📱
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- My Projects Showcase -->
-            <div class="portal-card">
-                <div class="portal-card-header">
-                    <div class="portal-icon">🎨</div>
-                    <div>
-                        <h3 style="font-size: 1.5rem; font-weight: 700; margin: 0;">My Project Showcase</h3>
-                        <p style="color: #6b7280; margin: 0;">Your amazing creations</p>
-                    </div>
-                </div>
-                
-                <div class="project-showcase">
-                    <div class="project-card">
-                        <div class="project-image">
-                            <div class="project-status status-completed">Completed</div>
-                            <div style="font-size: 4rem;">🦾</div>
-                        </div>
-                        <div style="padding: 1.5rem;">
-                            <h4 style="font-weight: 700; margin-bottom: 0.5rem;">Mechanical Claw</h4>
-                            <p style="color: #6b7280; font-size: 0.875rem; margin-bottom: 1rem;">
-                                Working robotic claw with servo motor and smooth joint movement
-                            </p>
-                            <div style="display: flex; justify-content: space-between; align-items: center;">
-                                <span class="difficulty-badge difficulty-advanced">Advanced</span>
-                                <span style="color: #10b981; font-weight: 600;">🏆 Badge Earned</span>
-                            </div>
-                        </div>
-                    </div>
-                    
-                    <div class="project-card">
-                        <div class="project-image">
-                            <div class="project-status status-completed">Completed</div>
-                            <div style="font-size: 4rem;">📱</div>
-                        </div>
-                        <div style="padding: 1.5rem;">
-                            <h4 style="font-weight: 700; margin-bottom: 0.5rem;">Artistic Phone Stand</h4>
-                            <p style="color: #6b7280; font-size: 0.875rem; margin-bottom: 1rem;">
-                                Curved surface design combining art and function
-                            </p>
-                            <div style="display: flex; justify-content: space-between; align-items: center;">
-                                <span class="difficulty-badge difficulty-intermediate">Intermediate</span>
-                                <span style="color: #10b981; font-weight: 600;">✨ Featured</span>
-                            </div>
-                        </div>
-                    </div>
-                    
-                    <div class="project-card">
-                        <div class="project-image">
-                            <div class="project-status status-in-progress">In Progress</div>
-                            <div style="font-size: 4rem;">🚗</div>
-                        </div>
-                        <div style="padding: 1.5rem;">
-                            <h4 style="font-weight: 700; margin-bottom: 0.5rem;">RC Car Chassis</h4>
-                            <p style="color: #6b7280; font-size: 0.875rem; margin-bottom: 1rem;">
-                                Custom designed chassis for remote control car project
-                            </p>
-                            <div style="display: flex; justify-content: space-between; align-items: center;">
-                                <span class="difficulty-badge difficulty-advanced">Advanced</span>
-                                <span style="color: #f59e0b; font-weight: 600;">65% Complete</span>
-                            </div>
-                        </div>
-                    </div>
-                    
-                    <div class="project-card">
-                        <div class="project-image">
-                            <div class="project-status status-upcoming">Next Up</div>
-                            <div style="font-size: 4rem;">🎮</div>
-                        </div>
-                        <div style="padding: 1.5rem;">
-                            <h4 style="font-weight: 700; margin-bottom: 0.5rem;">Custom Game Controller</h4>
-                            <p style="color: #6b7280; font-size: 0.875rem; margin-bottom: 1rem;">
-                                Design your own ergonomic gaming controller shell
-                            </p>
-                            <div style="display: flex; justify-content: space-between; align-items: center;">
-                                <span class="difficulty-badge difficulty-advanced">Advanced</span>
-                                <span style="color: #6b7280; font-weight: 600;">Coming Soon</span>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </section>
-
-    <!-- Dashboard Section -->
-    <section id="dashboardSection" class="dashboard-section hidden">
-        <div class="container">
-            <div class="dashboard-header">
                 <div>
-                    <h2 class="dashboard-title">Family Dashboard</h2>
-                    <p style="color: #6b7280; margin-top: 0.5rem;" id="welcomeMessage"></p>
-                </div>
-                <div style="text-align: right;">
-                    <div style="font-size: 0.875rem; color: #6b7280;">3D Jumpstart</div>
-                    <div style="font-size: 0.75rem; color: #9ca3af;">September 2025</div>
-                </div>
-            </div>
-
-            <!-- Dashboard Message Area -->
-            <div id="dashboardMessage" style="margin-bottom: 2rem;"></div>
-
-            <!-- Payment Methods Section -->
-            <div class="student-form">
-                <h3>💳 Payment Methods</h3>
-                <p style="color: #6b7280; margin-bottom: 1.5rem;">Manage your payment methods for class charges ($60 per attended class)</p>
-                
-                <div id="paymentMethodsList">
-                    <!-- Payment methods will be loaded here -->
-                </div>
-                
-                <div style="display: flex; gap: 1rem; margin-top: 1rem; flex-wrap: wrap;">
-                    <button onclick="showAddPaymentMethod()" class="btn btn-primary">
-                        ➕ Add Payment Method
-                    </button>
-                    
-                    <button onclick="showBillingHistory()" class="btn btn-outline" id="billingHistoryBtn">
-                        📊 View Billing History
-                    </button>
-                    
-                    <!-- Test Payment Button -->
-                    <button onclick="testClassPayment()" class="btn btn-success" id="testPaymentBtn">
-                        🧪 Test $60 Class Payment
-                    </button>
-                </div>
-            </div>
-
-            <!-- Billing Summary Section -->
-            <div id="billingSummary" class="billing-summary hidden">
-                <h3>📊 Current Week Summary</h3>
-                <p style="color: #6b7280; margin-bottom: 1.5rem;">Classes scheduled this week</p>
-                
-                <div id="weeklyClassesList">
-                    <!-- Weekly classes will be loaded here -->
-                </div>
-                
-                <div class="billing-total">
-                    <div class="billing-row">
-                        <span>Total This Week:</span>
-                        <span id="weeklyTotal">$0.00</span>
+                    <div class="badge">
+                        Meet Your Instructor
                     </div>
-                </div>
-            </div>
-
-            <!-- Add Student Form -->
-            <div id="addStudentForm" class="student-form hidden">
-                <h3>Add Student</h3>
-                <form id="studentForm">
-                    <div class="form-row">
-                        <div class="form-group">
-                            <label for="studentFirstName" class="form-label">Student First Name</label>
-                            <input type="text" id="studentFirstName" name="studentFirstName" class="form-input" required>
+                    <h2 style="font-size: 3rem; font-weight: 800; margin-bottom: 1rem; color: #111827;">
+                        Hi, I'm Jeremiah
+                    </h2>
+                    <p style="font-size: 1.25rem; font-weight: 600; color: #ea580c; margin-bottom: 2rem;">
+                        I help students go from "I can't figure this out" to "Look what I made!"
+                    </p>
+                    <div style="space-y: 1.5rem; color: #374151; line-height: 1.7;">
+                        <p style="margin-bottom: 1.5rem; font-weight: 500;">
+                            For the past few years, I've been teaching 3D modeling and printing to middle and high school 
+                            students. I've seen the transformation that happens when students learn to create their own 
+                            designs instead of just downloading files.
+                        </p>
+                        <div style="background: linear-gradient(135deg, #fed7aa 0%, #fb923c 100%); padding: 1.5rem; border-radius: 1rem; border-left: 4px solid #ea580c; margin: 2rem 0;">
+                            <p style="color: #111827; font-weight: 600; font-size: 1.125rem;">
+                                "My goal is simple: teach students professional skills they can use for life, not just hobby 
+                                projects that get forgotten."
+                            </p>
                         </div>
-                        <div class="form-group">
-                            <label for="studentLastName" class="form-label">Student Last Name</label>
-                            <input type="text" id="studentLastName" name="studentLastName" class="form-input" required>
-                        </div>
+                        <p style="font-weight: 600; color: #111827; font-size: 1.125rem;">
+                            Students learn the same Fusion360 software that real engineers use in industry. These aren't toy 
+                            skills — they're career-building skills.
+                        </p>
                     </div>
-
-                    <div class="form-row">
-                        <div class="form-group">
-                            <label for="studentGrade" class="form-label">Grade</label>
-                            <select id="studentGrade" name="studentGrade" class="form-input" required>
-                                <option value="">Select Grade</option>
-                                <option value="4th">4th Grade</option>
-                                <option value="5th">5th Grade</option>
-                                <option value="6th">6th Grade</option>
-                                <option value="7th">7th Grade</option>
-                                <option value="8th">8th Grade</option>
-                                <option value="9th">9th Grade</option>
-                                <option value="10th">10th Grade</option>
-                                <option value="11th">11th Grade</option>
-                                <option value="12th">12th Grade</option>
-                            </select>
-                        </div>
-                        <div class="form-group">
-                            <label for="studentAge" class="form-label">Age</label>
-                            <input type="number" id="studentAge" name="studentAge" class="form-input" min="8" max="18" required>
-                        </div>
-                    </div>
-
-                    <div class="form-group">
-                        <label for="experience" class="form-label">3D Design Experience</label>
-                        <select id="experience" name="experience" class="form-input" required>
-                            <option value="">Select Experience Level</option>
-                            <option value="None">No prior experience</option>
-                            <option value="Beginner">Some basic experience</option>
-                            <option value="Intermediate">Comfortable with design software</option>
-                            <option value="Advanced">Experienced with CAD/3D modeling</option>
-                        </select>
-                    </div>
-
-                    <div class="form-group">
-                        <label for="parentNotes" class="form-label">Notes for Instructor (Optional)</label>
-                        <textarea id="parentNotes" name="parentNotes" rows="3" class="form-input" placeholder="Any special needs, interests, or information about your child?"></textarea>
-                    </div>
-
-                    <div style="display: flex; gap: 1rem; margin-top: 2rem;">
-                        <button type="submit" class="btn btn-primary">Add Student</button>
-                        <button type="button" onclick="hideAddStudentForm()" class="btn btn-secondary">Cancel</button>
-                    </div>
-                </form>
-            </div>
-
-            <!-- Class Enrollment Form -->
-            <div id="enrollmentForm" class="student-form hidden">
-                <h3>Choose Weekly Class Time</h3>
-                <p style="margin-bottom: 0.5rem;"><strong>Student:</strong> <span id="enrollingStudentName"></span></p>
-                <p style="margin-bottom: 2rem; color: #6b7280;">Select your regular weekly time slot. This will be your consistent class time each week.</p>
-                
-                <div id="classSchedule" class="class-schedule">
-                    <!-- Class slots will be populated here -->
                 </div>
-
-                <div style="display: flex; gap: 1rem; margin-top: 2rem;">
-                    <button type="button" onclick="confirmEnrollment()" class="btn btn-primary" id="enrollButton" disabled>Enroll in Selected Class</button>
-                    <button type="button" onclick="hideEnrollmentForm()" class="btn btn-secondary">Cancel</button>
-                </div>
-            </div>
-
-            <!-- Students Grid -->
-            <div class="student-grid" id="studentsGrid">
-                <!-- Students will be loaded here -->
             </div>
         </div>
     </section>
 
-    <!-- Add Payment Method Modal -->
-    <div id="addPaymentMethodModal" class="modal hidden">
-        <div class="modal-content">
-            <h3 style="margin-bottom: 1rem;">💳 Add Payment Method</h3>
-            <p style="color: #6b7280; margin-bottom: 1.5rem;">Your card information is securely handled by Stripe. We never store your full card details.</p>
+    <!-- Pricing Section -->
+    <section id="pricing" class="section">
+        <div class="container">
+            <div class="badge">
+                Simple, Transparent Pricing
+            </div>
+            <h2 class="section-title">Professional instruction at an affordable price</h2>
             
-            <form id="payment-method-form">
-                <div class="form-group">
-                    <label class="form-label">Card Information</label>
-                    <div id="card-element" style="padding: 0.875rem; border: 2px solid #e5e7eb; border-radius: 0.5rem; background: white;">
-                        <!-- Stripe Elements will create form elements here -->
+            <div style="max-width: 500px; margin: 0 auto;">
+                <div class="card" style="text-align: center; border-color: #ea580c; background: linear-gradient(135deg, #fed7aa 0%, #ffffff 100%);">
+                    <div style="background: #ea580c; color: white; padding: 0.5rem 1rem; border-radius: 9999px; font-weight: 600; margin-bottom: 1.5rem; display: inline-block;">
+                        Weekly Classes
                     </div>
-                    <div id="card-errors" role="alert" style="color: #dc2626; font-size: 0.875rem; margin-top: 0.5rem;"></div>
+                    <h3 style="font-size: 1.125rem; color: #6b7280; margin-bottom: 0.5rem;">LEVEL 1 (12 weeks) - More levels coming soon!</h3>
+                    <div style="font-size: 3rem; font-weight: 800; color: #ea580c; margin-bottom: 1rem;">
+                        $60<span style="font-size: 1.25rem; color: #6b7280;">/week</span>
+                    </div>
+                    <ul style="list-style: none; padding: 0; margin: 2rem 0; text-align: left;">
+                        <li style="padding: 0.5rem 0; color: #374151;">✅ Professional Fusion360 instruction</li>
+                        <li style="padding: 0.5rem 0; color: #374151;">✅ Hands-on 3D printing experience</li>
+                        <li style="padding: 0.5rem 0; color: #374151;">✅ Online curriculum access</li>
+                        <li style="padding: 0.5rem 0; color: #374151;">✅ Weekly progress updates</li>
+                        <li style="padding: 0.5rem 0; color: #374151;">✅ Small class sizes</li>
+                    </ul>
+                    <a href="login.html" class="btn btn-primary" style="width: 100%; margin-bottom: 1rem;">
+                        Enroll Now
+                    </a>
+                    <p style="color: #ea580c; font-weight: 600; font-size: 0.875rem; margin: 0;">
+                        Limited spots available for LEVEL 1 class starting September 9th
+                    </p>
                 </div>
-
-                <div style="display: flex; gap: 1rem; margin-top: 2rem; justify-content: flex-end;">
-                    <button type="button" onclick="hideAddPaymentMethod()" class="btn btn-secondary">
-                        Cancel
-                    </button>
-                    <button type="submit" class="btn btn-primary" id="submit-payment-method">
-                        💾 Save Payment Method
-                    </button>
-                </div>
-            </form>
+            </div>
         </div>
-    </div>
+    </section>
 
-    <!-- Billing History Modal -->
-    <div id="billingHistoryModal" class="modal hidden">
-        <div class="modal-content">
-            <h3 style="margin-bottom: 1rem;">📊 Billing History</h3>
-            <p style="color: #6b7280; margin-bottom: 1.5rem;">Your class payment history and receipts</p>
+    <!-- Call to Action Section -->
+    <section class="section" style="background: linear-gradient(135deg, #ea580c 0%, #dc2626 100%); color: white;">
+        <div class="container" style="text-align: center;">
+            <h2 style="font-size: 2.5rem; font-weight: 800; margin-bottom: 1rem; color: white;">
+                NEXT Level 1 Session Starts September 9, 2025 at Shadowbrook Church, Suwanee, Georgia
+            </h2>
+            <p style="font-size: 1.25rem; margin-bottom: 3rem; color: rgba(255, 255, 255, 0.9);">
+                Tuesday afternoons/evenings • Limited spots available • Serving North Gwinnett families
+            </p>
             
-            <div id="billingHistoryContent">
-                <!-- Billing history will be loaded here -->
+            <div style="display: flex; flex-direction: column; gap: 1rem; align-items: center; margin-bottom: 2rem;">
+                <a href="login.html" class="btn" style="background: white; color: #ea580c; font-size: 1.125rem; padding: 1rem 2rem; border: none;">
+                    Reserve Your Spot Today
+                </a>
+                <a href="mailto:jeremiah@3djumpstart.com" class="btn btn-outline" style="border-color: white; color: white;">
+                    jeremiah@3djumpstart.com
+                </a>
             </div>
-
-            <div style="display: flex; justify-content: flex-end; margin-top: 2rem;">
-                <button type="button" onclick="hideBillingHistory()" class="btn btn-secondary">
-                    Close
-                </button>
-            </div>
+            
+            <p style="color: rgba(255, 255, 255, 0.8);">
+                Questions? Feel free to email or message us. We'd love to connect with parents interested in giving their children cutting-edge technical skills!
+            </p>
+            
+            <p style="font-size: 1.25rem; font-weight: 600; margin-top: 2rem; color: white;">
+                Building tomorrow's innovators, one design at a time!
+            </p>
         </div>
-    </div>
+    </section>
 
     <!-- Footer -->
     <footer style="background: #f9fafb; border-top: 1px solid #e5e7eb; padding: 3rem 0;">
@@ -2136,1179 +863,50 @@
                 <div style="display: flex; align-items: center; justify-content: center; gap: 0.75rem; margin-bottom: 1rem;">
                     <img src="https://raw.githubusercontent.com/JDaws-Dev/3DJumpstart/main/3d-jumpstart-logo.png" alt="3D Jumpstart Logo" style="height: 4rem; width: auto;">
                 </div>
-                <p style="color: #6b7280; margin-bottom: 0.5rem;">Finally! A way to make that expensive 3D printer actually worth it</p>
+                <p style="color: #6b7280; margin-bottom: 0.5rem;">Professional 3D Design & 3D Printing Education • North Gwinnett Area</p>
                 <p style="color: #9ca3af; font-size: 0.875rem;">© 2025 3D Jumpstart. All rights reserved.</p>
             </div>
         </div>
     </footer>
 
     <script>
-        // Configuration - Replace with your actual credentials
-        const SUPABASE_URL = 'https://hucjmggkasahwpjgnwia.supabase.co';
-        const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imh1Y2ptZ2drYXNhaHdwamdud2lhIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTQ2MTI2MDIsImV4cCI6MjA3MDE4ODYwMn0.hxFmoZexaKverih9crJfP9fjWItOTfC_6D_CM7hr_Rg';
-        
-        // Add your Stripe publishable key here
-        const STRIPE_PUBLISHABLE_KEY = 'pk_test_51RtgcnKgkIT46sg7eot6vK6wU29NhxrKr7HLwSW0xsDV1HDsfAGG7Ep3HIvTUms6bfVOzYwiYqBCkPMbJZRnpa3l00jDnP1WuG';
-        const stripe = Stripe(STRIPE_PUBLISHABLE_KEY);
-
-        const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-
-        // Global variables
-        let currentUser = null;
-        let classSlots = [];
-        let selectedSlotId = null;
-        let enrollingStudent = null;
-        let allStudents = [];
-        let paymentMethods = [];
-        let cardElement = null;
-        let currentStudentIndex = 0; // For student portal
-
-        // Mock data for testing (before backend API is ready)
-        let mockPaymentMethods = [];
-        let mockCharges = [];
-        let mockBillingHistory = [];
-
-        // Student Portal Mock Data
-        let studentData = {
-            badges: [
-                { name: 'First Print', icon: '🎯', earned: true },
-                { name: 'Sketch Master', icon: '📐', earned: true },
-                { name: 'Extrude Expert', icon: '🔧', earned: true },
-                { name: 'Assembly Pro', icon: '⚙️', earned: true },
-                { name: 'Color Creator', icon: '🎨', earned: true },
-                { name: 'Complex Build', icon: '🏗️', earned: false },
-                { name: 'Problem Solver', icon: '🧠', earned: false },
-                { name: 'CAD Master', icon: '🚀', earned: false }
-            ],
-            tutorials: [
-                { 
-                    title: 'Fusion360 Basics: Sketching', 
-                    description: 'Learn the fundamentals of creating 2D sketches',
-                    difficulty: 'beginner',
-                    completed: true,
-                    duration: '12 min'
-                },
-                { 
-                    title: '3D Extrusions & Features', 
-                    description: 'Turn your sketches into 3D objects',
-                    difficulty: 'beginner',
-                    completed: true,
-                    duration: '15 min'
-                },
-                { 
-                    title: 'Creating Assemblies', 
-                    description: 'Combine multiple parts into working assemblies',
-                    difficulty: 'intermediate',
-                    completed: false,
-                    duration: '20 min'
-                },
-                { 
-                    title: 'Advanced Surface Modeling', 
-                    description: 'Create organic, flowing shapes',
-                    difficulty: 'advanced',
-                    completed: false,
-                    duration: '25 min'
-                }
-            ],
-            stats: {
-                classesAttended: 12,
-                projectsCompleted: 8,
-                badgesEarned: 5,
-                currentLevel: 'Expert',
-                progressPercentage: 75
-            }
-        };
-
-        // Stripe Elements setup
-        function initializeStripeElements() {
-            if (!cardElement) {
-                const elements = stripe.elements();
-                cardElement = elements.create('card', {
-                    style: {
-                        base: {
-                            fontSize: '16px',
-                            color: '#424770',
-                            '::placeholder': {
-                                color: '#aab7c4',
-                            },
-                        },
-                        invalid: {
-                            color: '#9e2146',
-                        },
-                    },
-                });
-                
-                cardElement.mount('#card-element');
-                
-                cardElement.on('change', ({error}) => {
-                    const displayError = document.getElementById('card-errors');
-                    if (error) {
-                        displayError.textContent = error.message;
-                    } else {
-                        displayError.textContent = '';
-                    }
-                });
-            }
-        }
-
-        // Payment Method Functions
-        function showAddPaymentMethod() {
-            document.getElementById('addPaymentMethodModal').classList.remove('hidden');
-            setTimeout(() => {
-                initializeStripeElements();
-            }, 100);
-        }
-
-        function hideAddPaymentMethod() {
-            document.getElementById('addPaymentMethodModal').classList.add('hidden');
-            document.getElementById('payment-method-form').reset();
-            if (cardElement) {
-                cardElement.clear();
-            }
-            document.getElementById('card-errors').textContent = '';
-        }
-
-        async function handlePaymentMethodSubmission(event) {
-            event.preventDefault();
-            
-            if (!currentUser) {
-                showMessage('Please log in first', 'error');
-                return;
-            }
-
-            const submitButton = document.getElementById('submit-payment-method');
-            submitButton.classList.add('loading');
-            submitButton.disabled = true;
-
-            try {
-                showMessage('Adding payment method...', 'success');
-
-                // Create payment method with Stripe
-                const {error, paymentMethod} = await stripe.createPaymentMethod({
-                    type: 'card',
-                    card: cardElement,
-                    billing_details: {
-                        email: currentUser.email,
-                    },
-                });
-
-                if (error) {
-                    throw new Error(error.message);
-                }
-
-                // For now, store in mock data (replace with actual API call later)
-                const newPaymentMethod = {
-                    id: Date.now().toString(),
-                    parent_id: currentUser.id,
-                    stripe_payment_method_id: paymentMethod.id,
-                    type: paymentMethod.type,
-                    last4: paymentMethod.card.last4,
-                    brand: paymentMethod.card.brand,
-                    is_default: mockPaymentMethods.length === 0,
-                    created_at: new Date().toISOString()
-                };
-
-                mockPaymentMethods.push(newPaymentMethod);
-                localStorage.setItem('mockPaymentMethods', JSON.stringify(mockPaymentMethods));
-
-                showMessage(`🎉 Payment method added! Card ending in ${paymentMethod.card.last4}`, 'success');
-                hideAddPaymentMethod();
-                renderPaymentMethods();
-                
-            } catch (error) {
-                showMessage(error.message, 'error');
-            } finally {
-                submitButton.classList.remove('loading');
-                submitButton.disabled = false;
-            }
-        }
-
-        function loadPaymentMethods() {
-            if (!currentUser) return;
-
-            // Load from localStorage for now (replace with API call later)
-            const stored = localStorage.getItem('mockPaymentMethods');
-            if (stored) {
-                mockPaymentMethods = JSON.parse(stored).filter(pm => pm.parent_id === currentUser.id);
-            }
-            renderPaymentMethods();
-        }
-
-        function renderPaymentMethods() {
-            const container = document.getElementById('paymentMethodsList');
-            
-            if (mockPaymentMethods.length === 0) {
-                container.innerHTML = `
-                    <div style="color: #6b7280; font-style: italic; padding: 1rem; text-align: center; border: 2px dashed #e5e7eb; border-radius: 0.5rem;">
-                        No payment methods added yet. Add one below to enable class payments!
-                    </div>
-                `;
-                return;
-            }
-
-            container.innerHTML = mockPaymentMethods.map(pm => `
-                <div class="payment-method-card ${pm.is_default ? 'default' : ''}">
-                    <div class="payment-info">
-                        <div style="font-size: 1.5rem;">💳</div>
-                        <div>
-                            <div class="card-brand">${pm.brand}</div>
-                            <div class="card-last4">•••• •••• •••• ${pm.last4}</div>
-                        </div>
-                        ${pm.is_default ? '<div class="default-badge">Default</div>' : ''}
-                    </div>
-                    <div class="payment-actions">
-                        ${!pm.is_default ? `<button onclick="setDefaultPaymentMethod('${pm.id}')" class="btn btn-outline" style="font-size: 0.75rem; padding: 0.375rem 0.75rem;">Set Default</button>` : ''}
-                        <button onclick="removePaymentMethod('${pm.id}')" class="btn btn-danger" style="font-size: 0.75rem; padding: 0.375rem 0.75rem;">Remove</button>
-                    </div>
-                </div>
-            `).join('');
-        }
-
-        async function setDefaultPaymentMethod(paymentMethodId) {
-            // Update mock data
-            mockPaymentMethods.forEach(pm => {
-                pm.is_default = (pm.id === paymentMethodId);
-            });
-            localStorage.setItem('mockPaymentMethods', JSON.stringify(mockPaymentMethods));
-            renderPaymentMethods();
-            showMessage('Default payment method updated!', 'success');
-        }
-
-        async function removePaymentMethod(paymentMethodId) {
-            if (confirm('Are you sure you want to remove this payment method?')) {
-                mockPaymentMethods = mockPaymentMethods.filter(pm => pm.id !== paymentMethodId);
-                localStorage.setItem('mockPaymentMethods', JSON.stringify(mockPaymentMethods));
-                renderPaymentMethods();
-                showMessage('Payment method removed', 'success');
-            }
-        }
-
-        // Test Payment Functions
-        async function testClassPayment() {
-            if (!currentUser) {
-                showMessage('Please log in first', 'error');
-                return;
-            }
-
-            if (mockPaymentMethods.length === 0) {
-                showMessage('Please add a payment method first', 'error');
-                return;
-            }
-
-            const testBtn = document.getElementById('testPaymentBtn');
-            testBtn.classList.add('loading');
-            testBtn.disabled = true;
-
-            try {
-                showMessage('Processing $60 class payment...', 'success');
-
-                // Simulate API delay
-                await new Promise(resolve => setTimeout(resolve, 2000));
-
-                // Create mock charge
-                const charge = {
-                    id: Date.now().toString(),
-                    parent_id: currentUser.id,
-                    student_name: 'Test Student',
-                    class_date: new Date().toISOString().split('T')[0],
-                    amount_cents: 6000,
-                    status: 'succeeded',
-                    description: 'Test Class Payment - Monday 4:00-5:00 PM',
-                    charged_at: new Date().toISOString()
-                };
-
-                mockCharges.push(charge);
-                localStorage.setItem('mockCharges', JSON.stringify(mockCharges));
-
-                showMessage('🎉 Test payment successful! $60.00 charged for class attendance.', 'success');
-                loadBillingHistory();
-                
-            } catch (error) {
-                showMessage(error.message, 'error');
-            } finally {
-                testBtn.classList.remove('loading');
-                testBtn.disabled = false;
-            }
-        }
-
-        // Billing History Functions
-        function showBillingHistory() {
-            loadBillingHistory();
-            document.getElementById('billingHistoryModal').classList.remove('hidden');
-        }
-
-        function hideBillingHistory() {
-            document.getElementById('billingHistoryModal').classList.add('hidden');
-        }
-
-        function loadBillingHistory() {
-            if (!currentUser) return;
-
-            // Load from localStorage for now
-            const stored = localStorage.getItem('mockCharges');
-            if (stored) {
-                mockCharges = JSON.parse(stored).filter(charge => charge.parent_id === currentUser.id);
-            }
-
-            renderBillingHistory();
-        }
-
-        function renderBillingHistory() {
-            const container = document.getElementById('billingHistoryContent');
-            
-            if (mockCharges.length === 0) {
-                container.innerHTML = `
-                    <div style="color: #6b7280; font-style: italic; padding: 2rem; text-align: center; border: 2px dashed #e5e7eb; border-radius: 0.5rem;">
-                        No payment history yet. Charges will appear here after class attendance.
-                    </div>
-                `;
-                return;
-            }
-
-            // Sort by date (most recent first)
-            const sortedCharges = [...mockCharges].sort((a, b) => new Date(b.charged_at) - new Date(a.charged_at));
-
-            container.innerHTML = `
-                <div style="max-height: 400px; overflow-y: auto;">
-                    ${sortedCharges.map(charge => `
-                        <div style="padding: 1rem; border: 1px solid #e5e7eb; border-radius: 0.5rem; margin-bottom: 0.5rem; background: white;">
-                            <div style="display: flex; justify-content: space-between; align-items: start; margin-bottom: 0.5rem;">
-                                <div>
-                                    <div style="font-weight: 600; color: #111827;">${charge.description}</div>
-                                    <div style="font-size: 0.875rem; color: #6b7280;">Student: ${charge.student_name}</div>
-                                    <div style="font-size: 0.875rem; color: #6b7280;">Date: ${new Date(charge.class_date).toLocaleDateString()}</div>
-                                </div>
-                                <div style="text-align: right;">
-                                    <div style="font-weight: 700; color: #16a34a;">$${(charge.amount_cents / 100).toFixed(2)}</div>
-                                    <div style="font-size: 0.75rem; color: #16a34a; text-transform: capitalize;">${charge.status}</div>
-                                </div>
-                            </div>
-                        </div>
-                    `).join('')}
-                </div>
-                <div style="margin-top: 1rem; padding: 1rem; background: #f9fafb; border-radius: 0.5rem;">
-                    <div style="display: flex; justify-content: space-between; font-weight: 700;">
-                        <span>Total Paid:</span>
-                        <span>$${(mockCharges.reduce((sum, charge) => sum + charge.amount_cents, 0) / 100).toFixed(2)}</span>
-                    </div>
-                </div>
-            `;
-        }
-
-        // Weekly Summary Functions
-        function loadWeeklySummary() {
-            if (!currentUser || !allStudents) return;
-
-            const container = document.getElementById('weeklyClassesList');
-            const enrolledStudents = allStudents.filter(student => 
-                student.enrollments && student.enrollments.length > 0
-            );
-
-            if (enrolledStudents.length === 0) {
-                container.innerHTML = `
-                    <div style="color: #6b7280; font-style: italic; text-align: center; padding: 1rem;">
-                        No students enrolled in classes yet.
-                    </div>
-                `;
-                document.getElementById('weeklyTotal').textContent = '$0.00';
-                return;
-            }
-
-            // Calculate this week's classes (3 classes per enrolled student)
-            let weeklyClasses = [];
-            enrolledStudents.forEach(student => {
-                const enrollment = student.enrollments[0];
-                const slot = enrollment.class_slots;
-                
-                // Add 3 classes for this week (Mon, Tue, Thu)
-                const days = ['Monday', 'Tuesday', 'Thursday'];
-                if (days.includes(slot.day_of_week)) {
-                    weeklyClasses.push({
-                        student_name: student.name,
-                        day: slot.day_of_week,
-                        time: `${formatTime(slot.start_time)} - ${formatTime(slot.end_time)}`,
-                        cost: 60
-                    });
-                }
-            });
-
-            const totalCost = weeklyClasses.length * 60;
-
-            container.innerHTML = weeklyClasses.map(classInfo => `
-                <div class="billing-row">
-                    <div>
-                        <div style="font-weight: 600;">${classInfo.student_name}</div>
-                        <div style="font-size: 0.875rem; color: #6b7280;">${classInfo.day} ${classInfo.time}</div>
-                    </div>
-                    <span>$${classInfo.cost}.00</span>
-                </div>
-            `).join('');
-
-            document.getElementById('weeklyTotal').textContent = `$${totalCost}.00`;
-
-            // Show billing summary if there are enrolled students
-            if (weeklyClasses.length > 0) {
-                document.getElementById('billingSummary').classList.remove('hidden');
-            }
-        }
-
-        // Initialize app
-        document.addEventListener('DOMContentLoaded', async () => {
-            await loadClassSlots();
-
-            const { data: { session } } = await supabase.auth.getSession();
-            if (session) {
-                currentUser = session.user;
-                showDashboard(); // Show dashboard for existing sessions
-                await loadStudents();
-                loadPaymentMethods();
-                loadBillingHistory();
-            } else {
-                showHome(); // Show home page for non-logged in users
-            }
-
-            supabase.auth.onAuthStateChange((event, session) => {
-                if (event === 'SIGNED_IN') {
-                    currentUser = session.user;
-                    showDashboard(); // Go directly to dashboard when logging in
-                    loadStudents();
-                    loadPaymentMethods();
-                    loadBillingHistory();
-                } else if (event === 'SIGNED_OUT') {
-                    currentUser = null;
-                    showHome(); // Go to home page when logging out
-                }
-            });
-
-            // Event listeners
-            document.getElementById('parentSignupForm').addEventListener('submit', handleSignup);
-            document.getElementById('parentLoginForm').addEventListener('submit', handleLogin);
-            document.getElementById('studentForm').addEventListener('submit', handleAddStudent);
-            document.getElementById('payment-method-form').addEventListener('submit', handlePaymentMethodSubmission);
-        });
-
-        // Navigation Functions
-        function goToMainPage() {
-            if (currentUser) {
-                // Default to parent dashboard, but if they only have one student and were using student portal, go there
-                if (allStudents.length === 1 && !document.getElementById('studentPortalSection').classList.contains('hidden')) {
-                    showStudentPortal();
-                } else {
-                    showDashboard();
-                }
-            } else {
-                showHome();
-            }
-        }
-
-        function showHome() {
-            hideAllSections();
-            document.getElementById('homeSection').classList.remove('hidden');
-            updateNavigation(currentUser !== null);
-        }
-
-        function showAuth() {
-            hideAllSections();
-            document.getElementById('authSection').classList.remove('hidden');
-            showSignup();
-        }
-
-        function showDashboard() {
-            hideAllSections();
-            document.getElementById('dashboardSection').classList.remove('hidden');
-            updateNavigation(true);
-            if (currentUser) {
-                document.getElementById('welcomeMessage').textContent = `Welcome back! Manage your students and view their progress.`;
-                loadPaymentMethods();
-                loadBillingHistory();
-                loadWeeklySummary();
-            }
-        }
-
-        function hideAllSections() {
-            document.getElementById('homeSection').classList.add('hidden');
-            document.getElementById('authSection').classList.add('hidden');
-            document.getElementById('dashboardSection').classList.add('hidden');
-            document.getElementById('studentPortalSection').classList.add('hidden');
-        }
-
-        function updateNavigation(isLoggedIn) {
-            // Public navigation links (only shown when NOT logged in)
-            document.getElementById('homeNavLink').classList.toggle('hidden', isLoggedIn);
-            document.getElementById('projectsNavLink').classList.toggle('hidden', isLoggedIn);
-            document.getElementById('instructorNavLink').classList.toggle('hidden', isLoggedIn);
-            document.getElementById('loginLink').classList.toggle('hidden', isLoggedIn);
-            
-            // Private navigation links (only shown when logged in)
-            document.getElementById('dashboardLink').classList.toggle('hidden', !isLoggedIn);
-            document.getElementById('studentPortalLink').classList.toggle('hidden', !isLoggedIn);
-            document.getElementById('logoutLink').classList.toggle('hidden', !isLoggedIn);
-        }
-
-        function showStudentPortal() {
-            hideAllSections();
-            document.getElementById('studentPortalSection').classList.remove('hidden');
-            updateNavigation(true);
-            loadStudentData();
-            
-            // Show welcome message for first-time portal users
-            if (!localStorage.getItem('studentPortalVisited')) {
-                setTimeout(() => {
-                    showMessage('🎮 Welcome to your Student Portal! Complete tutorials to earn badges, track your progress, and see what you learned in class!', 'success');
-                    setTimeout(() => clearMessage(), 6000);
-                }, 1000);
-                localStorage.setItem('studentPortalVisited', 'true');
-            }
-        }
-
-        function loadStudentData() {
-            // Load student-specific data when portal loads
-            if (currentUser && allStudents.length > 0) {
-                const student = allStudents[currentStudentIndex] || allStudents[0];
-                
-                // Update student info
-                document.getElementById('studentWelcome').textContent = `Welcome back, ${student.first_name}!`;
-                document.getElementById('studentAvatar').textContent = getStudentInitials(student.first_name, student.last_name);
-                
-                // Show student selector if multiple students
-                if (allStudents.length > 1) {
-                    const selector = document.getElementById('studentSelector');
-                    const select = document.getElementById('studentSelect');
-                    
-                    selector.classList.remove('hidden');
-                    select.innerHTML = allStudents.map((s, index) => 
-                        `<option value="${index}" ${index === currentStudentIndex ? 'selected' : ''}>${s.first_name} ${s.last_name}</option>`
-                    ).join('');
-                }
-                
-                // Update stats (mock data for now)
-                updateStudentStats(student);
-                updateProgressRing(studentData.stats.progressPercentage);
-                renderBadges();
-                renderTutorials();
-            }
-        }
-
-        function switchStudent() {
-            const select = document.getElementById('studentSelect');
-            currentStudentIndex = parseInt(select.value);
-            loadStudentData();
-        }
-
-        function updateStudentStats(student) {
-            // In real implementation, these would come from actual student progress data
-            document.getElementById('classesAttended').textContent = studentData.stats.classesAttended;
-            document.getElementById('projectsCompleted').textContent = studentData.stats.projectsCompleted;
-            document.getElementById('badgesEarned').textContent = studentData.stats.badgesEarned;
-            document.getElementById('currentLevel').textContent = studentData.stats.currentLevel;
-        }
-
-        function renderBadges() {
-            const badgeGrid = document.querySelector('.badge-grid');
-            if (!badgeGrid) return;
-            
-            badgeGrid.innerHTML = studentData.badges.map(badge => `
-                <div class="badge ${badge.earned ? 'earned' : ''}" onclick="showBadgeDetails('${badge.name}')">
-                    <div class="badge-icon">${badge.icon}</div>
-                    <div class="badge-name">${badge.name}</div>
-                </div>
-            `).join('');
-        }
-
-        function showBadgeDetails(badgeName) {
-            const badge = studentData.badges.find(b => b.name === badgeName);
-            if (badge && badge.earned) {
-                showMessage(`🎉 You earned the ${badge.name} badge! ${badge.icon}`, 'success');
-                setTimeout(() => clearMessage(), 3000);
-            } else if (badge) {
-                showMessage(`Keep learning to unlock the ${badge.name} badge! ${badge.icon}`, 'success');
-                setTimeout(() => clearMessage(), 3000);
-            }
-        }
-
-        function renderTutorials() {
-            // Get the first video grid (there might be multiple)
-            const videoGrids = document.querySelectorAll('.video-grid');
-            const videoGrid = videoGrids[0];
-            if (!videoGrid) return;
-            
-            videoGrid.innerHTML = studentData.tutorials.map((tutorial, index) => `
-                <div class="video-card" onclick="playTutorial(${index})">
-                    <div class="video-thumbnail">
-                        <div class="play-button">▶</div>
-                    </div>
-                    <div class="video-info">
-                        <div class="video-title">${tutorial.title}</div>
-                        <div class="video-description">${tutorial.description}</div>
-                        <div class="video-meta">
-                            <span class="difficulty-badge difficulty-${tutorial.difficulty}">${tutorial.difficulty.charAt(0).toUpperCase() + tutorial.difficulty.slice(1)}</span>
-                            ${tutorial.completed ? 
-                                '<span class="completed-badge">✓ Completed</span>' : 
-                                `<span style="color: #3b82f6;">${tutorial.duration}</span>`
-                            }
-                        </div>
-                    </div>
-                </div>
-            `).join('');
-        }
-
-        function playTutorial(index) {
-            const tutorial = studentData.tutorials[index];
-            if (tutorial.completed) {
-                showMessage(`🎥 Playing: ${tutorial.title} (Already completed!)`, 'success');
-            } else {
-                showMessage(`🎥 Playing: ${tutorial.title} - ${tutorial.duration}`, 'success');
-                
-                // Simulate tutorial completion after a delay (for demo purposes)
-                setTimeout(() => {
-                    tutorial.completed = true;
-                    renderTutorials();
-                    showMessage(`🎉 Tutorial completed! You're making great progress!`, 'success');
-                    
-                    // Check if new badge should be earned
-                    checkForNewBadges();
-                }, 3000);
-            }
-            setTimeout(() => clearMessage(), 5000);
-        }
-
-        function checkForNewBadges() {
-            // Simple logic to award badges based on progress
-            const completedTutorials = studentData.tutorials.filter(t => t.completed).length;
-            
-            if (completedTutorials >= 2 && !studentData.badges.find(b => b.name === 'Sketch Master').earned) {
-                awardBadge('Sketch Master');
-            }
-            
-            if (completedTutorials >= 3 && !studentData.badges.find(b => b.name === 'Extrude Expert').earned) {
-                awardBadge('Extrude Expert');
-            }
-        }
-
-        function awardBadge(badgeName) {
-            const badge = studentData.badges.find(b => b.name === badgeName);
-            if (badge && !badge.earned) {
-                badge.earned = true;
-                studentData.stats.badgesEarned++;
-                renderBadges();
-                updateStudentStats();
-                
-                showMessage(`🏆 NEW BADGE EARNED: ${badge.name} ${badge.icon}`, 'success');
-                setTimeout(() => clearMessage(), 4000);
-            }
-        }
-
-        function openStudentPortalForStudent(studentIndex) {
-            currentStudentIndex = studentIndex;
-            showStudentPortal();
-        }
-
-        function getStudentInitials(firstName, lastName) {
-            return `${firstName.charAt(0)}${lastName.charAt(0)}`.toUpperCase();
-        }
-
-        function updateProgressRing(percentage) {
-            const circle = document.getElementById('progressCircle');
-            const text = document.getElementById('progressText');
-            
-            if (circle && text) {
-                const circumference = 2 * Math.PI * 32; // radius = 32
-                const offset = circumference - (percentage / 100) * circumference;
-                circle.style.strokeDashoffset = offset;
-                text.textContent = `${percentage}%`;
-            }
-        }
-
-        // Auth Functions
-        function showSignup() {
-            document.getElementById('signupForm').classList.remove('hidden');
-            document.getElementById('loginForm').classList.add('hidden');
-            clearMessage();
-        }
-
-        function showLogin() {
-            document.getElementById('signupForm').classList.add('hidden');
-            document.getElementById('loginForm').classList.remove('hidden');
-            clearMessage();
-        }
-
-        async function handleSignup(e) {
-            e.preventDefault();
-            const formData = new FormData(e.target);
-            const submitBtn = e.target.querySelector('button[type="submit"]');
-            
-            try {
-                submitBtn.classList.add('loading');
-                submitBtn.disabled = true;
-                showMessage('Creating your account...', 'success');
-
-                const { data, error } = await supabase.auth.signUp({
-                    email: formData.get('parentEmail'),
-                    password: formData.get('password'),
-                });
-
-                if (error) throw error;
-
-                const { error: profileError } = await supabase
-                    .from('parents')
-                    .insert([{
-                        id: data.user.id,
-                        email: formData.get('parentEmail'),
-                        name: formData.get('parentName'),
-                        phone: formData.get('parentPhone')
-                    }]);
-
-                if (profileError) throw profileError;
-
-                showMessage('🎉 Account created successfully! Please check your email to verify your account.', 'success');
-                
-            } catch (error) {
-                showMessage(error.message, 'error');
-            } finally {
-                submitBtn.classList.remove('loading');
-                submitBtn.disabled = false;
-            }
-        }
-
-        async function handleLogin(e) {
-            e.preventDefault();
-            const formData = new FormData(e.target);
-            const submitBtn = e.target.querySelector('button[type="submit"]');
-            
-            try {
-                submitBtn.classList.add('loading');
-                submitBtn.disabled = true;
-                showMessage('Signing in...', 'success');
-
-                const { error } = await supabase.auth.signInWithPassword({
-                    email: formData.get('loginEmail'),
-                    password: formData.get('loginPassword'),
-                });
-
-                if (error) throw error;
-
-            } catch (error) {
-                showMessage(error.message, 'error');
-            } finally {
-                submitBtn.classList.remove('loading');
-                submitBtn.disabled = false;
-            }
-        }
-
-        async function logout() {
-            try {
-                const { error } = await supabase.auth.signOut();
-                if (error) {
-                    showMessage(error.message, 'error');
-                } else {
-                    // Clear any stored data and redirect to home
-                    currentUser = null;
-                    allStudents = [];
-                    paymentMethods = [];
-                    mockPaymentMethods = [];
-                    showHome();
-                    showMessage('Successfully logged out', 'success');
-                    setTimeout(() => clearMessage(), 2000);
-                }
-            } catch (error) {
-                showMessage('Error logging out: ' + error.message, 'error');
-            }
-        }
-
-        // Load class slots from database
-        async function loadClassSlots() {
-            try {
-                const { data, error } = await supabase
-                    .from('class_slots')
-                    .select('*')
-                    .order('day_of_week', { ascending: true })
-                    .order('start_time', { ascending: true });
-
-                if (error) throw error;
-                classSlots = data;
-            } catch (error) {
-                console.error('Error loading class slots:', error);
-            }
-        }
-
-        // Student Management Functions
-        function showAddStudentForm() {
-            document.getElementById('addStudentForm').classList.remove('hidden');
-        }
-
-        function hideAddStudentForm() {
-            document.getElementById('addStudentForm').classList.add('hidden');
-            document.getElementById('studentForm').reset();
-        }
-
-        async function handleAddStudent(e) {
-            e.preventDefault();
-            const formData = new FormData(e.target);
-            const submitBtn = e.target.querySelector('button[type="submit"]');
-            
-            const firstName = formData.get('studentFirstName').trim();
-            const lastName = formData.get('studentLastName').trim();
-            const fullName = `${firstName} ${lastName}`;
-            
-            try {
-                submitBtn.classList.add('loading');
-                submitBtn.disabled = true;
-                showMessage(`Adding ${fullName}...`, 'success');
-
-                const { error } = await supabase
-                    .from('students')
-                    .insert([{
-                        parent_id: currentUser.id,
-                        name: fullName,
-                        first_name: firstName,
-                        last_name: lastName,
-                        grade: formData.get('studentGrade'),
-                        age: formData.get('studentAge'),
-                        experience_level: formData.get('experience'),
-                        parent_notes: formData.get('parentNotes') || null
-                    }]);
-
-                if (error) throw error;
-
-                hideAddStudentForm();
-                await loadStudents();
-                showMessage(`🎉 ${fullName} added successfully! Now choose their class time.`, 'success');
-                setTimeout(() => clearMessage(), 4000);
-                
-            } catch (error) {
-                showMessage(error.message, 'error');
-            } finally {
-                submitBtn.classList.remove('loading');
-                submitBtn.disabled = false;
-            }
-        }
-
-        async function loadStudents() {
-            if (!currentUser) return;
-
-            try {
-                const { data: students, error: studentsError } = await supabase
-                    .from('students')
-                    .select('*')
-                    .eq('parent_id', currentUser.id)
-                    .order('created_at', { ascending: true });
-
-                if (studentsError) throw studentsError;
-
-                for (let student of students) {
-                    const { data: enrollments, error: enrollError } = await supabase
-                        .from('enrollments')
-                        .select(`
-                            *,
-                            class_slots (*)
-                        `)
-                        .eq('student_id', student.id)
-                        .eq('status', 'active');
-
-                    if (enrollError) {
-                        student.enrollments = [];
-                    } else {
-                        student.enrollments = enrollments || [];
-                    }
-                }
-
-                allStudents = students;
-                renderStudents(students);
-                loadWeeklySummary(); // Update weekly summary when students load
-                
-            } catch (error) {
-                console.error('Error loading students:', error);
-                showMessage('Error loading student data', 'error');
-            }
-        }
-
-        function renderStudents(students) {
-            const grid = document.getElementById('studentsGrid');
-            
-            grid.innerHTML = `
-                <div class="student-card add-student-card" onclick="showAddStudentForm()">
-                    <div>
-                        <div style="font-size: 3rem; margin-bottom: 1rem;">➕</div>
-                        <h3 style="font-weight: 700; margin-bottom: 0.5rem;">Add Student</h3>
-                        <p>Add another child to your family account</p>
-                    </div>
-                </div>
-            `;
-
-            students.forEach((student, index) => {
-                const studentCard = document.createElement('div');
-                studentCard.className = 'student-card';
-                
-                const enrollment = student.enrollments && student.enrollments.length > 0 ? student.enrollments[0] : null;
-                
-                studentCard.innerHTML = `
-                    <h3 style="font-weight: 700; margin-bottom: 1rem;">${student.name}</h3>
-                    <p style="margin-bottom: 0.5rem;"><strong>Grade:</strong> ${student.grade} ${student.age ? `• <strong>Age:</strong> ${student.age}` : ''}</p>
-                    <p style="margin-bottom: 1rem;"><strong>Experience:</strong> ${student.experience_level}</p>
-                    ${student.parent_notes ? `<p style="font-style: italic; color: #6b7280; font-size: 0.875rem; margin-bottom: 1rem;"><strong>Notes:</strong> ${student.parent_notes}</p>` : ''}
-                    
-                    ${enrollment ? `
-                        <div class="enrollment-status">
-                            ✅ Enrolled
-                        </div>
-                        <div class="weekly-schedule">
-                            <h4>Weekly Class Schedule</h4>
-                            <p style="font-weight: 600;">${enrollment.class_slots.day_of_week}s</p>
-                            <p>${formatTime(enrollment.class_slots.start_time)} - ${formatTime(enrollment.class_slots.end_time)}</p>
-                            <p style="color: #6b7280; font-size: 0.875rem;"><em>${enrollment.class_slots.age_group}</em></p>
-                        </div>
-                        <div style="margin-top: 1rem;">
-                            <button onclick="openStudentPortalForStudent(${index})" class="btn btn-outline" style="font-size: 0.875rem;">
-                                🎮 ${student.first_name}'s Portal
-                            </button>
-                        </div>
-                    ` : `
-                        <div style="margin-top: 1rem;">
-                            <button onclick="showEnrollmentFormForStudent(${index})" 
-                                    class="btn btn-primary" style="font-size: 0.875rem;">
-                                Choose Class Time
-                            </button>
-                        </div>
-                    `}
-                `;
-                
-                grid.appendChild(studentCard);
-            });
-        }
-
-        // Class Enrollment Functions
-        function showEnrollmentFormForStudent(studentIndex) {
-            enrollingStudent = allStudents[studentIndex];
-            
-            if (!enrollingStudent) {
-                showMessage('Error: Student not found', 'error');
-                return;
-            }
-            
-            if (enrollingStudent.enrollments && enrollingStudent.enrollments.length > 0) {
-                showMessage(`${enrollingStudent.name} is already enrolled in a class!`, 'error');
-                return;
-            }
-            
-            document.getElementById('enrollingStudentName').textContent = enrollingStudent.name;
-            document.getElementById('enrollmentForm').classList.remove('hidden');
-            renderClassSchedule(enrollingStudent);
-        }
-
-        function hideEnrollmentForm() {
-            document.getElementById('enrollmentForm').classList.add('hidden');
-            selectedSlotId = null;
-            enrollingStudent = null;
-        }
-
-        async function renderClassSchedule(student) {
-            const scheduleDiv = document.getElementById('classSchedule');
-            const grade = student.grade;
-            const isElementary = ['4th', '5th'].includes(grade);
-            const appropriateAgeGroup = isElementary ? 'Elementary' : 'Jr High & High School';
-            const days = ['Monday', 'Tuesday', 'Thursday'];
-            
-            scheduleDiv.innerHTML = '';
-            
-            for (const day of days) {
-                const daySlots = classSlots.filter(slot => 
-                    slot.day_of_week === day && slot.age_group === appropriateAgeGroup
-                );
-                
-                for (const slot of daySlots) {
-                    const availability = await getSlotAvailability(slot.id);
-                    
-                    const slotCard = document.createElement('div');
-                    slotCard.className = 'time-slot-card';
-                    slotCard.dataset.slotId = slot.id;
-                    
-                    if (availability.available <= 0) {
-                        slotCard.classList.add('full');
-                    }
-                    
-                    slotCard.innerHTML = `
-                        <div class="age-group-badge">${slot.age_group}</div>
-                        <h4 style="font-weight: 700; margin-bottom: 0.5rem;">${day}</h4>
-                        <p style="font-weight: 600; margin-bottom: 0.5rem;">${formatTime(slot.start_time)} - ${formatTime(slot.end_time)}</p>
-                        <div class="availability-info">
-                            ${availability.available} of ${slot.max_students} spots available
-                        </div>
-                    `;
-                    
-                    if (availability.available > 0) {
-                        slotCard.addEventListener('click', () => {
-                            selectTimeSlot(slot.id);
-                        });
-                    }
-                    
-                    scheduleDiv.appendChild(slotCard);
-                }
-            }
-        }
-
-        function selectTimeSlot(slotId) {
-            selectedSlotId = slotId;
-            
-            document.querySelectorAll('.time-slot-card').forEach(card => {
-                card.classList.remove('selected');
-            });
-            
-            const selectedCard = document.querySelector(`[data-slot-id="${slotId}"]`);
-            if (selectedCard) {
-                selectedCard.classList.add('selected');
-            }
-            
-            const enrollButton = document.getElementById('enrollButton');
-            enrollButton.disabled = false;
-            enrollButton.style.opacity = '1';
-        }
-
-        async function confirmEnrollment() {
-            if (!selectedSlotId) {
-                showMessage('Please select a time slot first.', 'error');
-                return;
-            }
-            
-            const studentName = document.getElementById('enrollingStudentName').textContent;
-            const student = allStudents.find(s => s.name === studentName);
-            
-            if (!student) {
-                showMessage('Error: Student not found', 'error');
-                return;
-            }
-            
-            try {
-                showMessage('Enrolling student...', 'success');
-                
-                const { data, error } = await supabase
-                    .from('enrollments')
-                    .insert([{
-                        student_id: student.id,
-                        class_slot_id: selectedSlotId,
-                        status: 'active'
-                    }])
-                    .select();
-
-                if (!error) {
-                    hideEnrollmentForm();
-                    showMessage(`🎉 ${studentName} enrolled successfully!`, 'success');
-                    
-                    setTimeout(async () => {
-                        await loadStudents();
-                        setTimeout(() => clearMessage(), 2000);
-                    }, 500);
-                    return;
-                }
-
-                if (error.code === '23505' || error.message.includes('duplicate key') || error.message.includes('unique')) {
-                    hideEnrollmentForm();
-                    showMessage(`🎉 ${studentName} enrolled successfully!`, 'success');
-                    
-                    setTimeout(async () => {
-                        await loadStudents();
-                        setTimeout(() => clearMessage(), 2000);
-                    }, 500);
-                    return;
-                }
-
-                throw error;
-                
-            } catch (error) {
-                console.error('Enrollment error:', error);
-                hideEnrollmentForm();
-                showMessage('Checking enrollment status...', 'success');
-                
-                setTimeout(async () => {
-                    await loadStudents();
-                    const updatedStudent = allStudents.find(s => s.name === studentName);
-                    if (updatedStudent && updatedStudent.enrollments && updatedStudent.enrollments.length > 0) {
-                        showMessage(`🎉 ${studentName} enrolled successfully!`, 'success');
-                    } else {
-                        showMessage(`Enrollment failed: ${error.message}`, 'error');
-                    }
-                    setTimeout(() => clearMessage(), 3000);
-                }, 1000);
-            }
-        }
-
-        async function getSlotAvailability(slotId) {
-            try {
-                const { data, error } = await supabase
-                    .from('enrollments')
-                    .select('*')
-                    .eq('class_slot_id', slotId)
-                    .eq('status', 'active');
-
-                if (error) throw error;
-
-                const slot = classSlots.find(s => s.id === slotId);
-                const enrolled = data.length;
-                const available = slot.max_students - enrolled;
-
-                return { enrolled, available, total: slot.max_students };
-            } catch (error) {
-                console.error('Error getting availability:', error);
-                return { enrolled: 0, available: 10, total: 10 };
-            }
-        }
-
-        // Utility Functions
-        function formatTime(timeString) {
-            const [hours, minutes] = timeString.split(':');
-            const hour = parseInt(hours);
-            const ampm = hour >= 12 ? 'PM' : 'AM';
-            const displayHour = hour > 12 ? hour - 12 : hour;
-            return `${displayHour}:${minutes} ${ampm}`;
-        }
-
-        function showMessage(message, type) {
-            const isDashboard = !document.getElementById('dashboardSection').classList.contains('hidden');
-            
-            if (isDashboard) {
-                const messageDiv = document.getElementById('dashboardMessage');
-                messageDiv.innerHTML = `<div class="message ${type}">${message}</div>`;
-            } else {
-                const messageDiv = document.getElementById('authMessage');
-                messageDiv.innerHTML = `<div class="message ${type}">${message}</div>`;
-            }
-        }
-
-        function clearMessage() {
-            document.getElementById('authMessage').innerHTML = '';
-            document.getElementById('dashboardMessage').innerHTML = '';
-        }
-
         // Smooth scrolling for anchor links
         document.addEventListener('click', function(e) {
             if (e.target.tagName === 'A' && e.target.getAttribute('href') && e.target.getAttribute('href').startsWith('#')) {
                 e.preventDefault();
                 const targetId = e.target.getAttribute('href').substring(1);
-                
-                // Handle navigation to specific sections
-                if (targetId === 'projects' || targetId === 'instructor') {
-                    // Make sure we're on the home page first
-                    if (currentUser) {
-                        // If logged in, we need to go to home page first
-                        showHome();
-                        setTimeout(() => {
-                            const targetElement = document.getElementById(targetId);
-                            if (targetElement) {
-                                targetElement.scrollIntoView({ behavior: 'smooth' });
-                            }
-                        }, 100);
-                    } else {
-                        // If not logged in, just scroll to the section
-                        const targetElement = document.getElementById(targetId);
-                        if (targetElement) {
-                            targetElement.scrollIntoView({ behavior: 'smooth' });
-                        }
-                    }
-                } else {
-                    const targetElement = document.getElementById(targetId);
-                    if (targetElement) {
-                        targetElement.scrollIntoView({ behavior: 'smooth' });
-                    }
+                const targetElement = document.getElementById(targetId);
+                if (targetElement) {
+                    targetElement.scrollIntoView({ behavior: 'smooth' });
                 }
+            }
+        });
+
+        // Auto-play video when scrolled into view
+        document.addEventListener('DOMContentLoaded', function() {
+            const video = document.getElementById('intro-video');
+            const videoSection = video.closest('section');
+            
+            const observer = new IntersectionObserver((entries) => {
+                entries.forEach(entry => {
+                    if (entry.isIntersecting) {
+                        // Video is in view - ensure autoplay is triggered
+                        const currentSrc = video.src;
+                        if (!currentSrc.includes('autoplay=1')) {
+                            // Add autoplay if not already present
+                            const separator = currentSrc.includes('?') ? '&' : '?';
+                            video.src = currentSrc + separator + 'autoplay=1&mute=1';
+                        }
+                        // Stop observing once triggered
+                        observer.unobserve(entry.target);
+                    }
+                });
+            }, {
+                threshold: 0.5 // Trigger when 50% of video section is visible
+            });
+
+            if (videoSection) {
+                observer.observe(videoSection);
             }
         });
     </script>
