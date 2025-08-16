@@ -1114,21 +1114,21 @@
                         <h3 style="margin-bottom: 1rem;">Select Student for ${timeSlot}</h3>
                         <p style="color: #6b7280; margin-bottom: 1.5rem;">Choose which student to enroll in the ${ageGroup} class</p>
                         <div style="display: flex; flex-direction: column; gap: 0.5rem;">
-                            ${availableStudents.map(item => `
-                                <button onclick="assignTimeSlot('${item.student.id}', '${timeSlot}')" 
-                                    class="btn btn-outline" 
-                                    style="width: 100%; text-align: left; padding: 1rem;">
-                                    <div style="display: flex; justify-content: space-between; align-items: center;">
-                                        <div>
-                                            <div style="font-weight: 600;">${item.student.first_name} ${item.student.last_name}</div>
-                                            <div style="font-size: 0.875rem; color: #6b7280;">
-                                                Age ${item.student.age} • ${item.student.grade}
-                                            </div>
-                                        </div>
-                                        <span style="color: #ea580c;">Select →</span>
-                                    </div>
-                                </button>
-                            `).join('')}
+             ${availableStudents.map((item, index) => `
+    <button onclick="assignTimeSlot(${index}, '${timeSlot}')" 
+        class="btn btn-outline" 
+        style="width: 100%; text-align: left; padding: 1rem;">
+        <div style="display: flex; justify-content: space-between; align-items: center;">
+            <div>
+                <div style="font-weight: 600;">${item.student.first_name} ${item.student.last_name}</div>
+                <div style="font-size: 0.875rem; color: #6b7280;">
+                    Age ${item.student.age} • ${item.student.grade}
+                </div>
+            </div>
+            <span style="color: #ea580c;">Select →</span>
+        </div>
+    </button>
+`).join('')}
                         </div>
                         <button onclick="closeStudentSelectionModal()" class="btn btn-secondary" style="width: 100%; margin-top: 1rem;">Cancel</button>
                     </div>
@@ -1137,15 +1137,15 @@
             document.body.insertAdjacentHTML('beforeend', modalHtml);
         }
 
-        function assignTimeSlot(studentId, timeSlot) {
-            const cartItem = cart.find(item => item.student.id === parseInt(studentId));
-            if (cartItem) {
-                cartItem.timeSlot = timeSlot;
-                closeStudentSelectionModal();
-                renderCart();
-                showMessage(`Time slot assigned successfully`, 'success', 'cart');
-            }
-        }
+      function assignTimeSlot(studentIndex, timeSlot) {
+    const studentsWithoutSlot = cart.filter(item => !item.timeSlot);
+    if (studentsWithoutSlot[studentIndex]) {
+        studentsWithoutSlot[studentIndex].timeSlot = timeSlot;
+        closeStudentSelectionModal();
+        renderCart();
+        showMessage(`Time slot assigned successfully`, 'success', 'cart');
+    }
+}
 
         function closeStudentSelectionModal() {
             const modal = document.getElementById('student-selection-modal');
