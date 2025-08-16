@@ -300,23 +300,22 @@
                 // Generate order number
                 const orderNumber = `ORD-${Date.now()}`;
                 
-                // Create order in database
-                const { data: order, error: orderError } = await supabase
-                    .from('orders')
-                    .insert([{
-                        parent_id: session.user.id,
-                        order_number: orderNumber,
-                        payment_method: enrollment.paymentType,
-                        total_amount: enrollment.amounts.total,
-                        amount_paid: enrollment.amounts.paid,
-                        balance_due: enrollment.amounts.balance || 0,
-                        second_payment_due: enrollment.paymentType === 'split' ? '2025-10-15' : null,
-                        status: 'confirmed',
-                        stripe_session_id: sessionId
-                    }])
-                    .select()
-                    .single();
-
+         // Create order in database
+const { data: order, error: orderError } = await supabase
+    .from('orders')
+    .insert([{
+        parent_id: session.user.id,
+        order_number: orderNumber,
+        payment_method: enrollment.paymentType,
+        total_amount: enrollment.amounts.total,
+        amount_paid: enrollment.amounts.paid,
+        balance_due: enrollment.amounts.balance || 0,
+        second_payment_due: enrollment.paymentType === 'split' ? '2025-10-15' : null,
+        status: 'confirmed'
+        // NO stripe_session_id here!
+    }])
+    .select()
+    .single();
                 if (orderError) throw orderError;
 
                 // Create order items for each student
