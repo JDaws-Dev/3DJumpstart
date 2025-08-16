@@ -559,6 +559,28 @@
                 width: 1rem;
                 margin: 0 0.5rem;
             }
+
+            /* Mobile cart improvements */
+            .cart-item {
+                flex-direction: column;
+                align-items: stretch;
+                gap: 1rem;
+            }
+
+            .cart-item > div:last-child {
+                display: flex;
+                gap: 0.5rem;
+            }
+
+            .cart-item .btn {
+                padding: 0.5rem 1rem;
+                font-size: 0.75rem;
+                flex: 1;
+            }
+
+            .cart-item .btn-danger {
+                padding: 0.5rem 1rem;
+            }
         }
 
         .hidden {
