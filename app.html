@@ -605,12 +605,13 @@
                         <img src="https://raw.githubusercontent.com/JDaws-Dev/3DJumpstart/main/3d-jumpstart-logo.png" alt="3D Jumpstart" class="logo-image">
                     </a>
                     <nav>
-                        <ul class="nav-links">
-                            <li><a class="nav-link active" onclick="showSection('students', event)">Students</a></li>
-                            <li><a class="nav-link" onclick="showSection('cart', event)">Cart <span id="cart-count" class="hidden">(0)</span></a></li>
-                            <li><a class="nav-link" onclick="showSection('orders', event)">Orders</a></li>
-                            <li><a class="btn btn-secondary" onclick="logout()">Logout</a></li>
-                        </ul>
+                       <ul class="nav-links">
+    <li><a class="nav-link active" onclick="showSection('students', event)">Students</a></li>
+    <li><a class="nav-link" onclick="showSection('cart', event)">Cart <span id="cart-count" class="hidden">(0)</span></a></li>
+    <li><a class="nav-link" onclick="showSection('orders', event)">Orders</a></li>
+    <li><a class="nav-link" onclick="window.location.href='portal.html'">Parent Portal</a></li>
+    <li><a class="btn btn-secondary" onclick="logout()">Logout</a></li>
+</ul>
                     </nav>
                 </div>
             </div>
@@ -1597,10 +1598,9 @@
                             </ul>
                         </div>
                         
-                        <div style="text-align: center; margin-top: 2rem;">
-                            <button onclick="window.location.href='index.html'" class="btn btn-primary">
-                                Return to Homepage
-                            </button>
-                        </div>
+                    <div style="text-align: center; margin-top: 2rem;">
+    <a href="portal.html" class="btn btn-primary">View Parent Portal</a>
+    <button onclick="window.location.href='index.html'" class="btn btn-outline">Return to Homepage</button>
+</div>
                     </div>
                 `;
