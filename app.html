@@ -1251,81 +1251,137 @@
             }
         }
 
-        function completeOrder() {
-            const orderData = {
+   async function completeOrder() {
+    try {
+        // Generate order number
+        const orderNumber = `ORD-${Date.now()}`;
+        
+        // Create order in database
+        const { data: order, error: orderError } = await supabase
+            .from('orders')
+            .insert([{
+                parent_id: currentUser.id,
+                order_number: orderNumber,
                 payment_method: selectedPaymentOption,
+                total_amount: selectedPaymentOption === 'full' ? 
+                    window.paymentAmounts.full : 
+                    window.paymentAmounts.splitTotal,
                 amount_paid: selectedPaymentOption === 'full' ? 
                     window.paymentAmounts.full : 
                     window.paymentAmounts.splitFirst,
                 balance_due: selectedPaymentOption === 'split' ? 
                     window.paymentAmounts.splitSecond : 0,
-                students: cart.map(item => ({
-                    name: `${item.student.first_name} ${item.student.last_name}`,
-                    timeSlot: item.timeSlot
-                }))
-            };
+                second_payment_due: selectedPaymentOption === 'split' ? 
+                    '2025-10-15' : null,
+                status: 'confirmed'
+            }])
+            .select()
+            .single();
 
-            // Clear cart
-            cart = [];
-            updateCartCount();
-            selectedPaymentOption = null;
-            
-            // Show confirmation
-            showSection('orders');
-            updateProgressSteps('complete');
-            
-            document.getElementById('orders-list').innerHTML = `
-                <div class="card" style="border-color: #16a34a; background: linear-gradient(135deg, #f0fdf4 0%, #dcfce7 100%);">
-                    <h2 style="color: #16a34a; margin-bottom: 1.5rem; font-size: 2rem;">✓ Enrollment Complete!</h2>
-                    
-                    <div style="background: white; padding: 1.5rem; border-radius: 0.5rem; margin-bottom: 1.5rem;">
-                        <h3 style="margin-bottom: 1rem;">Enrolled Students:</h3>
-                        ${orderData.students.map(s => `
-                            <div style="padding: 0.75rem; border-bottom: 1px solid #e5e7eb;">
-                                <strong style="font-size: 1.125rem;">${s.name}</strong><br>
-                                <span style="color: #6b7280;">Tuesday ${s.timeSlot} • Level 1</span>
-                            </div>
-                        `).join('')}
-                    </div>
-                    
-                    <div style="background: white; padding: 1.5rem; border-radius: 0.5rem; margin-bottom: 1.5rem;">
-                        <h3 style="margin-bottom: 1rem;">Payment Details:</h3>
-                        <div style="display: flex; justify-content: space-between; margin-bottom: 0.5rem;">
-                            <span>Payment Method:</span>
-                            <strong>${orderData.payment_method === 'full' ? 'Paid in Full' : 'Payment Plan'}</strong>
+        if (orderError) throw orderError;
+
+        // Create order items for each student
+        const orderItems = cart.map(item => ({
+            order_id: order.id,
+            student_id: item.student.id,
+            time_slot: item.timeSlot,
+            price: selectedPaymentOption === 'full' ? 700 : 720
+        }));
+
+        const { error: itemsError } = await supabase
+            .from('order_items')
+            .insert(orderItems);
+
+        if (itemsError) throw itemsError;
+
+        // Record initial payment
+        const { error: paymentError } = await supabase
+            .from('payments')
+            .insert([{
+                order_id: order.id,
+                amount: selectedPaymentOption === 'full' ? 
+                    window.paymentAmounts.full : 
+                    window.paymentAmounts.splitFirst,
+                payment_type: 'initial',
+                status: 'completed',
+                processed_at: new Date().toISOString()
+            }]);
+
+        if (paymentError) throw paymentError;
+
+        // Clear cart
+        cart = [];
+        updateCartCount();
+        selectedPaymentOption = null;
+        
+        // Show confirmation
+        showSection('orders');
+        updateProgressSteps('complete');
+        
+        document.getElementById('orders-list').innerHTML = `
+            <div class="card" style="border-color: #16a34a; background: linear-gradient(135deg, #f0fdf4 0%, #dcfce7 100%);">
+                <h2 style="color: #16a34a; margin-bottom: 1.5rem; font-size: 2rem;">✓ Enrollment Complete!</h2>
+                <p style="margin-bottom: 1rem;">Order #${order.order_number}</p>
+                
+                <div style="background: white; padding: 1.5rem; border-radius: 0.5rem; margin-bottom: 1.5rem;">
+                    <h3 style="margin-bottom: 1rem;">Enrolled Students:</h3>
+                    ${cart.map(item => `
+                        <div style="padding: 0.75rem; border-bottom: 1px solid #e5e7eb;">
+                            <strong style="font-size: 1.125rem;">${item.student.first_name} ${item.student.last_name}</strong><br>
+                            <span style="color: #6b7280;">Tuesday ${item.timeSlot} • Level 1</span>
                         </div>
-                        <div style="display: flex; justify-content: space-between; margin-bottom: 0.5rem;">
-                            <span>Amount Paid:</span>
-                            <strong style="color: #16a34a;">$${orderData.amount_paid}</strong>
-                        </div>
-                        ${orderData.balance_due > 0 ? `
-                        <div style="display: flex; justify-content: space-between; padding-top: 0.5rem; border-top: 1px solid #e5e7eb;">
-                            <span>Balance Due Oct 15:</span>
-                            <strong style="color: #ea580c;">$${orderData.balance_due}</strong>
-                        </div>
-                        ` : ''}
-                    </div>
-                    
-                    <div style="background: #fef3c7; padding: 1.5rem; border-radius: 0.5rem; border-left: 4px solid #f59e0b;">
-                        <h3 style="margin-bottom: 1rem; color: #92400e;">Important Information:</h3>
-                        <ul style="list-style: none; padding: 0;">
-                            <li style="margin-bottom: 0.5rem;">📅 Classes begin: <strong>September 9, 2025</strong></li>
-                            <li style="margin-bottom: 0.5rem;">📍 Location: <strong>Shadowbrook Church, Suwanee</strong></li>
-                            <li style="margin-bottom: 0.5rem;">📧 Confirmation email sent to: <strong>${currentUser.email}</strong></li>
-                            <li style="margin-bottom: 0.5rem;">💻 Students will need: <strong>Laptop with Fusion360 installed</strong></li>
-                            <li>❓ Questions? Email <strong>jeremiah@3djumpstart.com</strong></li>
-                        </ul>
-                    </div>
-                    
-                    <div style="text-align: center; margin-top: 2rem;">
-                        <button onclick="window.location.href='index.html'" class="btn btn-primary">
-                            Return to Homepage
-                        </button>
-                    </div>
+                    `).join('')}
                 </div>
-            `;
-        }
+                
+                <div style="background: white; padding: 1.5rem; border-radius: 0.5rem; margin-bottom: 1.5rem;">
+                    <h3 style="margin-bottom: 1rem;">Payment Details:</h3>
+                    <div style="display: flex; justify-content: space-between; margin-bottom: 0.5rem;">
+                        <span>Payment Method:</span>
+                        <strong>${selectedPaymentOption === 'full' ? 'Paid in Full' : 'Payment Plan'}</strong>
+                    </div>
+                    <div style="display: flex; justify-content: space-between; margin-bottom: 0.5rem;">
+                        <span>Amount Paid:</span>
+                        <strong style="color: #16a34a;">$${order.amount_paid}</strong>
+                    </div>
+                    ${order.balance_due > 0 ? `
+                    <div style="display: flex; justify-content: space-between; padding-top: 0.5rem; border-top: 1px solid #e5e7eb;">
+                        <span>Balance Due Oct 15:</span>
+                        <strong style="color: #ea580c;">$${order.balance_due}</strong>
+                    </div>
+                    ` : ''}
+                </div>
+                
+                <div style="background: #fef3c7; padding: 1.5rem; border-radius: 0.5rem; border-left: 4px solid #f59e0b;">
+                    <h3 style="margin-bottom: 1rem; color: #92400e;">Important Information:</h3>
+                    <ul style="list-style: none; padding: 0;">
+                        <li style="margin-bottom: 0.5rem;">📅 Classes begin: <strong>September 9, 2025</strong></li>
+                        <li style="margin-bottom: 0.5rem;">📍 Location: <strong>Shadowbrook Church, Suwanee</strong></li>
+                        <li style="margin-bottom: 0.5rem;">📧 Confirmation email sent to: <strong>${currentUser.email}</strong></li>
+                        <li style="margin-bottom: 0.5rem;">💻 Students will need: <strong>Laptop with Fusion360 installed</strong></li>
+                        <li>❓ Questions? Email <strong>jeremiah@3djumpstart.com</strong></li>
+                    </ul>
+                </div>
+                
+                <div style="text-align: center; margin-top: 2rem;">
+                    <button onclick="window.location.href='index.html'" class="btn btn-primary">
+                        Return to Homepage
+                    </button>
+                </div>
+            </div>
+        `;
 
+    } catch (error) {
+        console.error('Order error:', error);
+        showMessage('Error saving order. Please contact support.', 'error', 'cart');
+        
+        // Re-enable the payment button so they can try again
+        const btn = document.getElementById('proceed-to-payment-btn');
+        if (btn) {
+            btn.classList.remove('loading');
+            btn.disabled = false;
+        }
+    }
+}
         async function logout() {
             await supabase.auth.signOut();
             window.location.href = 'index.html';
