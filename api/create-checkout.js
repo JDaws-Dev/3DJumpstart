@@ -1,14 +1,16 @@
-const Stripe = require('stripe');
-const stripe = Stripe(process.env.STRIPE_SECRET_KEY);
-
 module.exports = async (req, res) => {
+  // Only allow POST requests
   if (req.method !== 'POST') {
     return res.status(405).json({ message: 'Method not allowed' });
   }
 
-  try {
-    const { paymentType, students, amounts } = req.body;
+  // Initialize Stripe with the secret key from environment variable
+  const stripe = require('stripe')(process.env.STRIPE_SECRET_KEY);
 
+  try {
+    const { paymentType, students, amounts, customerEmail } = req.body;
+
+    // Validate required fields
     if (!paymentType || !students || !amounts) {
       return res.status(400).json({ message: 'Missing required fields' });
     }
@@ -16,6 +18,7 @@ module.exports = async (req, res) => {
     let lineItems = [];
 
     if (paymentType === 'full') {
+      // Full payment option
       lineItems = [{
         price_data: {
           currency: 'usd',
@@ -24,11 +27,12 @@ module.exports = async (req, res) => {
             description: `12-week professional 3D design course for ${students.length} student${students.length > 1 ? 's' : ''}`,
             images: ['https://raw.githubusercontent.com/JDaws-Dev/3DJumpstart/main/3d-jumpstart-logo.png'],
           },
-          unit_amount: amounts.full * 100,
+          unit_amount: amounts.full * 100, // Convert to cents
         },
         quantity: 1,
       }];
     } else if (paymentType === 'split') {
+      // Split payment option (first payment)
       lineItems = [{
         price_data: {
           currency: 'usd',
@@ -37,12 +41,13 @@ module.exports = async (req, res) => {
             description: `12-week course for ${students.length} student${students.length > 1 ? 's' : ''} (Second payment of $${amounts.splitSecond} due Oct 15th)`,
             images: ['https://raw.githubusercontent.com/JDaws-Dev/3DJumpstart/main/3d-jumpstart-logo.png'],
           },
-          unit_amount: amounts.splitFirst * 100,
+          unit_amount: amounts.splitFirst * 100, // Convert to cents
         },
         quantity: 1,
       }];
     }
 
+    // Create Stripe checkout session
     const session = await stripe.checkout.sessions.create({
       payment_method_types: ['card'],
       line_items: lineItems,
@@ -59,13 +64,17 @@ module.exports = async (req, res) => {
           timeSlot: s.timeSlot
         })))
       },
-      customer_email: req.body.customerEmail,
+      customer_email: customerEmail,
     });
 
+    // Return the checkout URL
     res.status(200).json({ url: session.url });
 
   } catch (error) {
     console.error('Stripe error:', error);
-    res.status(500).json({ message: 'Internal server error' });
+    res.status(500).json({ 
+      message: 'Payment setup failed. Please try again.', 
+      error: process.env.NODE_ENV === 'development' ? error.message : undefined 
+    });
   }
 };
