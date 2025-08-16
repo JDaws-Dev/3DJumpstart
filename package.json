@@ -1,0 +1,8 @@
+{
+  "name": "3d-jumpstart",
+  "version": "1.0.0",
+  "description": "3D Jumpstart enrollment system",
+  "dependencies": {
+    "stripe": "^14.21.0"
+  }
+}
