@@ -1353,53 +1353,72 @@
             document.getElementById('proceed-to-payment-btn').disabled = !allHaveSlots;
         }
 
+// Find the proceedToPayment function in app.html and replace it with this:
+
 async function proceedToPayment() {
-            if (!selectedPaymentOption) {
-                showMessage('Please select a payment option', 'error', 'cart');
-                return;
+    if (!selectedPaymentOption) {
+        showMessage('Please select a payment option', 'error', 'cart');
+        return;
+    }
+
+    const btn = document.getElementById('proceed-to-payment-btn');
+    btn.classList.add('loading');
+    btn.disabled = true;
+
+    try {
+        showMessage('Creating secure payment session...', 'info', 'cart');
+        
+        // Save enrollment data to localStorage for after payment
+        const enrollmentData = {
+            paymentType: selectedPaymentOption,
+            students: cart.filter(item => item.timeSlot),
+            amounts: {
+                total: selectedPaymentOption === 'full' ? 
+                    window.paymentAmounts.full : 
+                    window.paymentAmounts.splitTotal,
+                paid: selectedPaymentOption === 'full' ? 
+                    window.paymentAmounts.full : 
+                    window.paymentAmounts.splitFirst,
+                balance: selectedPaymentOption === 'split' ? 
+                    window.paymentAmounts.splitSecond : 0
             }
+        };
+        
+        localStorage.setItem('pendingEnrollment', JSON.stringify(enrollmentData));
+        
+        // Prepare payment data for Stripe
+        const paymentData = {
+            paymentType: selectedPaymentOption,
+            students: cart.filter(item => item.timeSlot),
+            amounts: window.paymentAmounts,
+            customerEmail: currentUser.email
+        };
 
-            const btn = document.getElementById('proceed-to-payment-btn');
-            btn.classList.add('loading');
-            btn.disabled = true;
+        // Call Netlify function to create Stripe checkout session
+        const response = await fetch('/.netlify/functions/create-checkout', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(paymentData)
+        });
 
-            try {
-                showMessage('Creating secure payment session...', 'info', 'cart');
-                
-                // Prepare payment data
-                const paymentData = {
-                    paymentType: selectedPaymentOption,
-                    students: cart.filter(item => item.timeSlot),
-                    amounts: window.paymentAmounts,
-                    customerEmail: currentUser.email
-                };
-
-                // Call our Vercel API to create Stripe checkout session
-                const response = await fetch('/.netlify/functions/create-checkout', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                    },
-                    body: JSON.stringify(paymentData)
-                });
-
-                if (!response.ok) {
-                    throw new Error('Failed to create payment session');
-                }
-
-                const { url } = await response.json();
-                
-                // Redirect to Stripe Checkout
-                window.location.href = url;
-                
-            } catch (error) {
-                console.error('Payment error:', error);
-                showMessage('Payment setup failed. Please try again or contact support.', 'error', 'cart');
-                btn.classList.remove('loading');
-                btn.disabled = false;
-            }
+        if (!response.ok) {
+            throw new Error('Failed to create payment session');
         }
 
+        const { url } = await response.json();
+        
+        // Redirect to Stripe Checkout
+        window.location.href = url;
+        
+    } catch (error) {
+        console.error('Payment error:', error);
+        showMessage('Payment setup failed. Please try again or contact support.', 'error', 'cart');
+        btn.classList.remove('loading');
+        btn.disabled = false;
+    }
+}
 async function completeOrder() {
     try {
         // Generate order number
