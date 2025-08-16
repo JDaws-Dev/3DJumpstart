@@ -823,28 +823,44 @@
             await checkAuthAndInit();
         });
 
-        async function checkAuthAndInit() {
-            try {
-                const { data: { session } } = await supabase.auth.getSession();
-                
-                if (!session) {
-                    window.location.href = 'login.html';
-                    return;
-                }
-
-                currentUser = session.user;
-                document.getElementById('auth-check').classList.add('hidden');
-                document.getElementById('main-app').classList.remove('hidden');
-                
-                await loadStudents();
-                updateCartCount();
-                
-            } catch (error) {
-                console.error('Auth error:', error);
-                window.location.href = 'login.html';
-            }
+async function checkAuthAndInit() {
+    console.log('=== AUTH CHECK START ===');
+    
+    try {
+        console.log('Step 1: Getting session...');
+        const { data: { session } } = await supabase.auth.getSession();
+        console.log('Step 2: Session result:', session ? 'Found' : 'Not found');
+        
+        if (!session) {
+            console.log('Step 3: No session, redirecting...');
+            window.location.href = 'login.html';
+            return;
         }
 
+        console.log('Step 4: Setting current user...');
+        currentUser = session.user;
+        
+        console.log('Step 5: Hiding auth check spinner...');
+        document.getElementById('auth-check').classList.add('hidden');
+        
+        console.log('Step 6: Showing main app...');
+        document.getElementById('main-app').classList.remove('hidden');
+        
+        console.log('Step 7: Loading students...');
+        await loadStudents();
+        
+        console.log('Step 8: Updating cart count...');
+        updateCartCount();
+        
+        console.log('=== AUTH CHECK COMPLETE ===');
+        
+    } catch (error) {
+        console.error('=== AUTH CHECK ERROR ===', error);
+        window.location.href = 'login.html';
+    }
+}
+
+        
         // NEW FUNCTION: Get real-time availability
         async function getTimeSlotAvailability() {
             try {
