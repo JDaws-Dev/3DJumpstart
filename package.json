@@ -1,18 +1,8 @@
 {
   "name": "3d-jumpstart",
   "version": "1.0.0",
-  "description": "3D Jumpstart enrollment and payment system",
-  "main": "index.html",
-  "scripts": {
-    "dev": "vercel dev",
-    "build": "echo 'Static site - no build needed'",
-    "start": "vercel dev"
-  },
+  "type": "module",
   "dependencies": {
     "stripe": "^14.21.0"
-  },
-  "devDependencies": {},
-  "engines": {
-    "node": ">=18.0.0"
   }
 }
