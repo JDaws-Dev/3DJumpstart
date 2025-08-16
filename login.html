@@ -468,10 +468,18 @@
 
                 if (error) throw error;
 
-                showMessage('Login successful! Redirecting...', 'success');
-                setTimeout(() => {
-                    window.location.href = 'app.html';
-                }, 1000);
+      // After successful login
+const { data: students } = await supabase
+    .from('students')
+    .select('id')
+    .eq('parent_id', data.user.id)
+    .limit(1);
+
+if (students && students.length > 0) {
+    window.location.href = 'portal.html';
+} else {
+    window.location.href = 'app.html';
+}
 
             } catch (error) {
                 console.error('Login error:', error);
