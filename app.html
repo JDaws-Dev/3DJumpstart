@@ -667,24 +667,15 @@
 
                 <div id="cart-message-area"></div>
 
-                <div class="card">
+                <div class="card" id="course-info-card">
                     <h2 class="card-title">Level 1 Course Information</h2>
                     <div style="background: #fef3c7; padding: 1.5rem; border-radius: 0.5rem; border-left: 4px solid #f59e0b; margin-bottom: 1.5rem;">
                         <h3 style="color: #92400e; margin-bottom: 0.5rem;">Professional 3D Design Fundamentals - 12 Week Program</h3>
                         <p style="color: #92400e; margin: 0;">Students will learn professional Fusion360 CAD software and create their first 3D printed projects. This comprehensive 12-week Level 1 course starts September 9th at Shadowbrook Church, Suwanee.</p>
                     </div>
                     
-                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
-                        <div style="background: #f0f9ff; padding: 1rem; border-radius: 0.5rem; border: 2px solid #0ea5e9;">
-                            <div style="font-weight: 700; color: #0ea5e9; font-size: 1.125rem; margin-bottom: 0.5rem;">Tuesday 4:30 - 5:30 PM</div>
-                            <div style="font-size: 0.875rem; color: #0369a1; margin-bottom: 0.25rem;">4th - 7th Grade (Ages 9-13)</div>
-                            <div style="font-size: 0.75rem; color: #16a34a;">8 spots available</div>
-                        </div>
-                        <div style="background: #f0f9ff; padding: 1rem; border-radius: 0.5rem; border: 2px solid #0ea5e9;">
-                            <div style="font-weight: 700; color: #0ea5e9; font-size: 1.125rem; margin-bottom: 0.5rem;">Tuesday 5:30 - 6:30 PM</div>
-                            <div style="font-size: 0.875rem; color: #0369a1; margin-bottom: 0.25rem;">8th - 12th Grade (Ages 14-18)</div>
-                            <div style="font-size: 0.75rem; color: #16a34a;">10 spots available</div>
-                        </div>
+                    <div id="time-slot-availability" style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+                        <!-- This will be populated dynamically -->
                     </div>
                 </div>
 
@@ -853,6 +844,46 @@
             }
         }
 
+        // NEW FUNCTION: Get real-time availability
+        async function getTimeSlotAvailability() {
+            try {
+                // Get all enrollments from order_items table
+                const { data: enrollments, error } = await supabase
+                    .from('order_items')
+                    .select('time_slot');
+
+                if (error) throw error;
+
+                // Count enrollments per slot
+                const slotCounts = {
+                    '4:30-5:30pm': 0,
+                    '5:30-6:30pm': 0
+                };
+
+                enrollments.forEach(enrollment => {
+                    if (enrollment.time_slot in slotCounts) {
+                        slotCounts[enrollment.time_slot]++;
+                    }
+                });
+
+                // Calculate available spots (10 max per slot)
+                const availability = {
+                    '4:30-5:30pm': 10 - slotCounts['4:30-5:30pm'],
+                    '5:30-6:30pm': 10 - slotCounts['5:30-6:30pm']
+                };
+
+                return availability;
+
+            } catch (error) {
+                console.error('Error getting availability:', error);
+                // Return default availability if error
+                return {
+                    '4:30-5:30pm': 10,
+                    '5:30-6:30pm': 10
+                };
+            }
+        }
+
         // Navigation
         function showSection(sectionName, event) {
             if (event) event.preventDefault();
@@ -965,33 +996,32 @@
             document.getElementById('add-student-form').reset();
         }
 
-       async function removeStudent(studentId) {
-    if (!confirm('Are you sure you want to remove this student?')) return;
+        async function removeStudent(studentId) {
+            if (!confirm('Are you sure you want to remove this student?')) return;
 
-    try {
-        const { data, error } = await supabase
-            .from('students')
-            .delete()
-            .eq('id', String(studentId))
-            .eq('parent_id', currentUser.id)
-            .select();
+            try {
+                const { data, error } = await supabase
+                    .from('students')
+                    .delete()
+                    .eq('id', String(studentId))
+                    .eq('parent_id', currentUser.id)
+                    .select();
 
-        if (error) throw error;
-        if (!data || data.length === 0) throw new Error('No matching student deleted.');
+                if (error) throw error;
+                if (!data || data.length === 0) throw new Error('No matching student deleted.');
 
-        // Remove from cart if present
-        cart = cart.filter(item => String(item.student.id) !== String(studentId));
-        updateCartCount();
+                // Remove from cart if present
+                cart = cart.filter(item => String(item.student.id) !== String(studentId));
+                updateCartCount();
 
-        await loadStudents();
-        showMessage('Student removed successfully', 'success');
-        
-    } catch (error) {
-        console.error('Error removing student:', error);
-        showMessage('Error removing student', 'error');
-    }
-}
-
+                await loadStudents();
+                showMessage('Student removed successfully', 'success');
+                
+            } catch (error) {
+                console.error('Error removing student:', error);
+                showMessage('Error removing student', 'error');
+            }
+        }
         
         // Form handling
         document.getElementById('add-student-form').addEventListener('submit', async (e) => {
@@ -1077,7 +1107,8 @@
             showSection('cart');
         }
 
-        function renderCart() {
+        // UPDATED renderCart function with dynamic availability
+        async function renderCart() {
             const cartItems = document.getElementById('cart-items');
             
             if (cart.length === 0) {
@@ -1085,6 +1116,27 @@
                 document.getElementById('cart-summary').classList.add('hidden');
                 return;
             }
+
+            // Get current availability
+            const availability = await getTimeSlotAvailability();
+
+            // Update the time slot availability display
+            document.getElementById('time-slot-availability').innerHTML = `
+                <div style="background: #f0f9ff; padding: 1rem; border-radius: 0.5rem; border: 2px solid #0ea5e9;">
+                    <div style="font-weight: 700; color: #0ea5e9; font-size: 1.125rem; margin-bottom: 0.5rem;">Tuesday 4:30 - 5:30 PM</div>
+                    <div style="font-size: 0.875rem; color: #0369a1; margin-bottom: 0.25rem;">4th - 7th Grade (Ages 9-13)</div>
+                    <div style="font-size: 0.75rem; color: ${availability['4:30-5:30pm'] > 0 ? '#16a34a' : '#dc2626'};">
+                        ${availability['4:30-5:30pm']} spots available
+                    </div>
+                </div>
+                <div style="background: #f0f9ff; padding: 1rem; border-radius: 0.5rem; border: 2px solid #0ea5e9;">
+                    <div style="font-weight: 700; color: #0ea5e9; font-size: 1.125rem; margin-bottom: 0.5rem;">Tuesday 5:30 - 6:30 PM</div>
+                    <div style="font-size: 0.875rem; color: #0369a1; margin-bottom: 0.25rem;">8th - 12th Grade (Ages 14-18)</div>
+                    <div style="font-size: 0.75rem; color: ${availability['5:30-6:30pm'] > 0 ? '#16a34a' : '#dc2626'};">
+                        ${availability['5:30-6:30pm']} spots available
+                    </div>
+                </div>
+            `;
 
             cartItems.innerHTML = cart.map((item, index) => `
                 <div class="cart-item">
@@ -1174,42 +1226,54 @@
             }
         }
 
+        // UPDATED showTimeSlotSelectionModal with availability
         function showTimeSlotSelectionModal(studentIndex) {
             const student = cart[studentIndex].student;
             
-            const modalHtml = `
-                <div id="time-slot-selection-modal" class="modal">
-                    <div class="modal-content">
-                        <h3 style="margin-bottom: 1rem;">Select Time Slot for ${student.first_name}</h3>
-                        <p style="color: #6b7280; margin-bottom: 1.5rem;">Choose the appropriate class time for ${student.first_name} (${student.grade})</p>
-                        
-                        <div style="display: flex; flex-direction: column; gap: 1rem;">
-                            <button onclick="selectTimeSlotForStudent(${studentIndex}, '4:30-5:30pm')" 
-                                class="btn ${isGradeAppropriate(student.grade, '4:30-5:30pm') ? 'btn-primary' : 'btn-outline'}" 
-                                style="width: 100%; text-align: left; padding: 1rem;">
-                                <div>
-                                    <div style="font-weight: 600;">Tuesday 4:30-5:30 PM</div>
-                                    <div style="font-size: 0.875rem; color: #6b7280;">4th-7th Grade (Ages 9-13)</div>
-                                    ${!isGradeAppropriate(student.grade, '4:30-5:30pm') ? '<div style="font-size: 0.75rem; color: #dc2626;">⚠ Not typical for this grade</div>' : ''}
-                                </div>
-                            </button>
+            // Get availability first
+            getTimeSlotAvailability().then(availability => {
+                const modalHtml = `
+                    <div id="time-slot-selection-modal" class="modal">
+                        <div class="modal-content">
+                            <h3 style="margin-bottom: 1rem;">Select Time Slot for ${student.first_name}</h3>
+                            <p style="color: #6b7280; margin-bottom: 1.5rem;">Choose the appropriate class time for ${student.first_name} (${student.grade})</p>
                             
-                            <button onclick="selectTimeSlotForStudent(${studentIndex}, '5:30-6:30pm')" 
-                                class="btn ${isGradeAppropriate(student.grade, '5:30-6:30pm') ? 'btn-primary' : 'btn-outline'}" 
-                                style="width: 100%; text-align: left; padding: 1rem;">
-                                <div>
-                                    <div style="font-weight: 600;">Tuesday 5:30-6:30 PM</div>
-                                    <div style="font-size: 0.875rem; color: #6b7280;">8th-12th Grade (Ages 14-18)</div>
-                                    ${!isGradeAppropriate(student.grade, '5:30-6:30pm') ? '<div style="font-size: 0.75rem; color: #dc2626;">⚠ Not typical for this grade</div>' : ''}
-                                </div>
-                            </button>
+                            <div style="display: flex; flex-direction: column; gap: 1rem;">
+                                <button onclick="selectTimeSlotForStudent(${studentIndex}, '4:30-5:30pm')" 
+                                    class="btn ${isGradeAppropriate(student.grade, '4:30-5:30pm') ? 'btn-primary' : 'btn-outline'}" 
+                                    style="width: 100%; text-align: left; padding: 1rem;"
+                                    ${availability['4:30-5:30pm'] <= 0 ? 'disabled' : ''}>
+                                    <div>
+                                        <div style="font-weight: 600;">Tuesday 4:30-5:30 PM</div>
+                                        <div style="font-size: 0.875rem; color: #6b7280;">4th-7th Grade (Ages 9-13)</div>
+                                        <div style="font-size: 0.75rem; color: ${availability['4:30-5:30pm'] > 0 ? '#16a34a' : '#dc2626'};">
+                                            ${availability['4:30-5:30pm']} spots remaining
+                                        </div>
+                                        ${!isGradeAppropriate(student.grade, '4:30-5:30pm') ? '<div style="font-size: 0.75rem; color: #dc2626;">⚠ Not typical for this grade</div>' : ''}
+                                    </div>
+                                </button>
+                                
+                                <button onclick="selectTimeSlotForStudent(${studentIndex}, '5:30-6:30pm')" 
+                                    class="btn ${isGradeAppropriate(student.grade, '5:30-6:30pm') ? 'btn-primary' : 'btn-outline'}" 
+                                    style="width: 100%; text-align: left; padding: 1rem;"
+                                    ${availability['5:30-6:30pm'] <= 0 ? 'disabled' : ''}>
+                                    <div>
+                                        <div style="font-weight: 600;">Tuesday 5:30-6:30 PM</div>
+                                        <div style="font-size: 0.875rem; color: #6b7280;">8th-12th Grade (Ages 14-18)</div>
+                                        <div style="font-size: 0.75rem; color: ${availability['5:30-6:30pm'] > 0 ? '#16a34a' : '#dc2626'};">
+                                            ${availability['5:30-6:30pm']} spots remaining
+                                        </div>
+                                        ${!isGradeAppropriate(student.grade, '5:30-6:30pm') ? '<div style="font-size: 0.75rem; color: #dc2626;">⚠ Not typical for this grade</div>' : ''}
+                                    </div>
+                                </button>
+                            </div>
+                            
+                            <button onclick="closeTimeSlotSelectionModal()" class="btn btn-secondary" style="width: 100%; margin-top: 1rem;">Cancel</button>
                         </div>
-                        
-                        <button onclick="closeTimeSlotSelectionModal()" class="btn btn-secondary" style="width: 100%; margin-top: 1rem;">Cancel</button>
                     </div>
-                </div>
-            `;
-            document.body.insertAdjacentHTML('beforeend', modalHtml);
+                `;
+                document.body.insertAdjacentHTML('beforeend', modalHtml);
+            });
         }
 
         // Solution 5: Grade validation with flexibility
@@ -1353,222 +1417,190 @@
             document.getElementById('proceed-to-payment-btn').disabled = !allHaveSlots;
         }
 
-// Find the proceedToPayment function in app.html and replace it with this:
-
-async function proceedToPayment() {
-    if (!selectedPaymentOption) {
-        showMessage('Please select a payment option', 'error', 'cart');
-        return;
-    }
-
-    const btn = document.getElementById('proceed-to-payment-btn');
-    btn.classList.add('loading');
-    btn.disabled = true;
-
-    try {
-        showMessage('Creating secure payment session...', 'info', 'cart');
-        
-        // Save enrollment data to localStorage for after payment
-        const enrollmentData = {
-            paymentType: selectedPaymentOption,
-            students: cart.filter(item => item.timeSlot),
-            amounts: {
-                total: selectedPaymentOption === 'full' ? 
-                    window.paymentAmounts.full : 
-                    window.paymentAmounts.splitTotal,
-                paid: selectedPaymentOption === 'full' ? 
-                    window.paymentAmounts.full : 
-                    window.paymentAmounts.splitFirst,
-                balance: selectedPaymentOption === 'split' ? 
-                    window.paymentAmounts.splitSecond : 0
+        // UPDATED proceedToPayment with localStorage saving
+        async function proceedToPayment() {
+            if (!selectedPaymentOption) {
+                showMessage('Please select a payment option', 'error', 'cart');
+                return;
             }
-        };
-        
-        localStorage.setItem('pendingEnrollment', JSON.stringify(enrollmentData));
-        
-        // Prepare payment data for Stripe
-        const paymentData = {
-            paymentType: selectedPaymentOption,
-            students: cart.filter(item => item.timeSlot),
-            amounts: window.paymentAmounts,
-            customerEmail: currentUser.email
-        };
 
-        // Call Netlify function to create Stripe checkout session
-        const response = await fetch('/.netlify/functions/create-checkout', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-            },
-            body: JSON.stringify(paymentData)
-        });
+            const btn = document.getElementById('proceed-to-payment-btn');
+            btn.classList.add('loading');
+            btn.disabled = true;
 
-        if (!response.ok) {
-            throw new Error('Failed to create payment session');
+            try {
+                showMessage('Creating secure payment session...', 'info', 'cart');
+                
+                // Save enrollment data to localStorage for after payment
+                const enrollmentData = {
+                    paymentType: selectedPaymentOption,
+                    students: cart.filter(item => item.timeSlot),
+                    amounts: {
+                        total: selectedPaymentOption === 'full' ? 
+                            window.paymentAmounts.full : 
+                            window.paymentAmounts.splitTotal,
+                        paid: selectedPaymentOption === 'full' ? 
+                            window.paymentAmounts.full : 
+                            window.paymentAmounts.splitFirst,
+                        balance: selectedPaymentOption === 'split' ? 
+                            window.paymentAmounts.splitSecond : 0
+                    }
+                };
+                
+                localStorage.setItem('pendingEnrollment', JSON.stringify(enrollmentData));
+                
+                // Prepare payment data for Stripe
+                const paymentData = {
+                    paymentType: selectedPaymentOption,
+                    students: cart.filter(item => item.timeSlot),
+                    amounts: window.paymentAmounts,
+                    customerEmail: currentUser.email
+                };
+
+                // Call Netlify function to create Stripe checkout session
+                const response = await fetch('/.netlify/functions/create-checkout', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(paymentData)
+                });
+
+                if (!response.ok) {
+                    throw new Error('Failed to create payment session');
+                }
+
+                const { url } = await response.json();
+                
+                // Redirect to Stripe Checkout
+                window.location.href = url;
+                
+            } catch (error) {
+                console.error('Payment error:', error);
+                showMessage('Payment setup failed. Please try again or contact support.', 'error', 'cart');
+                btn.classList.remove('loading');
+                btn.disabled = false;
+            }
         }
 
-        const { url } = await response.json();
-        
-        // Redirect to Stripe Checkout
-        window.location.href = url;
-        
-    } catch (error) {
-        console.error('Payment error:', error);
-        showMessage('Payment setup failed. Please try again or contact support.', 'error', 'cart');
-        btn.classList.remove('loading');
-        btn.disabled = false;
-    }
-}
-async function completeOrder() {
-    try {
-        // Generate order number
-        const orderNumber = `ORD-${Date.now()}`;
-        
-        // Create order in database
-        const { data: order, error: orderError } = await supabase
-            .from('orders')
-            .insert([{
-                parent_id: currentUser.id,
-                order_number: orderNumber,
-                payment_method: selectedPaymentOption,
-                total_amount: selectedPaymentOption === 'full' ? 
-                    window.paymentAmounts.full : 
-                    window.paymentAmounts.splitTotal,
-                amount_paid: selectedPaymentOption === 'full' ? 
-                    window.paymentAmounts.full : 
-                    window.paymentAmounts.splitFirst,
-                balance_due: selectedPaymentOption === 'split' ? 
-                    window.paymentAmounts.splitSecond : 0,
-                second_payment_due: selectedPaymentOption === 'split' ? 
-                    '2025-10-15' : null,
-                status: 'confirmed'
-            }])
-            .select()
-            .single();
-
-        if (orderError) throw orderError;
-
-        // Create order items for each student
-        const orderItems = cart.map(item => ({
-            order_id: order.id,
-            student_id: item.student.id,
-            time_slot: item.timeSlot,
-            price: selectedPaymentOption === 'full' ? 700 : 720
-        }));
-
-        const { error: itemsError } = await supabase
-            .from('order_items')
-            .insert(orderItems);
-
-        if (itemsError) throw itemsError;
-
-        // Record initial payment
-        const { error: paymentError } = await supabase
-            .from('payments')
-            .insert([{
-                order_id: order.id,
-                amount: selectedPaymentOption === 'full' ? 
-                    window.paymentAmounts.full : 
-                    window.paymentAmounts.splitFirst,
-                payment_type: 'initial',
-                status: 'completed',
-                processed_at: new Date().toISOString()
-            }]);
-
-        if (paymentError) throw paymentError;
-
-        // Save cart data before clearing
-        const enrolledStudents = [...cart];
-        
-        // Clear cart
-        cart = [];
-        updateCartCount();
-        selectedPaymentOption = null;
-        
-        // Show confirmation
-        showSection('orders');
-        updateProgressSteps('complete');
-        
-        document.getElementById('orders-list').innerHTML = `
-            <div class="card" style="border-color: #16a34a; background: linear-gradient(135deg, #f0fdf4 0%, #dcfce7 100%);">
-                <h2 style="color: #16a34a; margin-bottom: 1.5rem; font-size: 2rem;">✓ Enrollment Complete!</h2>
-                <p style="margin-bottom: 1rem;">Order #${order.order_number}</p>
+        async function completeOrder() {
+            try {
+                // Generate order number
+                const orderNumber = `ORD-${Date.now()}`;
                 
-                <div style="background: white; padding: 1.5rem; border-radius: 0.5rem; margin-bottom: 1.5rem;">
-                    <h3 style="margin-bottom: 1rem;">Enrolled Students:</h3>
-                    ${enrolledStudents.map(item => `
-                        <div style="padding: 0.75rem; border-bottom: 1px solid #e5e7eb;">
-                            <strong style="font-size: 1.125rem;">${item.student.first_name} ${item.student.last_name}</strong><br>
-                            <span style="color: #6b7280;">Tuesday ${item.timeSlot} • Level 1</span>
+                // Create order in database
+                const { data: order, error: orderError } = await supabase
+                    .from('orders')
+                    .insert([{
+                        parent_id: currentUser.id,
+                        order_number: orderNumber,
+                        payment_method: selectedPaymentOption,
+                        total_amount: selectedPaymentOption === 'full' ? 
+                            window.paymentAmounts.full : 
+                            window.paymentAmounts.splitTotal,
+                        amount_paid: selectedPaymentOption === 'full' ? 
+                            window.paymentAmounts.full : 
+                            window.paymentAmounts.splitFirst,
+                        balance_due: selectedPaymentOption === 'split' ? 
+                            window.paymentAmounts.splitSecond : 0,
+                        second_payment_due: selectedPaymentOption === 'split' ? 
+                            '2025-10-15' : null,
+                        status: 'confirmed'
+                    }])
+                    .select()
+                    .single();
+
+                if (orderError) throw orderError;
+
+                // Create order items for each student
+                const orderItems = cart.map(item => ({
+                    order_id: order.id,
+                    student_id: item.student.id,
+                    time_slot: item.timeSlot,
+                    price: selectedPaymentOption === 'full' ? 700 : 720
+                }));
+
+                const { error: itemsError } = await supabase
+                    .from('order_items')
+                    .insert(orderItems);
+
+                if (itemsError) throw itemsError;
+
+                // Record initial payment
+                const { error: paymentError } = await supabase
+                    .from('payments')
+                    .insert([{
+                        order_id: order.id,
+                        amount: selectedPaymentOption === 'full' ? 
+                            window.paymentAmounts.full : 
+                            window.paymentAmounts.splitFirst,
+                        payment_type: 'initial',
+                        status: 'completed',
+                        processed_at: new Date().toISOString()
+                    }]);
+
+                if (paymentError) throw paymentError;
+
+                // Save cart data before clearing
+                const enrolledStudents = [...cart];
+                
+                // Clear cart
+                cart = [];
+                updateCartCount();
+                selectedPaymentOption = null;
+                
+                // Show confirmation
+                showSection('orders');
+                updateProgressSteps('complete');
+                
+                document.getElementById('orders-list').innerHTML = `
+                    <div class="card" style="border-color: #16a34a; background: linear-gradient(135deg, #f0fdf4 0%, #dcfce7 100%);">
+                        <h2 style="color: #16a34a; margin-bottom: 1.5rem; font-size: 2rem;">✓ Enrollment Complete!</h2>
+                        <p style="margin-bottom: 1rem;">Order #${order.order_number}</p>
+                        
+                        <div style="background: white; padding: 1.5rem; border-radius: 0.5rem; margin-bottom: 1.5rem;">
+                            <h3 style="margin-bottom: 1rem;">Enrolled Students:</h3>
+                            ${enrolledStudents.map(item => `
+                                <div style="padding: 0.75rem; border-bottom: 1px solid #e5e7eb;">
+                                    <strong style="font-size: 1.125rem;">${item.student.first_name} ${item.student.last_name}</strong><br>
+                                    <span style="color: #6b7280;">Tuesday ${item.timeSlot} • Level 1</span>
+                                </div>
+                            `).join('')}
                         </div>
-                    `).join('')}
-                </div>
-                
-                <div style="background: white; padding: 1.5rem; border-radius: 0.5rem; margin-bottom: 1.5rem;">
-                    <h3 style="margin-bottom: 1rem;">Payment Details:</h3>
-                    <div style="display: flex; justify-content: space-between; margin-bottom: 0.5rem;">
-                        <span>Payment Method:</span>
-                        <strong>${selectedPaymentOption === 'full' ? 'Paid in Full' : 'Payment Plan'}</strong>
+                        
+                        <div style="background: white; padding: 1.5rem; border-radius: 0.5rem; margin-bottom: 1.5rem;">
+                            <h3 style="margin-bottom: 1rem;">Payment Details:</h3>
+                            <div style="display: flex; justify-content: space-between; margin-bottom: 0.5rem;">
+                                <span>Payment Method:</span>
+                                <strong>${selectedPaymentOption === 'full' ? 'Paid in Full' : 'Payment Plan'}</strong>
+                            </div>
+                            <div style="display: flex; justify-content: space-between; margin-bottom: 0.5rem;">
+                                <span>Amount Paid:</span>
+                                <strong style="color: #16a34a;">${order.amount_paid}</strong>
+                            </div>
+                            ${order.balance_due > 0 ? `
+                            <div style="display: flex; justify-content: space-between; padding-top: 0.5rem; border-top: 1px solid #e5e7eb;">
+                                <span>Balance Due Oct 15:</span>
+                                <strong style="color: #ea580c;">${order.balance_due}</strong>
+                            </div>
+                            ` : ''}
+                        </div>
+                        
+                        <div style="background: #fef3c7; padding: 1.5rem; border-radius: 0.5rem; border-left: 4px solid #f59e0b;">
+                            <h3 style="margin-bottom: 1rem; color: #92400e;">Important Information:</h3>
+                            <ul style="list-style: none; padding: 0;">
+                                <li style="margin-bottom: 0.5rem;">📅 Classes begin: <strong>September 9, 2025</strong></li>
+                                <li style="margin-bottom: 0.5rem;">📍 Location: <strong>Shadowbrook Church, Suwanee</strong></li>
+                                <li style="margin-bottom: 0.5rem;">📧 Confirmation email sent to: <strong>${currentUser.email}</strong></li>
+                                <li style="margin-bottom: 0.5rem;">💻 Students will need: <strong>Laptop with Fusion360 installed</strong></li>
+                                <li>❓ Questions? Email <strong>jeremiah@3djumpstart.com</strong></li>
+                            </ul>
+                        </div>
+                        
+                        <div style="text-align: center; margin-top: 2rem;">
+                            <button onclick="window.location.href='index.html'" class="btn btn-primary">
+                                Return to Homepage
+                            </button>
+                        </div>
                     </div>
-                    <div style="display: flex; justify-content: space-between; margin-bottom: 0.5rem;">
-                        <span>Amount Paid:</span>
-                        <strong style="color: #16a34a;">$${order.amount_paid}</strong>
-                    </div>
-                    ${order.balance_due > 0 ? `
-                    <div style="display: flex; justify-content: space-between; padding-top: 0.5rem; border-top: 1px solid #e5e7eb;">
-                        <span>Balance Due Oct 15:</span>
-                        <strong style="color: #ea580c;">$${order.balance_due}</strong>
-                    </div>
-                    ` : ''}
-                </div>
-                
-                <div style="background: #fef3c7; padding: 1.5rem; border-radius: 0.5rem; border-left: 4px solid #f59e0b;">
-                    <h3 style="margin-bottom: 1rem; color: #92400e;">Important Information:</h3>
-                    <ul style="list-style: none; padding: 0;">
-                        <li style="margin-bottom: 0.5rem;">📅 Classes begin: <strong>September 9, 2025</strong></li>
-                        <li style="margin-bottom: 0.5rem;">📍 Location: <strong>Shadowbrook Church, Suwanee</strong></li>
-                        <li style="margin-bottom: 0.5rem;">📧 Confirmation email sent to: <strong>${currentUser.email}</strong></li>
-                        <li style="margin-bottom: 0.5rem;">💻 Students will need: <strong>Laptop with Fusion360 installed</strong></li>
-                        <li>❓ Questions? Email <strong>jeremiah@3djumpstart.com</strong></li>
-                    </ul>
-                </div>
-                
-                <div style="text-align: center; margin-top: 2rem;">
-                    <button onclick="window.location.href='index.html'" class="btn btn-primary">
-                        Return to Homepage
-                    </button>
-                </div>
-            </div>
-        `;
-
-    } catch (error) {
-        console.error('Order error:', error);
-        showMessage('Error saving order. Please contact support.', 'error', 'cart');
-        
-        // Re-enable the payment button so they can try again
-        const btn = document.getElementById('proceed-to-payment-btn');
-        if (btn) {
-            btn.classList.remove('loading');
-            btn.disabled = false;
-        }
-    }
-}
-        
-        async function logout() {
-            await supabase.auth.signOut();
-            window.location.href = 'index.html';
-        }
-
-        function showMessage(message, type, section = 'message') {
-            const messageArea = document.getElementById(`${section}-area`) || document.getElementById('message-area');
-            if (!messageArea) return;
-            
-            messageArea.innerHTML = `<div class="message ${type}">${message}</div>`;
-            
-            setTimeout(() => {
-                messageArea.innerHTML = '';
-            }, 5000);
-        }
-    </script>
-</body>
-</html>
+                `;
