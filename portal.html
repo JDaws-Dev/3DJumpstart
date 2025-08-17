@@ -3,86 +3,186 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>3D Jumpstart — Parent Portal</title>
+  <title>3D Jumpstart - Parent Portal</title>
 
-  <!-- Your CSS links stay as-is -->
+  <!-- Supabase + Stripe -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.39.3/dist/umd/supabase.min.js"></script>
+  <script src="https://js.stripe.com/v3/"></script>
+
+  <!-- Inter font (as in your mock) -->
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+
   <style>
-    .hidden { display: none !important; }
-    .progress-step.active { font-weight: 700; }
-    .progress-step.completed { opacity: 0.6; }
-    .step-divider { display: inline-block; width: 24px; height: 2px; background: #e5e7eb; margin: 0 8px; vertical-align: middle; }
-    .message { padding: 10px 12px; border-radius: 8px; margin-bottom: 8px; }
-    .message.success { background:#dcfce7; color:#166534; }
-    .message.error { background:#fee2e2; color:#991b1b; }
-    .message.info { background:#e0f2fe; color:#075985; }
-    .badge { font-size:.75rem; background:#eef2ff; color:#3730a3; padding:.25rem .5rem; border-radius:9999px; }
-    .btn { padding:.6rem 1rem; border:1px solid #e5e7eb; border-radius:.5rem; background:#111827; color:#fff; cursor:pointer; }
-    .btn-outline { background:#fff; color:#111827; }
-    .btn:disabled { opacity:.5; cursor:not-allowed; }
-    .card { border:1px solid #e5e7eb; border-radius:12px; padding:1rem; background:#fff; }
-    .grid { display:grid; gap:1rem; }
+    /* --- reset / base --- */
+    *{margin:0;padding:0;box-sizing:border-box}
+    body{font-family:Inter,-apple-system,BlinkMacSystemFont,Segoe UI,system-ui,sans-serif;line-height:1.6;color:#111827;background:#f9fafb}
+    .container{max-width:1200px;margin:0 auto;padding:0 1rem}
+
+    /* --- header --- */
+    .portal-header{background:#fff;box-shadow:0 1px 3px rgba(0,0,0,.1);position:sticky;top:0;z-index:50}
+    .header-content{display:flex;align-items:center;justify-content:space-between;padding:1rem 0}
+    .logo{display:flex;align-items:center;gap:.75rem;text-decoration:none;color:inherit}
+    .logo-image{height:4rem;width:auto}
+
+    /* --- tabs --- */
+    .portal-tabs{background:#fff;border-radius:1rem;padding:.5rem;margin:2rem 0;box-shadow:0 4px 6px -1px rgba(0,0,0,.1);display:flex;gap:.5rem}
+    .tab-button{flex:1;padding:1rem;background:transparent;border:none;border-radius:.5rem;font-weight:700;color:#6b7280;cursor:pointer;transition:all .2s;display:flex;align-items:center;justify-content:center;gap:.5rem}
+    .tab-button:hover{background:#f3f4f6}
+    .tab-button.active{background:linear-gradient(135deg,#ea580c 0%,#dc2626 100%);color:#fff}
+    .tab-content{display:none}
+    .tab-content.active{display:block}
+
+    /* --- welcome / hero (new users) --- */
+    .welcome-banner{background:linear-gradient(135deg,#fed7aa 0%,#fb923c 100%);border-radius:1rem;padding:2rem;margin-bottom:2rem;text-align:center;animation:slideDown .5s ease}
+    @keyframes slideDown{from{opacity:0;transform:translateY(-20px)}to{opacity:1;transform:translateY(0)}}
+    .welcome-title{font-size:2rem;font-weight:800;color:#7c2d12;margin-bottom:.5rem}
+    .welcome-text{color:#92400e;font-size:1.125rem}
+
+    .empty-state-hero{background:#fff;border-radius:1.5rem;padding:4rem 2rem;text-align:center;box-shadow:0 20px 40px rgba(0,0,0,.1);position:relative;overflow:hidden}
+    .empty-state-hero::before{content:"";position:absolute;top:0;left:0;right:0;height:4px;background:linear-gradient(90deg,#ea580c,#dc2626,#ea580c);background-size:200% 100%;animation:shimmer 3s linear infinite}
+    @keyframes shimmer{0%{background-position:-200% 0}100%{background-position:200% 0}}
+    .hero-icon{font-size:5rem;margin-bottom:1.5rem;animation:bounce 2s infinite}
+    @keyframes bounce{0%,100%{transform:translateY(0)}50%{transform:translateY(-10px)}}
+    .hero-title{font-size:2.5rem;font-weight:800;color:#111827;margin-bottom:1rem}
+    .hero-subtitle{font-size:1.25rem;color:#6b7280;margin-bottom:2rem;max-width:600px;margin-left:auto;margin-right:auto}
+    .btn-hero{background:linear-gradient(135deg,#ea580c 0%,#dc2626 100%);color:#fff;border:none;padding:1.25rem 3rem;font-size:1.125rem;font-weight:800;border-radius:.75rem;cursor:pointer;transition:all .3s;box-shadow:0 10px 25px -5px rgba(234,88,12,.4);animation:pulse 2s infinite}
+    @keyframes pulse{0%,100%{transform:scale(1)}50%{transform:scale(1.05)}}
+    .btn-hero:hover{transform:translateY(-2px);box-shadow:0 20px 40px -5px rgba(234,88,12,.5)}
+
+    .quick-start{display:grid;grid-template-columns:repeat(auto-fit,minmax(250px,1fr));gap:2rem;margin-top:3rem}
+    .step-card{background:#f9fafb;padding:1.5rem;border-radius:1rem;text-align:center}
+    .step-number{display:inline-flex;align-items:center;justify-content:center;width:40px;height:40px;background:#fed7aa;color:#ea580c;border-radius:50%;font-weight:700;margin-bottom:1rem}
+    .step-title{font-weight:700;margin-bottom:.5rem}
+    .step-description{color:#6b7280;font-size:.875rem}
+
+    /* --- students grid --- */
+    .students-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(350px,1fr));gap:1.5rem}
+    .student-card{background:#fff;border:2px solid #e5e7eb;border-radius:1rem;padding:1.5rem;transition:all .3s ease;box-shadow:0 4px 6px -1px rgba(0,0,0,.1)}
+    .student-card:hover{border-color:#fed7aa;transform:translateY(-2px)}
+    .add-student-card{background:linear-gradient(135deg,#fed7aa 0%,#fb923c 100%);display:flex;align-items:center;justify-content:center;text-align:center;cursor:pointer;border:3px dashed #ea580c;min-height:250px;position:relative;overflow:hidden}
+    .add-student-card::before{content:"";position:absolute;top:-50%;left:-50%;width:200%;height:200%;background:radial-gradient(circle,rgba(255,255,255,.2) 0%,transparent 70%);animation:rotate 10s linear infinite}
+    @keyframes rotate{0%{transform:rotate(0)}100%{transform:rotate(360deg)}}
+    .add-student-card:hover{transform:translateY(-4px) scale(1.02);box-shadow:0 20px 40px -5px rgba(234,88,12,.3)}
+
+    /* --- wizard --- */
+    .enrollment-wizard{background:#fff;border-radius:1.5rem;padding:2rem;box-shadow:0 20px 40px rgba(0,0,0,.1);margin-top:2rem}
+    .wizard-header{text-align:center;margin-bottom:2rem}
+    .wizard-title{font-size:2rem;font-weight:800;color:#111827;margin-bottom:.5rem}
+    .wizard-subtitle{color:#6b7280}
+    .progress-dots{display:flex;justify-content:center;gap:1rem;margin:2rem 0}
+    .progress-dot{width:12px;height:12px;border-radius:50%;background:#e5e7eb;transition:all .3s}
+    .progress-dot.active{width:40px;border-radius:6px;background:linear-gradient(135deg,#ea580c 0%,#dc2626 100%)}
+    .progress-dot.completed{background:#16a34a}
+    .wizard-form{max-width:600px;margin:0 auto}
+    .form-group{margin-bottom:1.5rem}
+    .form-label{display:block;margin-bottom:.5rem;font-weight:600;color:#111827}
+    .form-input,.form-select{width:100%;padding:.875rem;border:2px solid #e5e7eb;border-radius:.5rem;font-size:1rem;transition:all .2s}
+    .form-input:focus,.form-select:focus{outline:none;border-color:#ea580c;box-shadow:0 0 0 3px rgba(234,88,12,.1)}
+    .form-row{display:grid;grid-template-columns:1fr 1fr;gap:1rem}
+    .class-options{display:grid;gap:1rem;margin:2rem 0}
+    .class-option{border:3px solid #e5e7eb;border-radius:1rem;padding:1.5rem;cursor:pointer;transition:all .3s;position:relative}
+    .class-option:hover{border-color:#fed7aa;background:#fef3c7}
+    .class-option.selected{border-color:#ea580c;background:linear-gradient(135deg,#fed7aa 0%,#fb923c 10%)}
+    .class-option.selected::after{content:"✓";position:absolute;top:1rem;right:1rem;background:#16a34a;color:#fff;width:30px;height:30px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:700}
+
+    .btn{display:inline-flex;align-items:center;justify-content:center;gap:.5rem;padding:.875rem 1.5rem;border-radius:.5rem;font-weight:700;text-decoration:none;border:none;cursor:pointer;transition:all .2s;font-size:1rem}
+    .btn-primary{background:linear-gradient(135deg,#ea580c 0%,#dc2626 100%);color:#fff;box-shadow:0 4px 6px -1px rgba(234,88,12,.25)}
+    .btn-primary:hover:not(:disabled){transform:translateY(-1px);box-shadow:0 10px 15px -3px rgba(234,88,12,.25)}
+    .btn-primary:disabled{opacity:.5;cursor:not-allowed}
+    .wizard-actions{display:flex;justify-content:space-between;margin-top:2rem}
+
+    .success-message{background:linear-gradient(135deg,#dcfce7 0%,#bbf7d0 100%);border:2px solid #16a34a;border-radius:1rem;padding:2rem;text-align:center;animation:slideUp .5s ease}
+    @keyframes slideUp{from{opacity:0;transform:translateY(20px)}to{opacity:1;transform:translateY(0)}}
+
+    @media (max-width:768px){.form-row{grid-template-columns:1fr}.portal-tabs{flex-direction:column}.students-grid{grid-template-columns:1fr}}
+    .hidden{display:none!important}
   </style>
 </head>
 <body>
-  <div id="app" class="">
+  <!-- Header -->
+  <header class="portal-header">
+    <div class="container">
+      <div class="header-content">
+        <a href="index.html" class="logo">
+          <img src="https://raw.githubusercontent.com/JDaws-Dev/3DJumpstart/main/3d-jumpstart-logo.png" alt="3D Jumpstart" class="logo-image">
+        </a>
+        <nav>
+          <div style="display:flex;align-items:center;gap:1rem">
+            <span id="parent-name" style="color:#6b7280"></span>
+            <button class="btn" style="background:#6b7280;color:#fff;padding:.5rem 1rem;font-size:.875rem" data-action="logout">Logout</button>
+          </div>
+        </nav>
+      </div>
+    </div>
+  </header>
 
-    <!-- Simple nav -->
-    <nav style="display:flex; gap:8px; margin:12px 0;">
-      <button class="nav-button btn btn-outline" data-section="students">Your Students</button>
-      <button class="nav-button btn btn-outline" data-section="cart">Cart / Enroll</button>
-      <span class="badge" id="cart-count" style="display:none;">0</span>
-    </nav>
-
-    <!-- Progress (optional visual) -->
-    <div id="progress" style="margin: 8px 0;">
-      <span id="step-students" class="progress-step active">Students</span>
-      <span class="step-divider"></span>
-      <span id="step-cart" class="progress-step">Cart</span>
-      <span class="step-divider"></span>
-      <span id="step-payment" class="progress-step">Payment</span>
-      <span class="step-divider"></span>
-      <span id="step-complete" class="progress-step">Complete</span>
+  <div class="container">
+    <!-- Tabs -->
+    <div class="portal-tabs">
+      <button class="tab-button active" data-ui="tab-students"><span>👥</span> Your Students</button>
+      <button class="tab-button" data-ui="tab-schedule"><span>📅</span> Schedule</button>
+      <button class="tab-button" data-ui="tab-orders"><span>📦</span> Orders</button>
+      <button class="tab-button" data-ui="tab-account"><span>⚙️</span> Account</button>
+      <span class="badge" id="cart-count" style="display:none">0</span>
     </div>
 
-    <!-- Global message area -->
-    <div id="global-message"></div>
-
-    <!-- STUDENTS -->
-    <section id="students-section" class="section">
-      <div id="message-area"></div>
-      <div id="students-grid" class="grid"></div>
-    </section>
-
-    <!-- CART / ENROLLMENT -->
-    <section id="cart-section" class="section hidden">
-      <div id="cart-message-area"></div>
-
-      <div id="time-slot-availability" style="margin: 8px 0;"></div>
-
-      <div id="cart-items" class="grid"></div>
-
-      <div id="cart-summary" class="hidden" style="margin-top: 12px;">
-        <div class="grid" style="grid-template-columns: repeat(2, minmax(0, 1fr));">
-          <button id="payment-full"  class="payment-option btn btn-outline" onclick="selectPaymentOption('full')">Pay in Full</button>
-          <button id="payment-split" class="payment-option btn btn-outline" onclick="selectPaymentOption('split')">Split Payment</button>
-        </div>
-
-        <button id="proceed-to-payment-btn" class="btn" style="margin-top: 12px;" disabled>Proceed to Payment</button>
+    <!-- Students -->
+    <section id="students-tab" class="tab-content active" data-ui="tab-content-students">
+      <!-- Welcome banner + hero (visible for new users only) -->
+      <div class="welcome-banner hidden" data-ui="welcome-banner">
+        <h1 class="welcome-title">Welcome to 3D Jumpstart! 🎉</h1>
+        <p class="welcome-text">Let's get started by adding your first student</p>
       </div>
+
+      <div class="empty-state-hero hidden" data-ui="hero-empty">
+        <div class="hero-icon">🚀</div>
+        <h2 class="hero-title">Ready to Start Your 3D Journey?</h2>
+        <p class="hero-subtitle">
+          Add your child to begin enrollment in our professional 3D design program.
+          They'll learn Fusion360, create amazing projects, and build skills that last a lifetime!
+        </p>
+        <button class="btn-hero" data-action="start-wizard">
+          <span style="font-size:1.5rem;margin-right:.5rem">➕</span>
+          Add Your First Student
+        </button>
+
+        <div class="quick-start">
+          <div class="step-card"><div class="step-number">1</div><h3 class="step-title">Add Student</h3><p class="step-description">Tell us about your child</p></div>
+          <div class="step-card"><div class="step-number">2</div><h3 class="step-title">Choose Class</h3><p class="step-description">Pick your perfect time slot</p></div>
+          <div class="step-card"><div class="step-number">3</div><h3 class="step-title">Complete Enrollment</h3><p class="step-description">Secure their spot</p></div>
+        </div>
+      </div>
+
+      <!-- Students grid -->
+      <div class="students-grid" data-ui="students-grid"></div>
+
+      <!-- Wizard mounts here -->
+      <div class="enrollment-wizard hidden" data-ui="wizard"></div>
     </section>
 
-    <!-- ORDERS HISTORY -->
-    <section id="orders-section" style="margin-top: 24px;">
-      <h3>Orders</h3>
-      <div id="orders-list" class="grid"></div>
+    <!-- Schedule (placeholder) -->
+    <section id="schedule-tab" class="tab-content" data-ui="tab-content-schedule">
+      <h2 style="font-size:2rem;font-weight:700;margin-bottom:1rem">Class Schedule</h2>
+      <p style="color:#6b7280">View upcoming classes and important dates</p>
+    </section>
+
+    <!-- Orders -->
+    <section id="orders-tab" class="tab-content" data-ui="tab-content-orders">
+      <h2 style="font-size:2rem;font-weight:700;margin-bottom:1rem">Order History</h2>
+      <div class="students-grid" data-ui="orders-list"></div>
+    </section>
+
+    <!-- Account -->
+    <section id="account-tab" class="tab-content" data-ui="tab-content-account">
+      <h2 style="font-size:2rem;font-weight:700;margin-bottom:1rem">Account Settings</h2>
+      <!-- add account management UI later -->
     </section>
   </div>
 
-  <!-- If you still render a login form somewhere -->
-  <div id="login-form" class="hidden"></div>
+  <!-- Messages -->
+  <div id="global-message" class="container"></div>
 
-  <!-- Supabase + your app JS -->
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <!-- App logic -->
   <script src="./app.js"></script>
 </body>
 </html>
