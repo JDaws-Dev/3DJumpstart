@@ -566,13 +566,12 @@
                         <img src="https://raw.githubusercontent.com/JDaws-Dev/3DJumpstart/main/3d-jumpstart-logo.png" alt="3D Jumpstart" class="logo-image">
                     </a>
                     <nav>
-                        <ul class="nav-links">
-                            <li><a class="nav-link active" onclick="showSection('students', event)">Students</a></li>
-                            <li><a class="nav-link" onclick="showSection('cart', event)">Cart <span id="cart-count" class="hidden">(0)</span></a></li>
-                            <li><a class="nav-link" onclick="showSection('orders', event)">Orders</a></li>
-                            <li><a class="nav-link" onclick="window.location.href='portal.html'">Parent Portal</a></li>
-                            <li><a class="btn btn-secondary" onclick="logout()">Logout</a></li>
-                        </ul>
+                      <ul class="nav-links">
+    <li><a class="nav-link active" onclick="showSection('students', event)">Students</a></li>
+    <li><a class="nav-link" onclick="showSection('cart', event)">Cart <span id="cart-count" class="hidden">(0)</span></a></li>
+    <li><a class="nav-link" onclick="window.location.href='portal.html'">Parent Portal</a></li>
+    <li><a class="btn btn-secondary" onclick="logout()">Logout</a></li>
+</ul>
                     </nav>
                 </div>
             </div>
@@ -675,20 +674,7 @@
         </section>
 
         <!-- Orders Section -->
-        <section id="orders-section" class="app-section">
-            <div class="container">
-                <div class="section-header">
-                    <h1 class="section-title">My Orders</h1>
-                    <p class="section-subtitle">View your enrollment confirmations and payment history</p>
-                </div>
 
-                <div id="orders-list">
-                    <div class="card">
-                        <p style="color: #6b7280; font-style: italic; text-align: center;">No orders yet. Complete your enrollment to see confirmations here.</p>
-                    </div>
-                </div>
-            </div>
-        </section>
     </div>
 
     <!-- Add Student Modal -->
