@@ -11,6 +11,38 @@ let cart = [];
 let selectedPaymentOption = null;
 let pendingTimeSlotAssignment = null;
 
+// ============================================
+// EMAIL SENDING FUNCTION
+// ============================================
+async function sendConfirmationEmail(type, recipientEmail, data) {
+  try {
+    const response = await fetch('/.netlify/functions/send-email', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        type: type,
+        recipientEmail: recipientEmail,
+        data: data
+      })
+    });
+
+    const result = await response.json();
+    
+    if (!response.ok) {
+      console.error('Failed to send email:', result);
+      // Don't block the user flow if email fails
+      // Just log the error
+    } else {
+      console.log('Email sent successfully:', result.messageId);
+    }
+  } catch (error) {
+    console.error('Error sending email:', error);
+    // Don't block the user flow if email fails
+  }
+}
+
 // Initialize app
 document.addEventListener('DOMContentLoaded', async () => {
     await checkAuthAndInit();
@@ -59,8 +91,8 @@ async function getTimeSlotAvailability() {
         /**
          * Fetch all current enrollments along with their associated class slot times.
          * We join against class_slots to convert the database time values into the
-         * human‑readable labels used throughout the UI. The enrollments table is
-         * authoritative for seat occupancy – order_items only records what was
+         * human–readable labels used throughout the UI. The enrollments table is
+         * authoritative for seat occupancy — order_items only records what was
          * purchased, not whether a student is actually in a class.
          */
         const { data, error } = await supabase
@@ -142,11 +174,11 @@ function showSection(section, event) {
   // Update progress steps
   updateProgressSteps(section);
 
-  // 🔹 Render section contents
+  // 📹 Render section contents
   if (section === 'cart') {
     renderCart();       // ensures students + class tiles appear
   } else if (section === 'students') {
-    renderStudents();   // refreshes the grid, “In Cart” badges, etc.
+    renderStudents();   // refreshes the grid, "In Cart" badges, etc.
   }
 }
 
@@ -717,6 +749,11 @@ async function proceedToPayment() {
         }
 
         const { url } = await response.json();
+        
+        // SEND ENROLLMENT STARTED EMAIL (Optional)
+        // You could send an email here notifying that enrollment has started
+        // but it's better to wait until payment is confirmed
+        
         window.location.href = url;
         
     } catch (error) {
