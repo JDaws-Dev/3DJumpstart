@@ -3,8 +3,9 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Parent Portal - 3D Jumpstart</title>
+    <title>3D Jumpstart - Parent Portal</title>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.39.3/dist/umd/supabase.min.js"></script>
+    <script src="https://js.stripe.com/v3/"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <style>
         * {
@@ -18,361 +19,8 @@
             line-height: 1.6;
             color: #111827;
             background: #f9fafb;
-            min-height: 100vh;
         }
 
-/* CRITICAL STYLES - Add to portal.html NOW */
-
-/* Enrollment Wizard */
-.enrollment-wizard {
-    background: white;
-    border-radius: 1.5rem;
-    padding: 2rem;
-    box-shadow: 0 20px 40px rgba(0,0,0,0.1);
-    margin-top: 2rem;
-}
-
-.wizard-header {
-    text-align: center;
-    margin-bottom: 2rem;
-    position: relative;
-}
-
-.close-wizard {
-    position: absolute;
-    top: 0;
-    right: 0;
-    background: none;
-    border: none;
-    font-size: 2rem;
-    color: #6b7280;
-    cursor: pointer;
-}
-
-/* Empty State Hero */
-.empty-state-hero {
-    background: white;
-    border-radius: 1.5rem;
-    padding: 4rem 2rem;
-    text-align: center;
-    box-shadow: 0 20px 40px rgba(0,0,0,0.1);
-}
-
-.hero-icon {
-    font-size: 5rem;
-    margin-bottom: 1.5rem;
-    animation: bounce 2s infinite;
-}
-
-.btn-hero {
-    background: linear-gradient(135deg, #ea580c 0%, #dc2626 100%);
-    color: white;
-    border: none;
-    padding: 1.25rem 3rem;
-    font-size: 1.125rem;
-    font-weight: 700;
-    border-radius: 0.75rem;
-    cursor: pointer;
-    transition: all 0.3s;
-    box-shadow: 0 10px 25px -5px rgba(234, 88, 12, 0.4);
-}
-
-.btn-hero:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 20px 40px -5px rgba(234, 88, 12, 0.5);
-}
-
-/* Progress Dots */
-.progress-dots {
-    display: flex;
-    justify-content: center;
-    gap: 1rem;
-    margin: 2rem 0;
-}
-
-.progress-dot {
-    width: 12px;
-    height: 12px;
-    border-radius: 50%;
-    background: #e5e7eb;
-    transition: all 0.3s;
-}
-
-.progress-dot.active {
-    width: 40px;
-    border-radius: 6px;
-    background: linear-gradient(135deg, #ea580c 0%, #dc2626 100%);
-}
-
-.progress-dot.completed {
-    background: #16a34a;
-}
-
-/* Class Options */
-.class-options {
-    display: grid;
-    gap: 1rem;
-    margin: 2rem 0;
-}
-
-.class-option {
-    border: 3px solid #e5e7eb;
-    border-radius: 1rem;
-    padding: 1.5rem;
-    cursor: pointer;
-    transition: all 0.3s;
-}
-
-.class-option:hover {
-    border-color: #fed7aa;
-    background: #fef3c7;
-}
-
-.class-option.selected {
-    border-color: #ea580c;
-    background: linear-gradient(135deg, #fed7aa 0%, #fb923c 10%);
-}
-
-.class-option.disabled {
-    opacity: 0.5;
-    cursor: not-allowed;
-}
-
-/* Students Grid */
-.students-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
-    gap: 1.5rem;
-    margin: 2rem 0;
-}
-
-.student-card {
-    background: white;
-    border: 2px solid #e5e7eb;
-    border-radius: 1rem;
-    padding: 1.5rem;
-    transition: all 0.3s ease;
-    box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1);
-}
-
-.add-student-card {
-    background: linear-gradient(135deg, #fed7aa 0%, #fb923c 100%);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    text-align: center;
-    cursor: pointer;
-    border: 3px dashed #ea580c;
-    min-height: 250px;
-}
-
-.add-student-card:hover {
-    transform: translateY(-4px);
-    box-shadow: 0 20px 40px -5px rgba(234, 88, 12, 0.3);
-}
-
-/* Enrollment Status */
-.enrollment-status {
-    padding: 0.5rem;
-    border-radius: 0.5rem;
-    margin: 1rem 0;
-    text-align: center;
-}
-
-.status-enrolled {
-    background: #dcfce7;
-    color: #15803d;
-    border: 1px solid #86efac;
-}
-
-.status-not-enrolled {
-    background: #fef3c7;
-    color: #92400e;
-    border: 1px solid #f59e0b;
-}
-
-/* Welcome Banner */
-.welcome-banner {
-    background: linear-gradient(135deg, #fed7aa 0%, #fb923c 100%);
-    border-radius: 1rem;
-    padding: 2rem;
-    margin-bottom: 2rem;
-    text-align: center;
-}
-
-/* Quick Start Steps */
-.quick-start {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-    gap: 2rem;
-    margin-top: 3rem;
-}
-
-.step-card {
-    background: #f9fafb;
-    padding: 1.5rem;
-    border-radius: 1rem;
-    text-align: center;
-}
-
-.step-number {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    width: 40px;
-    height: 40px;
-    background: #fed7aa;
-    color: #ea580c;
-    border-radius: 50%;
-    font-weight: 700;
-    margin-bottom: 1rem;
-}
-
-/* Form Styles */
-.wizard-form {
-    max-width: 600px;
-    margin: 0 auto;
-}
-
-.form-group {
-    margin-bottom: 1.5rem;
-}
-
-.form-label {
-    display: block;
-    margin-bottom: 0.5rem;
-    font-weight: 600;
-    color: #111827;
-}
-
-.form-input, .form-select {
-    width: 100%;
-    padding: 0.875rem;
-    border: 2px solid #e5e7eb;
-    border-radius: 0.5rem;
-    font-size: 1rem;
-    transition: all 0.2s ease;
-}
-
-.form-input:focus, .form-select:focus {
-    outline: none;
-    border-color: #ea580c;
-    box-shadow: 0 0 0 3px rgba(234, 88, 12, 0.1);
-}
-
-.form-row {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 1rem;
-}
-
-/* Wizard Actions */
-.wizard-actions {
-    display: flex;
-    justify-content: space-between;
-    margin-top: 2rem;
-}
-
-/* Messages */
-.message {
-    padding: 1rem;
-    border-radius: 0.5rem;
-    margin-bottom: 1rem;
-    font-weight: 600;
-}
-
-.message.info {
-    background: #eff6ff;
-    color: #1d4ed8;
-    border: 1px solid #93c5fd;
-}
-
-.message.error {
-    background: #fef2f2;
-    color: #dc2626;
-    border: 1px solid #fca5a5;
-}
-
-.message.success {
-    background: #dcfce7;
-    color: #15803d;
-    border: 1px solid #86efac;
-}
-
-/* Payment Review */
-.order-summary {
-    background: #f9fafb;
-    border-radius: 1rem;
-    padding: 1.5rem;
-    margin: 1.5rem 0;
-}
-
-.summary-item {
-    display: flex;
-    justify-content: space-between;
-    padding: 0.75rem 0;
-    border-bottom: 1px solid #e5e7eb;
-}
-
-.summary-total {
-    display: flex;
-    justify-content: space-between;
-    padding-top: 1rem;
-    font-size: 1.25rem;
-    font-weight: 700;
-}
-
-.payment-options {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 1rem;
-    margin: 2rem 0;
-}
-
-.payment-option {
-    border: 2px solid #e5e7eb;
-    border-radius: 0.5rem;
-    padding: 1.5rem;
-    cursor: pointer;
-    transition: all 0.2s;
-}
-
-.payment-option.selected {
-    border-color: #ea580c;
-    background: #fed7aa;
-}
-
-.btn-large {
-    font-size: 1.125rem;
-    padding: 1rem 2rem;
-}
-
-@keyframes bounce {
-    0%, 100% { transform: translateY(0); }
-    50% { transform: translateY(-10px); }
-}
-
-/* Mobile Responsive */
-@media (max-width: 768px) {
-    .form-row {
-        grid-template-columns: 1fr;
-    }
-    
-    .students-grid {
-        grid-template-columns: 1fr;
-    }
-    
-    .payment-options {
-        grid-template-columns: 1fr;
-    }
-    
-    .wizard-actions {
-        flex-direction: column;
-        gap: 1rem;
-    }
-}
-
-        
         .container {
             max-width: 1200px;
             margin: 0 auto;
@@ -395,127 +43,397 @@
             padding: 1rem 0;
         }
 
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            text-decoration: none;
+            color: inherit;
+        }
+
         .logo-image {
-            height: 5rem;
+            height: 4rem;
             width: auto;
         }
 
-        .user-info {
-            display: flex;
-            align-items: center;
-            gap: 1rem;
-            color: #6b7280;
-        }
-
-        /* Tabs */
-        .tab-navigation {
+        /* Tab Navigation */
+        .portal-tabs {
             background: white;
-            border-bottom: 2px solid #e5e7eb;
-            margin-bottom: 2rem;
-        }
-
-        .tab-list {
+            border-radius: 1rem;
+            padding: 0.5rem;
+            margin: 2rem 0;
+            box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1);
             display: flex;
-            gap: 0;
-            list-style: none;
-            overflow-x: auto;
+            gap: 0.5rem;
         }
 
         .tab-button {
-            padding: 1rem 1.5rem;
-            background: none;
+            flex: 1;
+            padding: 1rem;
+            background: transparent;
             border: none;
-            border-bottom: 3px solid transparent;
+            border-radius: 0.5rem;
+            font-weight: 600;
             color: #6b7280;
-            font-weight: 500;
             cursor: pointer;
             transition: all 0.2s;
-            white-space: nowrap;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
         }
 
         .tab-button:hover {
-            color: #ea580c;
-            background: #fef3c7;
+            background: #f3f4f6;
         }
 
         .tab-button.active {
-            color: #ea580c;
-            border-bottom-color: #ea580c;
-            background: #fef3c7;
+            background: linear-gradient(135deg, #ea580c 0%, #dc2626 100%);
+            color: white;
         }
 
-        /* Tab Content */
         .tab-content {
             display: none;
-            animation: fadeIn 0.3s ease;
         }
 
         .tab-content.active {
             display: block;
         }
 
-        @keyframes fadeIn {
-            from { opacity: 0; }
-            to { opacity: 1; }
-        }
-
-        /* Cards */
-        .card {
-            background: white;
+        /* Welcome Banner for New Users */
+        .welcome-banner {
+            background: linear-gradient(135deg, #fed7aa 0%, #fb923c 100%);
             border-radius: 1rem;
             padding: 2rem;
-            box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1);
             margin-bottom: 2rem;
+            text-align: center;
+            animation: slideDown 0.5s ease;
         }
 
-        .card-title {
-            font-size: 1.5rem;
-            font-weight: 700;
+        @keyframes slideDown {
+            from {
+                opacity: 0;
+                transform: translateY(-20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .welcome-title {
+            font-size: 2rem;
+            font-weight: 800;
+            color: #7c2d12;
+            margin-bottom: 0.5rem;
+        }
+
+        .welcome-text {
+            color: #92400e;
+            font-size: 1.125rem;
+        }
+
+        /* Empty State - The Hero */
+        .empty-state-hero {
+            background: white;
+            border-radius: 1.5rem;
+            padding: 4rem 2rem;
+            text-align: center;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .empty-state-hero::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 4px;
+            background: linear-gradient(90deg, #ea580c, #dc2626, #ea580c);
+            background-size: 200% 100%;
+            animation: shimmer 3s linear infinite;
+        }
+
+        @keyframes shimmer {
+            0% { background-position: -200% 0; }
+            100% { background-position: 200% 0; }
+        }
+
+        .hero-icon {
+            font-size: 5rem;
+            margin-bottom: 1.5rem;
+            animation: bounce 2s infinite;
+        }
+
+        @keyframes bounce {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-10px); }
+        }
+
+        .hero-title {
+            font-size: 2.5rem;
+            font-weight: 800;
             color: #111827;
             margin-bottom: 1rem;
         }
 
-        /* Student Cards */
-        .student-card {
-            background: linear-gradient(135deg, #fed7aa 0%, #ffffff 100%);
-            border: 2px solid #ea580c;
-            border-radius: 1rem;
-            padding: 1.5rem;
-            margin-bottom: 1.5rem;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
+        .hero-subtitle {
+            font-size: 1.25rem;
+            color: #6b7280;
+            margin-bottom: 2rem;
+            max-width: 600px;
+            margin-left: auto;
+            margin-right: auto;
         }
 
-        .student-info h3 {
-            font-size: 1.25rem;
+        .btn-hero {
+            background: linear-gradient(135deg, #ea580c 0%, #dc2626 100%);
+            color: white;
+            border: none;
+            padding: 1.25rem 3rem;
+            font-size: 1.125rem;
+            font-weight: 700;
+            border-radius: 0.75rem;
+            cursor: pointer;
+            transition: all 0.3s;
+            box-shadow: 0 10px 25px -5px rgba(234, 88, 12, 0.4);
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+        }
+
+        .btn-hero:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 20px 40px -5px rgba(234, 88, 12, 0.5);
+        }
+
+        /* Quick Start Steps */
+        .quick-start {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 2rem;
+            margin-top: 3rem;
+        }
+
+        .step-card {
+            background: #f9fafb;
+            padding: 1.5rem;
+            border-radius: 1rem;
+            text-align: center;
+        }
+
+        .step-number {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 40px;
+            height: 40px;
+            background: #fed7aa;
+            color: #ea580c;
+            border-radius: 50%;
+            font-weight: 700;
+            margin-bottom: 1rem;
+        }
+
+        .step-title {
+            font-weight: 700;
+            margin-bottom: 0.5rem;
+        }
+
+        .step-description {
+            color: #6b7280;
+            font-size: 0.875rem;
+        }
+
+        /* Student Cards (when they exist) */
+        .students-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+            gap: 1.5rem;
+        }
+
+        .student-card {
+            background: white;
+            border: 2px solid #e5e7eb;
+            border-radius: 1rem;
+            padding: 1.5rem;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1);
+        }
+
+        .student-card:hover {
+            border-color: #fed7aa;
+            transform: translateY(-2px);
+        }
+
+        .add-student-card {
+            background: linear-gradient(135deg, #fed7aa 0%, #fb923c 100%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            cursor: pointer;
+            border: 3px dashed #ea580c;
+            min-height: 250px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .add-student-card::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: radial-gradient(circle, rgba(255,255,255,0.2) 0%, transparent 70%);
+            animation: rotate 10s linear infinite;
+        }
+
+        @keyframes rotate {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .add-student-card:hover {
+            transform: translateY(-4px) scale(1.02);
+            box-shadow: 0 20px 40px -5px rgba(234, 88, 12, 0.3);
+        }
+
+        /* Enrollment Wizard */
+        .enrollment-wizard {
+            background: white;
+            border-radius: 1.5rem;
+            padding: 2rem;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+            margin-top: 2rem;
+        }
+
+        .wizard-header {
+            text-align: center;
+            margin-bottom: 2rem;
+        }
+
+        .wizard-title {
+            font-size: 2rem;
+            font-weight: 800;
             color: #111827;
             margin-bottom: 0.5rem;
         }
 
-        .student-details {
+        .wizard-subtitle {
             color: #6b7280;
-            line-height: 1.8;
         }
 
-        /* Schedule */
-        .schedule-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+        /* Progress Steps */
+        .progress-dots {
+            display: flex;
+            justify-content: center;
             gap: 1rem;
-            margin-top: 1.5rem;
+            margin: 2rem 0;
         }
 
-        .week-item {
-            padding: 1rem;
-            background: #f9fafb;
-            border-left: 4px solid #ea580c;
+        .progress-dot {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            background: #e5e7eb;
+            transition: all 0.3s;
+        }
+
+        .progress-dot.active {
+            width: 40px;
+            border-radius: 6px;
+            background: linear-gradient(135deg, #ea580c 0%, #dc2626 100%);
+        }
+
+        .progress-dot.completed {
+            background: #16a34a;
+        }
+
+        /* Form Styles */
+        .wizard-form {
+            max-width: 600px;
+            margin: 0 auto;
+        }
+
+        .form-group {
+            margin-bottom: 1.5rem;
+        }
+
+        .form-label {
+            display: block;
+            margin-bottom: 0.5rem;
+            font-weight: 600;
+            color: #111827;
+        }
+
+        .form-input, .form-select {
+            width: 100%;
+            padding: 0.875rem;
+            border: 2px solid #e5e7eb;
             border-radius: 0.5rem;
+            font-size: 1rem;
+            transition: all 0.2s ease;
         }
 
-        .week-item.break {
+        .form-input:focus, .form-select:focus {
+            outline: none;
+            border-color: #ea580c;
+            box-shadow: 0 0 0 3px rgba(234, 88, 12, 0.1);
+        }
+
+        .form-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1rem;
+        }
+
+        /* Class Selection Cards */
+        .class-options {
+            display: grid;
+            gap: 1rem;
+            margin: 2rem 0;
+        }
+
+        .class-option {
+            border: 3px solid #e5e7eb;
+            border-radius: 1rem;
+            padding: 1.5rem;
+            cursor: pointer;
+            transition: all 0.3s;
+            position: relative;
+        }
+
+        .class-option:hover {
+            border-color: #fed7aa;
             background: #fef3c7;
-            border-left-color: #f59e0b;
+        }
+
+        .class-option.selected {
+            border-color: #ea580c;
+            background: linear-gradient(135deg, #fed7aa 0%, #fb923c 10%);
+        }
+
+        .class-option.selected::after {
+            content: '✓';
+            position: absolute;
+            top: 1rem;
+            right: 1rem;
+            background: #16a34a;
+            color: white;
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 700;
         }
 
         /* Buttons */
@@ -524,14 +442,14 @@
             align-items: center;
             justify-content: center;
             gap: 0.5rem;
-            padding: 0.75rem 1.5rem;
+            padding: 0.875rem 1.5rem;
             border-radius: 0.5rem;
             font-weight: 600;
             text-decoration: none;
             border: none;
             cursor: pointer;
             transition: all 0.2s;
-            font-size: 0.875rem;
+            font-size: 1rem;
         }
 
         .btn-primary {
@@ -540,158 +458,60 @@
             box-shadow: 0 4px 6px -1px rgba(234, 88, 12, 0.25);
         }
 
-        .btn-primary:hover {
+        .btn-primary:hover:not(:disabled) {
             transform: translateY(-1px);
             box-shadow: 0 10px 15px -3px rgba(234, 88, 12, 0.25);
         }
 
-        .btn-secondary {
-            background: #6b7280;
-            color: white;
-        }
-
-        .btn-secondary:hover {
-            background: #4b5563;
-        }
-
-        .btn-disabled {
-            background: #e5e7eb;
-            color: #9ca3af;
+        .btn-primary:disabled {
+            opacity: 0.5;
             cursor: not-allowed;
-            opacity: 0.6;
         }
 
-        /* Info Boxes */
-        .info-box {
-            background: #f0f9ff;
-            border: 2px solid #0ea5e9;
-            border-radius: 0.5rem;
-            padding: 1.5rem;
-            margin: 1.5rem 0;
-        }
-
-        .warning-box {
-            background: #fef3c7;
-            border: 2px solid #f59e0b;
-            border-radius: 0.5rem;
-            padding: 1.5rem;
-            margin: 1.5rem 0;
-        }
-
-        /* Service Cards */
-        .service-card {
-            background: white;
-            border: 2px solid #e5e7eb;
-            border-radius: 1rem;
-            padding: 2rem;
-            margin-bottom: 1.5rem;
-            transition: all 0.3s ease;
-            box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1);
-        }
-
-        .service-card:hover {
-            border-color: #ea580c;
-            transform: translateY(-2px);
-            box-shadow: 0 10px 15px -3px rgba(0,0,0,0.1);
-        }
-
-        .service-icon {
-            font-size: 3rem;
-            margin-bottom: 1rem;
-        }
-
-        .service-title {
-            font-size: 1.5rem;
-            font-weight: 700;
-            color: #111827;
-            margin-bottom: 0.5rem;
-        }
-
-        .service-price {
-            font-size: 1.25rem;
-            font-weight: 600;
-            color: #ea580c;
-            margin-bottom: 1rem;
-        }
-
-        .service-features {
-            list-style: none;
-            padding: 0;
-            margin: 1rem 0;
-        }
-
-        .service-features li {
-            padding: 0.5rem 0;
-            color: #6b7280;
+        .wizard-actions {
             display: flex;
-            align-items: start;
-            gap: 0.5rem;
+            justify-content: space-between;
+            margin-top: 2rem;
         }
 
-        .service-features li::before {
-            content: '✓';
-            color: #16a34a;
-            font-weight: 700;
-            flex-shrink: 0;
-        }
-
-        /* Contact Info */
-        .contact-card {
-            background: linear-gradient(135deg, #fed7aa 0%, #fb923c 100%);
+        /* Success State */
+        .success-message {
+            background: linear-gradient(135deg, #dcfce7 0%, #bbf7d0 100%);
+            border: 2px solid #16a34a;
             border-radius: 1rem;
             padding: 2rem;
             text-align: center;
-            color: white;
+            animation: slideUp 0.5s ease;
         }
 
-        .contact-card h3 {
-            font-size: 1.5rem;
+        @keyframes slideUp {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .success-icon {
+            font-size: 4rem;
             margin-bottom: 1rem;
         }
 
-        .contact-card a {
-            color: white;
-            font-weight: 600;
-            font-size: 1.125rem;
-        }
-
-        /* Billing Table */
-        .billing-table {
-            width: 100%;
-            margin-top: 1rem;
-        }
-
-        .billing-table th,
-        .billing-table td {
-            padding: 1rem;
-            text-align: left;
-            border-bottom: 1px solid #e5e7eb;
-        }
-
-        .billing-table th {
-            background: #f9fafb;
-            font-weight: 600;
-            color: #374151;
-        }
-
-        /* Responsive */
         @media (max-width: 768px) {
-            .student-card {
-                flex-direction: column;
-                gap: 1rem;
-            }
-
-            .tab-list {
-                flex-direction: column;
-            }
-
-            .schedule-grid {
+            .form-row {
                 grid-template-columns: 1fr;
             }
-        }
-
-        .hidden {
-            display: none !important;
+            
+            .portal-tabs {
+                flex-direction: column;
+            }
+            
+            .students-grid {
+                grid-template-columns: 1fr;
+            }
         }
     </style>
 </head>
@@ -700,416 +520,624 @@
     <header class="portal-header">
         <div class="container">
             <div class="header-content">
-                <img src="https://raw.githubusercontent.com/JDaws-Dev/3DJumpstart/main/3d-jumpstart-logo.png" alt="3D Jumpstart" class="logo-image">
-                <div class="user-info">
-                    <span id="parent-name">Loading...</span>
-                    <a href="app.html" class="btn btn-secondary">Back to Dashboard</a>
-                    <button onclick="logout()" class="btn btn-secondary">Logout</button>
-                </div>
+                <a href="index.html" class="logo">
+                    <img src="https://raw.githubusercontent.com/JDaws-Dev/3DJumpstart/main/3d-jumpstart-logo.png" alt="3D Jumpstart" class="logo-image">
+                </a>
+                <nav>
+                    <div style="display: flex; align-items: center; gap: 1rem;">
+                        <span id="parent-name" style="color: #6b7280;"></span>
+                        <button onclick="logout()" class="btn" style="background: #6b7280; color: white; padding: 0.5rem 1rem; font-size: 0.875rem;">
+                            Logout
+                        </button>
+                    </div>
+                </nav>
             </div>
         </div>
     </header>
 
-    <!-- Welcome Section -->
-    <div class="container" style="margin-top: 2rem;">
-        <h1 style="font-size: 2rem; margin-bottom: 2rem;">Welcome to Your Parent Portal</h1>
-    </div>
-
-    <!-- Tab Navigation -->
     <div class="container">
-        <nav class="tab-navigation">
-            <ul class="tab-list">
-                <li><button class="tab-button active" onclick="showTab('students')">My Students</button></li>
-                <li><button class="tab-button" onclick="showTab('class-info')">Class Information</button></li>
-                <li><button class="tab-button" onclick="showTab('support')">Support Services</button></li>
-                <li><button class="tab-button" onclick="showTab('billing')">Billing</button></li>
-                <li><button class="tab-button" onclick="showTab('contact')">Contact</button></li>
-            </ul>
-        </nav>
-    </div>
+        <!-- Tab Navigation -->
+        <div class="portal-tabs">
+            <button class="tab-button active" onclick="switchTab('students')" data-tab="students">
+                <span>👥</span> Your Students
+            </button>
+            <button class="tab-button" onclick="switchTab('schedule')" data-tab="schedule">
+                <span>📅</span> Schedule
+            </button>
+            <button class="tab-button" onclick="switchTab('orders')" data-tab="orders">
+                <span>📦</span> Orders
+            </button>
+            <button class="tab-button" onclick="switchTab('account')" data-tab="account">
+                <span>⚙️</span> Account
+            </button>
+        </div>
 
-    <!-- Tab Contents -->
-    <div class="container">
-        <!-- My Students Tab -->
+        <!-- Students Tab (Default) -->
         <div id="students-tab" class="tab-content active">
-            <div class="card">
-                <h2 class="card-title">Your Enrolled Students</h2>
-                <div id="students-list">
-                    <!-- Students will be populated here -->
-                </div>
-            </div>
+            <!-- Dynamic content loaded here -->
         </div>
 
-        <!-- Class Information Tab -->
-        <div id="class-info-tab" class="tab-content">
-            <div class="card">
-                <h2 class="card-title">Location</h2>
-                <div style="font-size: 1.125rem; margin-bottom: 1rem;">
-                    <strong>Shadowbrook Church</strong><br>
-                    4187 Suwanee Dam Rd NW<br>
-                    Suwanee, GA 30024
-                </div>
-            </div>
-
-            <div class="card">
-                <h2 class="card-title">What Your Student Needs</h2>
-                <div class="info-box">
-                    <p style="font-size: 1.125rem; margin-bottom: 1rem;">
-                        <strong>Computers are provided!</strong> Your student doesn't need to bring a laptop.
-                    </p>
-                    <p style="margin-bottom: 1rem;">
-                        <strong>Required Supply:</strong> Imperial (Inch) Digital or Dial Calipers for precision measuring
-                    </p>
-                    <a href="https://a.co/d/7BT1kL0" target="_blank" class="btn btn-primary">
-                        View Recommended Calipers on Amazon →
-                    </a>
-                </div>
-            </div>
-
-            <div class="card">
-                <h2 class="card-title">Level 1 Schedule - 12 Weeks</h2>
-                <div class="schedule-grid">
-                    <div class="week-item">
-                        <strong>Week 1</strong><br>
-                        September 9
-                    </div>
-                    <div class="week-item">
-                        <strong>Week 2</strong><br>
-                        September 16
-                    </div>
-                    <div class="week-item">
-                        <strong>Week 3</strong><br>
-                        September 23
-                    </div>
-                    <div class="week-item">
-                        <strong>Week 4</strong><br>
-                        September 30
-                    </div>
-                    <div class="week-item">
-                        <strong>Week 5</strong><br>
-                        October 7
-                    </div>
-                    <div class="week-item">
-                        <strong>Week 6</strong><br>
-                        October 14
-                    </div>
-                    <div class="week-item">
-                        <strong>Week 7</strong><br>
-                        October 21
-                    </div>
-                    <div class="week-item">
-                        <strong>Week 8</strong><br>
-                        October 28
-                    </div>
-                    <div class="week-item">
-                        <strong>Week 9</strong><br>
-                        November 4
-                    </div>
-                    <div class="week-item">
-                        <strong>Week 10</strong><br>
-                        November 11
-                    </div>
-                    <div class="week-item">
-                        <strong>Week 11</strong><br>
-                        November 18
-                    </div>
-                    <div class="week-item break">
-                        <strong>Thanksgiving Break</strong><br>
-                        November 25 - No Class
-                    </div>
-                    <div class="week-item">
-                        <strong>Week 12</strong><br>
-                        December 2
-                    </div>
-                </div>
-            </div>
+        <!-- Schedule Tab -->
+        <div id="schedule-tab" class="tab-content">
+            <h2 style="font-size: 2rem; font-weight: 700; margin-bottom: 1rem;">Class Schedule</h2>
+            <p style="color: #6b7280;">View upcoming classes and important dates</p>
+            <!-- Schedule content here -->
         </div>
 
-        <!-- Support Services Tab -->
-        <div id="support-tab" class="tab-content">
-            <div class="card">
-                <h2 class="card-title">Professional 3D Printer Support</h2>
-                <p style="color: #6b7280; margin-bottom: 2rem;">Expert help for your home 3D printing journey - Coming Fall 2025</p>
-                
-                <div class="service-card">
-                    <div class="service-icon">🏠</div>
-                    <h3 class="service-title">Printer Setup Service</h3>
-                    <div class="service-price">$150</div>
-                    <p style="color: #6b7280; margin-bottom: 1rem;">Professional Bambu Lab printer installation at your home</p>
-                    <ul class="service-features">
-                        <li>Complete printer assembly and calibration</li>
-                        <li>Software installation and configuration</li>
-                        <li>First successful print guaranteed</li>
-                        <li>90-minute in-home visit</li>
-                        <li>Training on basic operations</li>
-                    </ul>
-                </div>
-
-                <div class="service-card">
-                    <div class="service-icon">🔧</div>
-                    <h3 class="service-title">Troubleshooting Visit</h3>
-                    <div class="service-price">$100</div>
-                    <p style="color: #6b7280; margin-bottom: 1rem;">Fix your printing issues with expert assistance</p>
-                    <ul class="service-features">
-                        <li>Diagnose and fix printing problems</li>
-                        <li>Maintenance and optimization</li>
-                        <li>Training on advanced features</li>
-                        <li>60-minute in-home visit</li>
-                        <li>Recommendations for upgrades or improvements</li>
-                    </ul>
-                </div>
-
-                <div class="warning-box" style="text-align: center;">
-                    <p>
-                        <strong>Note:</strong> Support services are exclusively for Bambu Lab printers<br>
-                        Service area: Within 30 minutes of Sugar Hill, GA
-                    </p>
-                </div>
-
-                <div style="text-align: center; margin-top: 2rem;">
-                    <a href="mailto:jeremiah@3djumpstart.com" class="btn btn-primary" style="font-size: 1.125rem; padding: 1rem 2rem;">
-                        Contact Us About Support Services
-                    </a>
-                </div>
-            </div>
+        <!-- Orders Tab -->
+        <div id="orders-tab" class="tab-content">
+            <h2 style="font-size: 2rem; font-weight: 700; margin-bottom: 1rem;">Order History</h2>
+            <div id="orders-list"></div>
         </div>
 
-        <!-- Billing Tab -->
-        <div id="billing-tab" class="tab-content">
-            <div class="card">
-                <h2 class="card-title">Billing & Payments</h2>
-                <table class="billing-table">
-                    <thead>
-                        <tr>
-                            <th>Date</th>
-                            <th>Description</th>
-                            <th>Amount</th>
-                            <th>Status</th>
-                        </tr>
-                    </thead>
-                    <tbody id="billing-history">
-                        <!-- Billing history will be populated here -->
-                    </tbody>
-                </table>
-            </div>
-            
-            <div id="balance-due-card" class="card hidden">
-                <h2 class="card-title">Balance Due</h2>
-                <div id="balance-info"></div>
-            </div>
-        </div>
-
-        <!-- Contact Tab -->
-        <div id="contact-tab" class="tab-content">
-            <div class="contact-card">
-                <h3>Questions? Reach out anytime!</h3>
-                <div style="margin: 2rem 0;">
-                    <p style="font-size: 1.25rem; margin-bottom: 1rem;">
-                        <strong>Jeremiah Daws</strong><br>
-                        3D Jumpstart Instructor
-                    </p>
-                    <p style="font-size: 1.125rem; margin-bottom: 0.5rem;">
-                        📧 <a href="mailto:jeremiah@3djumpstart.com">jeremiah@3djumpstart.com</a>
-                    </p>
-                    <p style="font-size: 1.125rem;">
-                        📱 <a href="tel:310-845-5702">310-845-5702</a>
-                    </p>
-                </div>
-                <p style="font-size: 0.875rem; opacity: 0.9;">
-                    Call or text anytime
-                </p>
-            </div>
+        <!-- Account Tab -->
+        <div id="account-tab" class="tab-content">
+            <h2 style="font-size: 2rem; font-weight: 700; margin-bottom: 1rem;">Account Settings</h2>
+            <!-- Account management here -->
         </div>
     </div>
 
     <script>
         // Configuration
         const SUPABASE_URL = 'https://hucjmggkasahwpjgnwia.supabase.co';
-        const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imh1Y2ptZ2drYXNhaHdwamdud2lhIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTQ2MTI2MDIsImV4cCI6MjA3MDE4ODYwMn0.hxFmoZexaKverih9crJfP9fjWItOTfC_6D_CM7hr_Rg';
-        
+        const SUPABASE_ANON_KEY = 'your-key-here';
         const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
+        // State
         let currentUser = null;
-        let enrollments = [];
+        let parentData = null;
+        let students = [];
+        let isNewUser = false;
+        let enrollmentWizard = {
+            step: 1,
+            studentData: {},
+            classSelection: null,
+            paymentType: 'full'
+        };
 
         // Initialize
         document.addEventListener('DOMContentLoaded', async () => {
-            await checkAuth();
-            await loadParentData();
-        });
-
-        async function checkAuth() {
             const { data: { session } } = await supabase.auth.getSession();
             if (!session) {
                 window.location.href = 'login.html';
                 return;
             }
-            currentUser = session.user;
             
-            // Get parent name
+            currentUser = session.user;
+            await loadUserData();
+            renderStudentsTab();
+        });
+
+        // Load user data
+        async function loadUserData() {
+            // Get parent info
             const { data: parent } = await supabase
                 .from('parents')
-                .select('name')
+                .select('*')
                 .eq('id', currentUser.id)
                 .single();
-                
-            if (parent) {
-                document.getElementById('parent-name').textContent = parent.name;
-            }
-        }
-
-        async function loadParentData() {
-            // Load enrolled students with their class times.  Use the enrollments table to
-            // determine which class slot a student is in, rather than relying on order_items.
-            const { data: students } = await supabase
+            
+            parentData = parent;
+            document.getElementById('parent-name').textContent = parent ? `Welcome, ${parent.name}!` : 'Welcome!';
+            
+            // Get students
+            const { data: studentsList } = await supabase
                 .from('students')
-                .select(
-                    `*,
-                    enrollments!inner(
-                        status,
-                        payment_status,
-                        class_slots(
-                            day_of_week,
-                            start_time,
-                            end_time
-                        )
-                    )`
-                )
-                .eq('parent_id', currentUser.id);
-
-            if (students && students.length > 0) {
-                displayStudents(students);
-                enrollments = students;
-            } else {
-                // Show empty state
-                document.getElementById('students-list').innerHTML = `
-                    <div style="text-align: center; padding: 3rem; background: #f9fafb; border-radius: 1rem;">
-                        <h3 style="color: #6b7280; margin-bottom: 1rem;">No Students Found</h3>
-                        <p style="color: #9ca3af; margin-bottom: 2rem;">
-                            You haven't added any students to your account yet.
-                        </p>
-                        <a href="app.html" class="btn btn-primary">Add Your First Student</a>
-                    </div>
-                `;
-            }
-
-            // Load billing history
-            const { data: orders } = await supabase
-                .from('orders')
                 .select('*')
                 .eq('parent_id', currentUser.id)
                 .order('created_at', { ascending: false });
-
-            if (orders) {
-                displayBilling(orders);
-            }
+            
+            students = studentsList || [];
+            isNewUser = students.length === 0;
         }
 
-        function displayStudents(students) {
-            const container = document.getElementById('students-list');
+        // Render Students Tab
+        function renderStudentsTab() {
+            const container = document.getElementById('students-tab');
+            
+            if (isNewUser) {
+                // New user experience - Big call to action
+                container.innerHTML = `
+                    <!-- Welcome Banner -->
+                    <div class="welcome-banner">
+                        <h1 class="welcome-title">Welcome to 3D Jumpstart! 🎉</h1>
+                        <p class="welcome-text">Let's get started by adding your first student</p>
+                    </div>
 
-            // Helper to convert 24h time to am/pm format
-            function formatTimeLabel(start, end) {
-                const to12 = (t) => {
-                    const [hh, mm] = t.split(':').map((v) => Number(v));
-                    const h12 = ((hh + 11) % 12) + 1;
-                    const suffix = hh >= 12 ? 'pm' : 'am';
-                    return `${h12}:${String(mm).padStart(2, '0')}${suffix}`;
-                };
-                return `${to12(start)}-${to12(end)}`;
-            }
-
-            container.innerHTML = students
-                .map((student) => {
-                    // Determine the time slot from the student's enrollments.
-                    let timeSlotLabel = 'Not scheduled';
-                    if (Array.isArray(student.enrollments) && student.enrollments.length > 0) {
-                        const enrollment = student.enrollments[0];
-                        const slot = enrollment.class_slots;
-                        if (slot && slot.day_of_week) {
-                            const start = String(slot.start_time).substring(0, 5);
-                            const end = String(slot.end_time).substring(0, 5);
-                            timeSlotLabel = formatTimeLabel(start, end);
-                        }
-                    }
-                    // Compose the class time line. If scheduled, prefix with the day.
-                    const classTimeLine = timeSlotLabel !== 'Not scheduled'
-                        ? `Tuesday ${timeSlotLabel}`
-                        : 'Not scheduled';
-                    return `
-                    <div class="student-card">
-                        <div class="student-info">
-                            <h3>${student.first_name} ${student.last_name}</h3>
-                            <div class="student-details">
-                                <strong>Grade:</strong> ${student.grade}<br>
-                                <strong>Class Time:</strong> ${classTimeLine}<br>
-                                <strong>Level:</strong> Level 1 - Starting Sept 9, 2025
+                    <!-- Hero Empty State -->
+                    <div class="empty-state-hero">
+                        <div class="hero-icon">🚀</div>
+                        <h2 class="hero-title">Ready to Start Your 3D Journey?</h2>
+                        <p class="hero-subtitle">
+                            Add your child to begin enrollment in our professional 3D design program. 
+                            They'll learn Fusion360, create amazing projects, and build skills that last a lifetime!
+                        </p>
+                        
+                        <button onclick="startEnrollmentWizard()" class="btn-hero">
+                            <span style="font-size: 1.5rem; margin-right: 0.5rem;">➕</span>
+                            Add Your First Student
+                        </button>
+                        
+                        <!-- Quick Start Guide -->
+                        <div class="quick-start">
+                            <div class="step-card">
+                                <div class="step-number">1</div>
+                                <h3 class="step-title">Add Student</h3>
+                                <p class="step-description">Tell us about your child - name, age, and grade</p>
+                            </div>
+                            <div class="step-card">
+                                <div class="step-number">2</div>
+                                <h3 class="step-title">Choose Class</h3>
+                                <p class="step-description">Select the perfect time slot for your schedule</p>
+                            </div>
+                            <div class="step-card">
+                                <div class="step-number">3</div>
+                                <h3 class="step-title">Complete Enrollment</h3>
+                                <p class="step-description">Secure their spot and they're ready to create!</p>
                             </div>
                         </div>
-                        <div>
-                            <a href="student-portal.html?id=${student.id}" class="btn btn-primary">
-                                View Student Portal →
-                            </a>
+                    </div>
+                `;
+            } else {
+                // Existing user - Show students grid
+                container.innerHTML = `
+                    <h2 style="font-size: 2rem; font-weight: 700; margin-bottom: 0.5rem;">Your Students</h2>
+                    <p style="color: #6b7280; margin-bottom: 2rem;">Manage your children and their enrollments</p>
+                    
+                    <div class="students-grid">
+                        ${students.map(student => renderStudentCard(student)).join('')}
+                        
+                        <!-- Add Student Card -->
+                        <div class="add-student-card" onclick="startEnrollmentWizard()">
+                            <div style="position: relative; z-index: 1;">
+                                <div style="font-size: 3rem; margin-bottom: 1rem;">➕</div>
+                                <h3 style="font-weight: 700; color: #7c2d12; margin-bottom: 0.5rem;">Add Another Student</h3>
+                                <p style="color: #92400e;">Click to enroll another child</p>
+                            </div>
                         </div>
                     </div>
-                `;
-                })
-                .join('');
-        }
-
-        function displayBilling(orders) {
-            const tbody = document.getElementById('billing-history');
-            const balanceCard = document.getElementById('balance-due-card');
-            const balanceInfo = document.getElementById('balance-info');
-            
-            let totalBalance = 0;
-            
-            tbody.innerHTML = orders.map(order => {
-                const date = new Date(order.created_at).toLocaleDateString();
-                totalBalance += (order.balance_due || 0);
-                
-                return `
-                    <tr>
-                        <td>${date}</td>
-                        <td>Level 1 Enrollment - ${order.payment_method === 'full' ? 'Full Payment' : 'Split Payment'}</td>
-                        <td>$${order.amount_paid}</td>
-                        <td><span style="color: #16a34a;">✓ Paid</span></td>
-                    </tr>
-                `;
-            }).join('');
-            
-            if (totalBalance > 0) {
-                balanceCard.classList.remove('hidden');
-                balanceInfo.innerHTML = `
-                    <div style="font-size: 1.5rem; font-weight: 700; color: #ea580c; margin-bottom: 1rem;">
-                        $${totalBalance} Due
-                    </div>
-                    <p style="color: #6b7280;">Second payment due October 15, 2025</p>
                 `;
             }
         }
 
-        function showTab(tabName) {
-            // Hide all tabs
-            document.querySelectorAll('.tab-content').forEach(tab => {
-                tab.classList.remove('active');
-            });
+        // Render individual student card
+        function renderStudentCard(student) {
+            const hasActiveEnrollment = checkActiveEnrollment(student);
             
-            // Remove active from all buttons
+            return `
+                <div class="student-card">
+                    <h3 style="font-size: 1.25rem; font-weight: 700; margin-bottom: 1rem;">
+                        ${student.first_name} ${student.last_name}
+                    </h3>
+                    
+                    <div style="display: grid; gap: 0.5rem; margin-bottom: 1rem; color: #6b7280; font-size: 0.875rem;">
+                        <div style="display: flex; justify-content: space-between;">
+                            <span>Age:</span>
+                            <strong>${student.age}</strong>
+                        </div>
+                        <div style="display: flex; justify-content: space-between;">
+                            <span>Grade:</span>
+                            <strong>${student.grade}th</strong>
+                        </div>
+                        <div style="display: flex; justify-content: space-between;">
+                            <span>Experience:</span>
+                            <strong>${student.experience_level || 'Beginner'}</strong>
+                        </div>
+                    </div>
+                    
+                    ${hasActiveEnrollment ? `
+                        <div style="background: #dcfce7; color: #15803d; padding: 0.75rem; border-radius: 0.5rem; margin-bottom: 1rem; text-align: center;">
+                            <strong>✓ Enrolled in Level 1</strong>
+                            <br><small>Tuesday 4:30-5:30pm</small>
+                        </div>
+                        <button class="btn btn-primary" style="width: 100%;" disabled>
+                            Ready for Level 2 (Coming Soon)
+                        </button>
+                    ` : `
+                        <div style="background: #fef3c7; color: #92400e; padding: 0.75rem; border-radius: 0.5rem; margin-bottom: 1rem; text-align: center;">
+                            Not currently enrolled
+                        </div>
+                        <button onclick="enrollExistingStudent('${student.id}')" class="btn btn-primary" style="width: 100%;">
+                            Enroll in Level 1
+                        </button>
+                    `}
+                </div>
+            `;
+        }
+
+        // Start enrollment wizard
+        function startEnrollmentWizard() {
+            enrollmentWizard = {
+                step: 1,
+                studentData: {},
+                classSelection: null,
+                paymentType: 'full'
+            };
+            
+            renderEnrollmentWizard();
+        }
+
+        // Render enrollment wizard
+        function renderEnrollmentWizard() {
+            const container = document.getElementById('students-tab');
+            
+            container.innerHTML = `
+                <div class="enrollment-wizard">
+                    <div class="wizard-header">
+                        <h2 class="wizard-title">
+                            ${enrollmentWizard.step === 1 ? 'Add Your Student' : 
+                              enrollmentWizard.step === 2 ? 'Choose a Class Time' : 
+                              'Complete Enrollment'}
+                        </h2>
+                        <p class="wizard-subtitle">
+                            ${enrollmentWizard.step === 1 ? 'Tell us about your child' : 
+                              enrollmentWizard.step === 2 ? 'Select the best time for your schedule' : 
+                              'Review and complete your enrollment'}
+                        </p>
+                    </div>
+                    
+                    <!-- Progress Dots -->
+                    <div class="progress-dots">
+                        <div class="progress-dot ${enrollmentWizard.step >= 1 ? 'active' : ''} ${enrollmentWizard.step > 1 ? 'completed' : ''}"></div>
+                        <div class="progress-dot ${enrollmentWizard.step >= 2 ? 'active' : ''} ${enrollmentWizard.step > 2 ? 'completed' : ''}"></div>
+                        <div class="progress-dot ${enrollmentWizard.step >= 3 ? 'active' : ''}"></div>
+                    </div>
+                    
+                    <!-- Wizard Content -->
+                    <div class="wizard-content">
+                        ${renderWizardStep()}
+                    </div>
+                </div>
+            `;
+        }
+
+        // Render wizard step content
+        function renderWizardStep() {
+            switch(enrollmentWizard.step) {
+                case 1:
+                    return `
+                        <form class="wizard-form" onsubmit="handleStudentForm(event)">
+                            <div class="form-row">
+                                <div class="form-group">
+                                    <label class="form-label">First Name *</label>
+                                    <input type="text" name="firstName" class="form-input" required 
+                                           placeholder="Emma" value="${enrollmentWizard.studentData.firstName || ''}">
+                                </div>
+                                <div class="form-group">
+                                    <label class="form-label">Last Name *</label>
+                                    <input type="text" name="lastName" class="form-input" required 
+                                           placeholder="Johnson" value="${enrollmentWizard.studentData.lastName || ''}">
+                                </div>
+                            </div>
+                            
+                            <div class="form-row">
+                                <div class="form-group">
+                                    <label class="form-label">Age *</label>
+                                    <input type="number" name="age" class="form-input" min="9" max="18" required 
+                                           value="${enrollmentWizard.studentData.age || ''}">
+                                </div>
+                                <div class="form-group">
+                                    <label class="form-label">Grade *</label>
+                                    <select name="grade" class="form-select" required>
+                                        <option value="">Select Grade</option>
+                                        ${[4,5,6,7,8,9,10,11,12].map(g => 
+                                            `<option value="${g}" ${enrollmentWizard.studentData.grade == g ? 'selected' : ''}>
+                                                ${g}th Grade
+                                            </option>`
+                                        ).join('')}
+                                    </select>
+                                </div>
+                            </div>
+                            
+                            <div class="form-group">
+                                <label class="form-label">3D Design Experience</label>
+                                <select name="experience" class="form-select">
+                                    <option value="None">No experience (perfect for beginners!)</option>
+                                    <option value="Some">Some basic experience</option>
+                                    <option value="Advanced">Experienced with 3D design</option>
+                                </select>
+                            </div>
+                            
+                            <div class="form-group">
+                                <label class="form-label">Special Notes (Optional)</label>
+                                <textarea name="notes" class="form-input" rows="3" 
+                                          placeholder="Any learning differences or special considerations?"></textarea>
+                            </div>
+                            
+                            <div class="wizard-actions">
+                                <button type="button" onclick="cancelEnrollment()" class="btn" style="background: #6b7280; color: white;">
+                                    Cancel
+                                </button>
+                                <button type="submit" class="btn btn-primary">
+                                    Continue to Class Selection →
+                                </button>
+                            </div>
+                        </form>
+                    `;
+                    
+                case 2:
+                    const grade = parseInt(enrollmentWizard.studentData.grade);
+                    const isElementary = grade <= 7;
+                    const isHighSchool = grade >= 8;
+                    
+                    return `
+                        <div class="class-options">
+                            <div class="class-option ${isElementary ? '' : 'disabled'}" 
+                                 onclick="${isElementary ? "selectClass('4:30-5:30pm')" : ''}"
+                                 style="${!isElementary ? 'opacity: 0.5; cursor: not-allowed;' : ''}">
+                                <h3 style="font-size: 1.25rem; font-weight: 700; margin-bottom: 0.5rem;">
+                                    Tuesday 4:30-5:30pm
+                                </h3>
+                                <p style="color: #6b7280; margin-bottom: 0.5rem;">Elementary (Grades 4-7)</p>
+                                <p style="color: #16a34a; font-weight: 600;">✓ Perfect for Grade ${grade}</p>
+                                <span style="display: inline-block; margin-top: 0.5rem; padding: 0.25rem 0.5rem; background: #dcfce7; color: #15803d; border-radius: 0.25rem; font-size: 0.75rem;">
+                                    8 spots available
+                                </span>
+                            </div>
+                            
+                            <div class="class-option ${isHighSchool ? '' : 'disabled'}" 
+                                 onclick="${isHighSchool ? "selectClass('5:30-6:30pm')" : ''}"
+                                 style="${!isHighSchool ? 'opacity: 0.5; cursor: not-allowed;' : ''}">
+                                <h3 style="font-size: 1.25rem; font-weight: 700; margin-bottom: 0.5rem;">
+                                    Tuesday 5:30-6:30pm
+                                </h3>
+                                <p style="color: #6b7280; margin-bottom: 0.5rem;">Jr High/High School (Grades 8-12)</p>
+                                <p style="color: #16a34a; font-weight: 600;">✓ Perfect for Grade ${grade}</p>
+                                <span style="display: inline-block; margin-top: 0.5rem; padding: 0.25rem 0.5rem; background: #fef2f2; color: #dc2626; border-radius: 0.25rem; font-size: 0.75rem;">
+                                    Only 3 spots left!
+                                </span>
+                            </div>
+                        </div>
+                        
+                        <div class="wizard-actions">
+                            <button onclick="previousWizardStep()" class="btn" style="background: #6b7280; color: white;">
+                                ← Back
+                            </button>
+                            <button onclick="nextWizardStep()" class="btn btn-primary" 
+                                    ${!enrollmentWizard.classSelection ? 'disabled' : ''}>
+                                Continue to Payment →
+                            </button>
+                        </div>
+                    `;
+                    
+                case 3:
+                    const basePrice = 700;
+                    const hasMultipleKids = students.length > 0;
+                    const discount = hasMultipleKids ? 50 : 0;
+                    const total = basePrice - discount;
+                    
+                    return `
+                        <div style="background: #f9fafb; border-radius: 1rem; padding: 2rem; margin-bottom: 2rem;">
+                            <h3 style="margin-bottom: 1rem;">Enrollment Summary</h3>
+                            
+                            <div style="border-bottom: 1px solid #e5e7eb; padding-bottom: 1rem; margin-bottom: 1rem;">
+                                <div style="display: flex; justify-content: space-between; margin-bottom: 0.5rem;">
+                                    <strong>${enrollmentWizard.studentData.firstName} ${enrollmentWizard.studentData.lastName}</strong>
+                                    <span>Level 1</span>
+                                </div>
+                                <div style="color: #6b7280; font-size: 0.875rem;">
+                                    Tuesday ${enrollmentWizard.classSelection} • 12 weeks • Starts Sept 9th
+                                </div>
+                            </div>
+                            
+                            <div style="display: flex; justify-content: space-between; margin-bottom: 0.5rem;">
+                                <span>Level 1 Tuition</span>
+                                <span>$${basePrice}</span>
+                            </div>
+                            
+                            ${hasMultipleKids ? `
+                                <div style="display: flex; justify-content: space-between; margin-bottom: 0.5rem; color: #16a34a;">
+                                    <span>Multi-child Discount</span>
+                                    <span>-$${discount}</span>
+                                </div>
+                            ` : ''}
+                            
+                            <div style="display: flex; justify-content: space-between; padding-top: 1rem; border-top: 2px solid #e5e7eb; font-size: 1.25rem; font-weight: 700;">
+                                <span>Total</span>
+                                <span style="color: #ea580c;">$${total}</span>
+                            </div>
+                        </div>
+                        
+                        <div style="margin-bottom: 2rem;">
+                            <h4 style="margin-bottom: 1rem;">Select Payment Option</h4>
+                            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+                                <label class="class-option ${enrollmentWizard.paymentType === 'full' ? 'selected' : ''}" 
+                                       onclick="selectPaymentType('full')">
+                                    <input type="radio" name="payment" value="full" 
+                                           ${enrollmentWizard.paymentType === 'full' ? 'checked' : ''} style="display: none;">
+                                    <h4>Pay in Full</h4>
+                                    <p style="color: #16a34a; font-weight: 600;">$${total - 20} today</p>
+                                    <small style="color: #6b7280;">Save $20!</small>
+                                </label>
+                                
+                                <label class="class-option ${enrollmentWizard.paymentType === 'split' ? 'selected' : ''}" 
+                                       onclick="selectPaymentType('split')">
+                                    <input type="radio" name="payment" value="split" 
+                                           ${enrollmentWizard.paymentType === 'split' ? 'checked' : ''} style="display: none;">
+                                    <h4>Payment Plan</h4>
+                                    <p style="font-weight: 600;">$${Math.ceil(total/2)} today</p>
+                                    <small style="color: #6b7280;">$${Math.floor(total/2)} on Oct 15</small>
+                                </label>
+                            </div>
+                        </div>
+                        
+                        <div class="wizard-actions">
+                            <button onclick="previousWizardStep()" class="btn" style="background: #6b7280; color: white;">
+                                ← Back
+                            </button>
+                            <button onclick="completeEnrollment()" class="btn btn-primary" style="font-size: 1.125rem; padding: 1rem 2rem;">
+                                Complete Enrollment →
+                            </button>
+                        </div>
+                    `;
+            }
+        }
+
+        // Handle student form submission
+        async function handleStudentForm(event) {
+            event.preventDefault();
+            const formData = new FormData(event.target);
+            
+            enrollmentWizard.studentData = {
+                firstName: formData.get('firstName'),
+                lastName: formData.get('lastName'),
+                age: formData.get('age'),
+                grade: formData.get('grade'),
+                experience: formData.get('experience'),
+                notes: formData.get('notes')
+            };
+            
+            enrollmentWizard.step = 2;
+            renderEnrollmentWizard();
+        }
+
+        // Select class time
+        function selectClass(time) {
+            enrollmentWizard.classSelection = time;
+            
+            // Update UI to show selection
+            document.querySelectorAll('.class-option').forEach(el => {
+                el.classList.remove('selected');
+            });
+            event.currentTarget.classList.add('selected');
+            
+            // Enable continue button
+            const btn = document.querySelector('.wizard-actions .btn-primary');
+            if (btn) btn.disabled = false;
+        }
+
+        // Select payment type
+        function selectPaymentType(type) {
+            enrollmentWizard.paymentType = type;
+            renderEnrollmentWizard();
+        }
+
+        // Navigation
+        function nextWizardStep() {
+            if (enrollmentWizard.step < 3) {
+                enrollmentWizard.step++;
+                renderEnrollmentWizard();
+            }
+        }
+
+        function previousWizardStep() {
+            if (enrollmentWizard.step > 1) {
+                enrollmentWizard.step--;
+                renderEnrollmentWizard();
+            }
+        }
+
+        function cancelEnrollment() {
+            renderStudentsTab();
+        }
+
+        // Complete enrollment
+        async function completeEnrollment() {
+            // Save student to database
+            const { data: newStudent, error } = await supabase
+                .from('students')
+                .insert([{
+                    parent_id: currentUser.id,
+                    first_name: enrollmentWizard.studentData.firstName,
+                    last_name: enrollmentWizard.studentData.lastName,
+                    age: parseInt(enrollmentWizard.studentData.age),
+                    grade: enrollmentWizard.studentData.grade + 'th',
+                    experience_level: enrollmentWizard.studentData.experience,
+                    parent_notes: enrollmentWizard.studentData.notes
+                }])
+                .select()
+                .single();
+            
+            if (!error) {
+                // Add to local students array
+                students.unshift(newStudent);
+                isNewUser = false;
+                
+                // Prepare for Stripe checkout
+                const paymentData = {
+                    students: [{
+                        student: newStudent,
+                        timeSlot: enrollmentWizard.classSelection
+                    }],
+                    paymentType: enrollmentWizard.paymentType,
+                    customerEmail: currentUser.email
+                };
+                
+                // Store in localStorage for payment success page
+                localStorage.setItem('pendingEnrollment', JSON.stringify(paymentData));
+                
+                // Show success message then redirect to payment
+                showSuccessMessage();
+                
+                // Redirect to Stripe checkout after 2 seconds
+                setTimeout(() => {
+                    // Call your Stripe function here
+                    // window.location.href = '/checkout';
+                }, 2000);
+            }
+        }
+
+        // Show success message
+        function showSuccessMessage() {
+            const container = document.getElementById('students-tab');
+            container.innerHTML = `
+                <div class="success-message">
+                    <div class="success-icon">🎉</div>
+                    <h2 style="font-size: 2rem; font-weight: 700; margin-bottom: 0.5rem;">
+                        Student Added Successfully!
+                    </h2>
+                    <p style="font-size: 1.125rem; margin-bottom: 1rem;">
+                        ${enrollmentWizard.studentData.firstName} is ready to start their 3D journey
+                    </p>
+                    <p style="color: #6b7280;">Redirecting to secure payment...</p>
+                </div>
+            `;
+        }
+
+        // Enroll existing student
+        function enrollExistingStudent(studentId) {
+            const student = students.find(s => s.id === studentId);
+            if (student) {
+                enrollmentWizard.studentData = {
+                    firstName: student.first_name,
+                    lastName: student.last_name,
+                    age: student.age,
+                    grade: parseInt(student.grade),
+                    existing: true,
+                    id: student.id
+                };
+                enrollmentWizard.step = 2;
+                renderEnrollmentWizard();
+            }
+        }
+
+        // Check if student has active enrollment
+        function checkActiveEnrollment(student) {
+            // This would check Supabase for active enrollments
+            // For demo, returning false
+            return false;
+        }
+
+        // Tab switching
+        function switchTab(tabName) {
+            // Update tabs
             document.querySelectorAll('.tab-button').forEach(btn => {
                 btn.classList.remove('active');
             });
+            document.querySelector(`[data-tab="${tabName}"]`).classList.add('active');
             
-            // Show selected tab
+            // Update content
+            document.querySelectorAll('.tab-content').forEach(content => {
+                content.classList.remove('active');
+            });
             document.getElementById(`${tabName}-tab`).classList.add('active');
-            
-            // Set active button
-            event.target.classList.add('active');
         }
 
-        async function logout() {
-            await supabase.auth.signOut();
-            window.location.href = 'index.html';
+        // Logout
+        function logout() {
+            supabase.auth.signOut().then(() => {
+                window.location.href = 'login.html';
+            });
         }
     </script>
 </body>
