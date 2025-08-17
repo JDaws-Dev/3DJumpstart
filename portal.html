@@ -350,7 +350,63 @@
             <div class="card">
                 <h2 class="card-title">Your Enrolled Students</h2>
                 <div id="students-list">
-                    <!-- Students will be populated here -->
+                  if (students && students.length > 0) {
+    const studentsHtml = students.map(student => {
+        // Debug each student
+        console.log('Processing student:', student);
+        
+        const enrollment = student.enrollments && student.enrollments[0];
+        const timeSlot = enrollment ? 
+            `${enrollment.class_slots.day_of_week} ${enrollment.class_slots.start_time}-${enrollment.class_slots.end_time}` : 
+            'Not enrolled';
+        
+        return `
+            <div class="info-card">
+                <h3>${student.first_name} ${student.last_name}</h3>
+                <div class="info-row">
+                    <span class="info-label">Grade:</span>
+                    <span>${student.grade || 'Not specified'}</span>
+                </div>
+                <div class="info-row">
+                    <span class="info-label">Age:</span>
+                    <span>${student.age || 'Not specified'}</span>
+                </div>
+                <div class="info-row">
+                    <span class="info-label">Experience:</span>
+                    <span>${student.experience_level || 'Not specified'}</span>
+                </div>
+                <div class="info-row">
+                    <span class="info-label">Class Time:</span>
+                    <span>${timeSlot}</span>
+                </div>
+                ${student.parent_notes ? `
+                    <div class="info-row">
+                        <span class="info-label">Notes:</span>
+                        <span>${student.parent_notes}</span>
+                    </div>
+                ` : ''}
+            </div>
+        `;
+    }).join('');
+    
+    document.getElementById('students-container').innerHTML = studentsHtml;
+} else {
+    // More helpful empty state
+    document.getElementById('students-container').innerHTML = `
+        <div style="text-align: center; padding: 3rem; background: #f9fafb; border-radius: 1rem;">
+            <h3 style="color: #6b7280; margin-bottom: 1rem;">No Students Found</h3>
+            <p style="color: #9ca3af; margin-bottom: 2rem;">
+                You haven't added any students to your account yet.
+            </p>
+            <a href="app.html" class="btn btn-primary">Add Your First Student</a>
+            <p style="margin-top: 2rem; font-size: 0.875rem; color: #6b7280;">
+                Already added students? Try refreshing the page or contact support at<br>
+                <a href="mailto:jeremiah@3djumpstart.com" style="color: #ea580c;">jeremiah@3djumpstart.com</a>
+            </p>
+        </div>
+    `;
+}
+                    
                 </div>
             </div>
         </div>
@@ -384,7 +440,7 @@
                         <strong>Computers are provided!</strong> Your student doesn't need to bring a laptop.
                     </p>
                     <p style="margin-bottom: 1rem;">
-                        <strong>Required Supply:</strong> Digital Calipers for precision measuring
+                        <strong>Required Supply:</strong> Imperial (Inch) Digital or Dial Calipers for precision measuring
                     </p>
                     <a href="https://a.co/d/7BT1kL0" target="_blank" class="btn btn-primary">
                         View Recommended Calipers on Amazon →
