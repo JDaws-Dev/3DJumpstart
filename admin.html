@@ -1,33 +1,97 @@
-<!doctype html>
-<html lang="en">
+<!DOCTYPE html>
+<html>
 <head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta charset="UTF-8">
   <title>Admin Dashboard</title>
-  <link rel="stylesheet" href="admin.css" />
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
+  <style>
+    nav button { margin-right: 1rem; }
+    .tab { display: none; }
+    .tab.active { display: block; }
+  </style>
 </head>
 <body>
-  <header class="header">
-    <h1>Admin Dashboard</h1>
-    <nav>
-      <button data-tab="orders">Orders</button>
-      <button data-tab="enrollments">Enrollments</button>
-      <button data-tab="payments">Payments</button>
-      <button data-tab="classes">Classes</button>
-      <button data-tab="students">Students</button>
-      <button data-tab="parents">Parents</button>
-    </nav>
-  </header>
-  <main>
-    <section id="orders" class="tab"></section>
-    <section id="enrollments" class="tab hidden"></section>
-    <section id="payments" class="tab hidden"></section>
-    <section id="classes" class="tab hidden"></section>
-    <section id="students" class="tab hidden"></section>
-    <section id="parents" class="tab hidden"></section>
-  </main>
-  <div id="toast"></div>
-  <script src="admin.js"></script>
+  <h1>Admin Dashboard</h1>
+  <div id="auth-status"></div>
+
+  <nav>
+    <button onclick="showTab('classes')">Classes</button>
+    <button onclick="showTab('students')">Students</button>
+    <button onclick="showTab('parents')">Parents</button>
+    <button onclick="showTab('orders')">Orders</button>
+  </nav>
+
+  <div id="classes" class="tab"></div>
+  <div id="students" class="tab"></div>
+  <div id="parents" class="tab"></div>
+  <div id="orders" class="tab"></div>
+
+  <script>
+    const supabase = window.supabase.createClient(
+      'https://YOUR-PROJECT-REF.supabase.co',
+      'YOUR-PUBLIC-ANON-KEY'
+    );
+
+    async function init() {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) {
+        document.getElementById('auth-status').innerText = 'Please log in.';
+        return;
+      }
+      if (!user.user_metadata.is_admin) {
+        document.getElementById('auth-status').innerText = 'Access denied.';
+        return;
+      }
+      document.getElementById('auth-status').innerText = `Logged in as ${user.email} (Admin)`;
+
+      loadClasses();
+      loadStudents();
+      loadParents();
+      loadOrders();
+      showTab('classes');
+    }
+
+    function showTab(tab) {
+      document.querySelectorAll('.tab').forEach(el => el.classList.remove('active'));
+      document.getElementById(tab).classList.add('active');
+    }
+
+    async function loadClasses() {
+      const { data, error } = await supabase.from('class_slots').select('*');
+      if (error) { console.error(error); return; }
+      document.getElementById('classes').innerHTML = renderTable(data);
+    }
+
+    async function loadStudents() {
+      const { data, error } = await supabase.from('students').select('*, parents(*)');
+      if (error) { console.error(error); return; }
+      document.getElementById('students').innerHTML = renderTable(data);
+    }
+
+    async function loadParents() {
+      const { data, error } = await supabase.from('parents').select('*');
+      if (error) { console.error(error); return; }
+      document.getElementById('parents').innerHTML = renderTable(data);
+    }
+
+    async function loadOrders() {
+      const { data, error } = await supabase.from('orders').select('*');
+      if (error) { console.error(error); return; }
+      document.getElementById('orders').innerHTML = renderTable(data);
+    }
+
+    function renderTable(rows) {
+      if (!rows || rows.length === 0) return '<p>No data</p>';
+      const cols = Object.keys(rows[0]);
+      let html = '<table border="1"><tr>' + cols.map(c => `<th>${c}</th>`).join('') + '</tr>';
+      for (const row of rows) {
+        html += '<tr>' + cols.map(c => `<td>${row[c]}</td>`).join('') + '</tr>';
+      }
+      html += '</table>';
+      return html;
+    }
+
+    init();
+  </script>
 </body>
 </html>
