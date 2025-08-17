@@ -91,28 +91,30 @@ async function getTimeSlotAvailability() {
 
 // Navigation
 function showSection(section, event) {
-    if (event) event.preventDefault();
-    
-    // Hide all sections
-    document.getElementById('students-section').classList.remove('active');
-    document.getElementById('cart-section').classList.remove('active');
-    // Removed orders-section line
-    
-    // Remove active from all nav links
-    document.querySelectorAll('.nav-link').forEach(link => {
-        link.classList.remove('active');
-    });
-    
-    // Show selected section
-    document.getElementById(`${section}-section`).classList.add('active');
-    
-    // Add active to clicked nav link
-    if (event && event.target) {
-        event.target.classList.add('active');
-    }
-    
-    // Update progress steps
-    updateProgressSteps(section);
+  if (event) event.preventDefault();
+
+  // Hide all sections
+  document.getElementById('students-section').classList.remove('active');
+  document.getElementById('cart-section').classList.remove('active');
+
+  // Remove active from all nav links
+  document.querySelectorAll('.nav-link').forEach(link => link.classList.remove('active'));
+
+  // Show selected section
+  document.getElementById(`${section}-section`).classList.add('active');
+
+  // Add active to clicked nav link
+  if (event && event.target) event.target.classList.add('active');
+
+  // Update progress steps
+  updateProgressSteps(section);
+
+  // 🔹 Render section contents
+  if (section === 'cart') {
+    renderCart();       // ensures students + class tiles appear
+  } else if (section === 'students') {
+    renderStudents();   // refreshes the grid, “In Cart” badges, etc.
+  }
 }
 
 function updateProgressSteps(currentSection) {
@@ -308,11 +310,12 @@ function updateProceedButton() {
 }
 
 function proceedToCart() {
-    if (cart.length === 0) {
-        showMessage('Add at least one student to continue', 'error');
-        return;
-    }
-    showSection('cart');
+  if (cart.length === 0) {
+    showMessage('Add at least one student to continue', 'error');
+    return;
+  }
+  showSection('cart');
+  renderCart(); // harmless if already called by showSection
 }
 
 // Cart rendering
