@@ -249,10 +249,11 @@
                 </ul>
             </div>
 
-<div class="actions">
-    <a href="portal.html" class="btn btn-primary">View Order in Parent Portal</a>
-    <a href="index.html" class="btn btn-outline">Return Home</a>
-</div>
+            <div class="actions">
+                <a href="portal.html" class="btn btn-primary">View Order in Parent Portal</a>
+                <a href="index.html" class="btn btn-outline">Return Home</a>
+            </div>
+        </div>
 
         <div id="error-state" style="display: none;">
             <div class="error">
@@ -277,6 +278,33 @@
         const urlParams = new URLSearchParams(window.location.search);
         const sessionId = urlParams.get('session_id');
 
+        // Email sending function
+        async function sendConfirmationEmail(type, recipientEmail, data) {
+            try {
+                const response = await fetch('/.netlify/functions/send-email', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        type: type,
+                        recipientEmail: recipientEmail,
+                        data: data
+                    })
+                });
+
+                const result = await response.json();
+                
+                if (!response.ok) {
+                    console.error('Failed to send email:', result);
+                } else {
+                    console.log('Email sent successfully:', result.messageId);
+                }
+            } catch (error) {
+                console.error('Error sending email:', error);
+            }
+        }
+
         async function processEnrollment() {
             try {
                 // Check if user is logged in
@@ -299,22 +327,22 @@
                 // Generate order number
                 const orderNumber = `ORD-${Date.now()}`;
                 
-         // Create order in database
-const { data: order, error: orderError } = await supabase
-    .from('orders')
-    .insert([{
-        parent_id: session.user.id,
-        order_number: orderNumber,
-        payment_method: enrollment.paymentType,
-        total_amount: enrollment.amounts.total,
-        amount_paid: enrollment.amounts.paid,
-        balance_due: enrollment.amounts.balance || 0,
-        second_payment_due: enrollment.paymentType === 'split' ? '2025-10-15' : null,
-        status: 'confirmed'
-        // NO stripe_session_id here!
-    }])
-    .select()
-    .single();
+                // Create order in database
+                const { data: order, error: orderError } = await supabase
+                    .from('orders')
+                    .insert([{
+                        parent_id: session.user.id,
+                        order_number: orderNumber,
+                        payment_method: enrollment.paymentType,
+                        total_amount: enrollment.amounts.total,
+                        amount_paid: enrollment.amounts.paid,
+                        balance_due: enrollment.amounts.balance || 0,
+                        second_payment_due: enrollment.paymentType === 'split' ? '2025-10-15' : null,
+                        status: 'confirmed'
+                    }])
+                    .select()
+                    .single();
+                    
                 if (orderError) throw orderError;
 
                 // Create order items for each student
@@ -332,6 +360,27 @@ const { data: order, error: orderError } = await supabase
                 if (itemsError) {
                     console.error('Order items error:', itemsError);
                     // Continue anyway - order is saved
+                }
+
+                // Get parent name for the email
+                const { data: parent } = await supabase
+                    .from('parents')
+                    .select('name')
+                    .eq('id', session.user.id)
+                    .single();
+
+                // Send enrollment confirmation email
+                if (parent) {
+                    await sendConfirmationEmail('enrollment', session.user.email, {
+                        parentName: parent.name,
+                        orderNumber: orderNumber,
+                        amountPaid: enrollment.amounts.paid,
+                        balanceDue: enrollment.amounts.balance || 0,
+                        students: enrollment.students.map(s => ({
+                            name: `${s.student.first_name} ${s.student.last_name}`,
+                            timeSlot: s.timeSlot
+                        }))
+                    });
                 }
 
                 /*
