@@ -420,6 +420,33 @@
         
         const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
+        // Email sending function
+        async function sendConfirmationEmail(type, recipientEmail, data) {
+            try {
+                const response = await fetch('/.netlify/functions/send-email', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        type: type,
+                        recipientEmail: recipientEmail,
+                        data: data
+                    })
+                });
+
+                const result = await response.json();
+                
+                if (!response.ok) {
+                    console.error('Failed to send email:', result);
+                } else {
+                    console.log('Email sent successfully:', result.messageId);
+                }
+            } catch (error) {
+                console.error('Error sending email:', error);
+            }
+        }
+
         // Check if already logged in
         document.addEventListener('DOMContentLoaded', async () => {
             const { data: { session } } = await supabase.auth.getSession();
@@ -541,6 +568,11 @@
                         }]);
 
                     if (parentError) console.error('Parent record error:', parentError);
+
+                    // Send welcome email
+                    await sendConfirmationEmail('welcome', email, {
+                        parentName: name
+                    });
                 }
 
                 // Auto-login after successful registration
