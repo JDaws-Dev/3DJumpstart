@@ -334,13 +334,66 @@ const { data: order, error: orderError } = await supabase
                     // Continue anyway - order is saved
                 }
 
+                /*
+                 * Also create enrollment rows tying each student to a class slot.  We
+                 * derive the correct `class_slot_id` from the timeSlot label by
+                 * looking up the `class_slots` table.  Seats will only be
+                 * decremented when there is a corresponding row in the
+                 * `enrollments` table, so this insertion is critical for the
+                 * availability logic.
+                 */
+                try {
+                    const { data: slotsData, error: slotsErr } = await supabase
+                        .from('class_slots')
+                        .select('id, day_of_week, start_time, end_time');
+                    if (!slotsErr && Array.isArray(slotsData)) {
+                        const slotMap = {};
+                        slotsData.forEach((s) => {
+                            if (s.day_of_week === 'Tuesday') {
+                                // Map known Tuesday time ranges to their IDs.  Use
+                                // string startsWith comparisons to avoid minor
+                                // differences in seconds or formatting.
+                                if (
+                                    String(s.start_time).startsWith('16:30') &&
+                                    String(s.end_time).startsWith('17:30')
+                                ) {
+                                    slotMap['4:30-5:30pm'] = s.id;
+                                } else if (
+                                    String(s.start_time).startsWith('17:30') &&
+                                    String(s.end_time).startsWith('18:30')
+                                ) {
+                                    slotMap['5:30-6:30pm'] = s.id;
+                                }
+                            }
+                        });
+                        // Build enrollment rows for each student in this order
+                        const enrollmentRows = enrollment.students.map((item) => ({
+                            student_id: item.student.id,
+                            class_slot_id: slotMap[item.timeSlot] || null,
+                            order_id: order.id,
+                            enrolled_at: new Date().toISOString(),
+                            status: 'enrolled',
+                            payment_status:
+                                enrollment.paymentType === 'full' ? 'paid' : 'partial'
+                        }));
+                        const { error: enrollErr } = await supabase
+                            .from('enrollments')
+                            .insert(enrollmentRows);
+                        if (enrollErr) {
+                            console.error('Enrollments insert error:', enrollErr);
+                        }
+                    }
+                } catch (enrollCatchErr) {
+                    console.error('Error creating enrollments:', enrollCatchErr);
+                }
+
                 // Clear the pending enrollment data
                 localStorage.removeItem('pendingEnrollment');
 
                 // Show success with order details
                 document.getElementById('order-number').textContent = orderNumber;
                 document.getElementById('amount-paid').textContent = `$${enrollment.amounts.paid}`;
-                
+
                 showSuccess();
 
             } catch (error) {

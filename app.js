@@ -56,32 +56,65 @@ async function checkAuthAndInit() {
 // Get real-time availability
 async function getTimeSlotAvailability() {
     try {
-        const { data: enrollments, error } = await supabase
-            .from('order_items')
-            .select('time_slot');
-
+        /**
+         * Fetch all current enrollments along with their associated class slot times.
+         * We join against class_slots to convert the database time values into the
+         * human‑readable labels used throughout the UI. The enrollments table is
+         * authoritative for seat occupancy – order_items only records what was
+         * purchased, not whether a student is actually in a class.
+         */
+        const { data, error } = await supabase
+            .from('enrollments')
+            .select(
+                `id, class_slot_id, class_slots ( day_of_week, start_time, end_time, max_students )`
+            );
         if (error) throw error;
 
+        // Prepare counts keyed by our two known time labels.
         const slotCounts = {
             '4:30-5:30pm': 0,
             '5:30-6:30pm': 0
         };
 
-        enrollments.forEach(enrollment => {
-            if (enrollment.time_slot in slotCounts) {
-                slotCounts[enrollment.time_slot]++;
-            }
-        });
+        // Helper to convert a 24h time string into our am/pm label pair.
+        function toLabel(start, end) {
+            const to12 = (t) => {
+                const parts = t.split(':').map((v) => Number(v));
+                const hh = parts[0];
+                const mm = parts[1];
+                const h12 = ((hh + 11) % 12) + 1;
+                const suffix = hh >= 12 ? 'pm' : 'am';
+                return `${h12}:${String(mm).padStart(2, '0')}${suffix}`;
+            };
+            return `${to12(start)}-${to12(end)}`;
+        }
 
+        // Count seats per time slot by iterating through all enrollments.
+        if (Array.isArray(data)) {
+            data.forEach((row) => {
+                const slot = row.class_slots;
+                if (!slot) return;
+                if (slot.day_of_week !== 'Tuesday') return;
+                const start = String(slot.start_time).substring(0, 5);
+                const end = String(slot.end_time).substring(0, 5);
+                const label = toLabel(start, end);
+                if (label in slotCounts) {
+                    slotCounts[label] = (slotCounts[label] || 0) + 1;
+                }
+            });
+        }
+
+        // Each class holds 10 seats unless specified otherwise on the slot.
+        // Compute available seats by subtracting counts from capacity.
         const availability = {
-            '4:30-5:30pm': 10 - slotCounts['4:30-5:30pm'],
-            '5:30-6:30pm': 10 - slotCounts['5:30-6:30pm']
+            '4:30-5:30pm': 10 - (slotCounts['4:30-5:30pm'] || 0),
+            '5:30-6:30pm': 10 - (slotCounts['5:30-6:30pm'] || 0)
         };
 
         return availability;
-
     } catch (error) {
         console.error('Error getting availability:', error);
+        // Fallback to assuming all seats are available
         return {
             '4:30-5:30pm': 10,
             '5:30-6:30pm': 10
@@ -330,22 +363,32 @@ async function renderCart() {
 
     const availability = await getTimeSlotAvailability();
 
-    document.getElementById('time-slot-availability').innerHTML = `
+    // Build a small availability display. Only show remaining spots when under 3 seats remain.
+    const availabilityHtml = `
         <div style="background: #f0f9ff; padding: 1rem; border-radius: 0.5rem; border: 2px solid #0ea5e9;">
             <div style="font-weight: 700; color: #0ea5e9; font-size: 1.125rem; margin-bottom: 0.5rem;">Tuesday 4:30 - 5:30 PM</div>
             <div style="font-size: 0.875rem; color: #0369a1; margin-bottom: 0.25rem;">4th - 7th Grade (Ages 9-13)</div>
-            <div style="font-size: 0.75rem; color: ${availability['4:30-5:30pm'] > 0 ? '#16a34a' : '#dc2626'};">
-                ${availability['4:30-5:30pm']} spots available
-            </div>
+            ${
+                availability['4:30-5:30pm'] < 3
+                    ? `<div style="font-size: 0.75rem; color: ${
+                        availability['4:30-5:30pm'] > 0 ? '#16a34a' : '#dc2626'
+                    };"><span>${availability['4:30-5:30pm']} spot${availability['4:30-5:30pm'] === 1 ? '' : 's'} remaining</span></div>`
+                    : ''
+            }
         </div>
         <div style="background: #f0f9ff; padding: 1rem; border-radius: 0.5rem; border: 2px solid #0ea5e9;">
             <div style="font-weight: 700; color: #0ea5e9; font-size: 1.125rem; margin-bottom: 0.5rem;">Tuesday 5:30 - 6:30 PM</div>
             <div style="font-size: 0.875rem; color: #0369a1; margin-bottom: 0.25rem;">8th - 12th Grade (Ages 14-18)</div>
-            <div style="font-size: 0.75rem; color: ${availability['5:30-6:30pm'] > 0 ? '#16a34a' : '#dc2626'};">
-                ${availability['5:30-6:30pm']} spots available
-            </div>
+            ${
+                availability['5:30-6:30pm'] < 3
+                    ? `<div style="font-size: 0.75rem; color: ${
+                        availability['5:30-6:30pm'] > 0 ? '#16a34a' : '#dc2626'
+                    };"><span>${availability['5:30-6:30pm']} spot${availability['5:30-6:30pm'] === 1 ? '' : 's'} remaining</span></div>`
+                    : ''
+            }
         </div>
     `;
+    document.getElementById('time-slot-availability').innerHTML = availabilityHtml;
 
     cartItems.innerHTML = cart.map((item, index) => `
         <div class="cart-item">
@@ -451,9 +494,13 @@ function showTimeSlotSelectionModal(studentIndex) {
                             <div>
                                 <div style="font-weight: 600;">Tuesday 4:30-5:30 PM</div>
                                 <div style="font-size: 0.875rem; color: #6b7280;">4th-7th Grade (Ages 9-13)</div>
-                                <div style="font-size: 0.75rem; color: ${availability['4:30-5:30pm'] > 0 ? '#16a34a' : '#dc2626'};">
-                                    ${availability['4:30-5:30pm']} spots remaining
-                                </div>
+                                ${
+                                    availability['4:30-5:30pm'] < 3
+                                        ? `<div style="font-size: 0.75rem; color: ${
+                                            availability['4:30-5:30pm'] > 0 ? '#16a34a' : '#dc2626'
+                                        };"><span>${availability['4:30-5:30pm']} spot${availability['4:30-5:30pm'] === 1 ? '' : 's'} left</span></div>`
+                                        : ''
+                                }
                                 ${!isGradeAppropriate(student.grade, '4:30-5:30pm') ? '<div style="font-size: 0.75rem; color: #dc2626;">⚠ Not typical for this grade</div>' : ''}
                             </div>
                         </button>
@@ -465,9 +512,13 @@ function showTimeSlotSelectionModal(studentIndex) {
                             <div>
                                 <div style="font-weight: 600;">Tuesday 5:30-6:30 PM</div>
                                 <div style="font-size: 0.875rem; color: #6b7280;">8th-12th Grade (Ages 14-18)</div>
-                                <div style="font-size: 0.75rem; color: ${availability['5:30-6:30pm'] > 0 ? '#16a34a' : '#dc2626'};">
-                                    ${availability['5:30-6:30pm']} spots remaining
-                                </div>
+                                ${
+                                    availability['5:30-6:30pm'] < 3
+                                        ? `<div style="font-size: 0.75rem; color: ${
+                                            availability['5:30-6:30pm'] > 0 ? '#16a34a' : '#dc2626'
+                                        };"><span>${availability['5:30-6:30pm']} spot${availability['5:30-6:30pm'] === 1 ? '' : 's'} left</span></div>`
+                                        : ''
+                                }
                                 ${!isGradeAppropriate(student.grade, '5:30-6:30pm') ? '<div style="font-size: 0.75rem; color: #dc2626;">⚠ Not typical for this grade</div>' : ''}
                             </div>
                         </button>
