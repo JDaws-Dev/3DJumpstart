@@ -11,6 +11,42 @@ let cart = [];
 let selectedPaymentOption = null;
 let pendingTimeSlotAssignment = null;
 
+
+// --- Class slots cache + helpers ---
+window.ClassSlots = [];               // raw rows from class_slots
+let LabelToSlotId = new Map();        // "4:30-5:30pm" -> slot.id
+
+function toLabel(hhmm) {
+  const [hStr, mStr] = String(hhmm).slice(0,5).split(':');
+  const h = Number(hStr), m = Number(mStr);
+  const h12 = ((h + 11) % 12) + 1;
+  return `${h12}:${String(m).padStart(2,'0')}${h >= 12 ? 'pm' : 'am'}`;
+}
+
+function humanLabelFromRow(row) {
+  return `${toLabel(row.start_time)}-${toLabel(row.end_time)}`;
+}
+
+async function loadClassSlots() {
+  const { data, error } = await supabase
+    .from('class_slots')
+    .select('id, day_of_week, start_time, end_time');
+  if (error) { console.error('loadClassSlots error', error); return; }
+  window.ClassSlots = data || [];
+  LabelToSlotId = new Map();
+  for (const row of window.ClassSlots) {
+    const label = humanLabelFromRow(row); // "4:30-5:30pm"
+    LabelToSlotId.set(label, row.id);
+  }
+}
+
+function getSlotIdByLabel(label) {
+  return LabelToSlotId.get(label) || null;
+}
+
+
+
+
 // Initialize app
 document.addEventListener('DOMContentLoaded', async () => {
     await checkAuthAndInit();
@@ -35,6 +71,8 @@ async function checkAuthAndInit() {
         // Show the app
         document.getElementById('app').classList.remove('hidden');
         document.getElementById('login-form').classList.add('hidden');
+        await loadClassSlots();   // ✅ build label->id map before rendering
+
         
         // Load data
         await loadStudents();
@@ -439,6 +477,7 @@ function selectTimeSlotForStudent(studentIndex, timeSlot) {
     
     if (isGradeAppropriate(student.grade, timeSlot)) {
         cart[studentIndex].timeSlot = timeSlot;
+        cart[studentIndex].classSlotId = getSlotIdByLabel(timeSlot);  // ✅ store class_slots.id
         closeTimeSlotSelectionModal();
         renderCart();
         showMessage(`${student.first_name} assigned to ${timeSlot}`, 'success', 'cart');
@@ -475,6 +514,7 @@ function confirmGradeAssignment() {
     if (pendingTimeSlotAssignment) {
         const { studentIndex, timeSlot } = pendingTimeSlotAssignment;
         cart[studentIndex].timeSlot = timeSlot;
+        cart[studentIndex].classSlotId = getSlotIdByLabel(timeSlot);
         
         document.getElementById('grade-validation-modal').classList.add('hidden');
         renderCart();
