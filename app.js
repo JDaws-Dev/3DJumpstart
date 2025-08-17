@@ -90,28 +90,29 @@ async function getTimeSlotAvailability() {
 }
 
 // Navigation
-function showSection(sectionName, event) {
+function showSection(section, event) {
     if (event) event.preventDefault();
     
-    document.querySelectorAll('.app-section').forEach(section => {
-        section.classList.remove('active');
-    });
+    // Hide all sections
+    document.getElementById('students-section').classList.remove('active');
+    document.getElementById('cart-section').classList.remove('active');
+    // Removed orders-section line
+    
+    // Remove active from all nav links
     document.querySelectorAll('.nav-link').forEach(link => {
         link.classList.remove('active');
     });
     
-    document.getElementById(`${sectionName}-section`).classList.add('active');
+    // Show selected section
+    document.getElementById(`${section}-section`).classList.add('active');
     
-    const navLink = document.querySelector(`.nav-link[onclick*="${sectionName}"]`);
-    if (navLink) navLink.classList.add('active');
-    
-    updateProgressSteps(sectionName);
-
-    if (sectionName === 'cart') {
-        renderCart();
-    } else if (sectionName === 'orders') {
-        loadOrders();
+    // Add active to clicked nav link
+    if (event && event.target) {
+        event.target.classList.add('active');
     }
+    
+    // Update progress steps
+    updateProgressSteps(section);
 }
 
 function updateProgressSteps(currentSection) {
