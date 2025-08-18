@@ -21,7 +21,7 @@
     /* Header */
     .portal-header { background:#fff; box-shadow:0 1px 3px rgba(0,0,0,.08); position:sticky; top:0; z-index:10; }
     .header-content { display:flex; align-items:center; justify-content:space-between; gap:1rem; padding:.9rem 0; }
-    .logo-image { height:72px; width:auto; } /* bigger logo */
+    .logo-image { height:72px; width:auto; }
     .user-info { display:flex; align-items:center; gap:.6rem; color:var(--muted); }
 
     /* Buttons */
@@ -84,9 +84,12 @@
     .pill { display:inline-flex; align-items:center; gap:.5rem; padding:.35rem .6rem; background:#f3f4f6; border-radius:999px; font-weight:700; }
 
     /* Totals */
-    .totals { display:grid; gap:.35rem; margin:.5rem 0 0; }
+    .totals { display:grid; gap:.35rem; margin:.75rem 0 0; }
     .totals .row { display:flex; justify-content:space-between; }
     .totals .em { font-weight:800; }
+
+    /* Payment banner */
+    .pay-banner { display:flex; align-items:center; justify-content:space-between; gap:.75rem; background:#fff7ed; border:1px solid #fed7aa; color:#7c2d12; padding:.75rem .9rem; border-radius:.6rem; font-weight:800; }
   </style>
 </head>
 <body>
@@ -131,15 +134,21 @@
       </div>
 
       <div class="card">
-        <div class="grid grid-2" style="align-items:center;">
+        <!-- NEW: Level + price banner -->
+        <div class="pay-banner">
+          <span>Level 1 • 12-week course • $60/class</span>
+          <span style="font-weight:900;">List total: $720</span>
+        </div>
+
+        <div class="grid grid-2" style="align-items:center; margin-top:.9rem;">
           <div>
             <h3 class="card-title" style="margin-bottom:.25rem;">Payment</h3>
-            <p class="muted" style="margin:0;">
-              Pick a class period per student, then add to cart.<br>
-              <strong>Pay in Full:</strong> <strong>$670</strong> per student <em>(you save $50 vs $720)</em>.<br>
-              <strong>Pay Half Now:</strong> $360 per student now, remainder due <strong>Oct 15</strong>.<br>
-              <strong>Sibling discount:</strong> $50 off the second child (applies once).
-            </p>
+            <ul class="muted" style="margin:.25rem 0 0; padding-left:1rem; line-height:1.7;">
+              <li>Pick a class period for each student, then add to cart.</li>
+              <li><strong>Pay in Full:</strong> <strong>$670</strong> per student <em>(you save $50 vs $720 list)</em>.</li>
+              <li><strong>Pay Half Now:</strong> $360 per student now; remainder due <strong>Oct 15</strong>.</li>
+              <li><strong>Sibling discount:</strong> $50 off the second child (applies once).</li>
+            </ul>
           </div>
           <div style="text-align:right;">
             <span class="pill">Cart: <span id="cartCount">0</span></span>
@@ -169,7 +178,7 @@
       </div>
 
       <div class="card">
-        <h2 class="card-title">Current Class Periods</h2>
+        <h2 class="card-title">Current Class Periods (Level 1)</h2>
         <ul class="muted" style="line-height:1.9;">
           <li>Tuesday 4:30–5:30</li>
           <li>Tuesday 5:30–6:30</li>
@@ -280,19 +289,14 @@
           <label class="label" for="lastName">Last Name</label>
           <input id="lastName" class="input" />
         </div>
-
-        <!-- Age dropdown -->
         <div class="field">
           <label class="label" for="age">Age</label>
           <select id="age" class="select"></select>
         </div>
-
-        <!-- Grade dropdown -->
         <div class="field">
           <label class="label" for="grade">Grade</label>
           <select id="grade" class="select"></select>
         </div>
-
         <div class="field">
           <label class="label" for="experience">Prior Experience</label>
           <select id="experience" class="select">
@@ -316,34 +320,29 @@
   <script>
     // ---------- CONFIG ----------
     const SUPABASE_URL = 'https://hucjmggkasahwpjgnwia.supabase.co';
-    const SUPABASE_ANON_KEY = 'REPLACE_WITH_YOUR_PUBLIC_ANON_KEY'; // Auth-only; no DB writes yet
+    const SUPABASE_ANON_KEY = 'REPLACE_WITH_YOUR_PUBLIC_ANON_KEY';
     const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
-    // Class periods
-    const CLASS_PERIODS = [
-      'Tuesday 4:30–5:30',
-      'Tuesday 5:30–6:30'
-    ];
+    // Class periods (Level 1)
+    const CLASS_PERIODS = ['Tuesday 4:30–5:30','Tuesday 5:30–6:30'];
 
     // Dropdown options
-    const AGE_OPTIONS = Array.from({length: 11}, (_,i)=> (8+i));          // 8..18
+    const AGE_OPTIONS = Array.from({length: 11}, (_,i)=> (8+i)); // 8..18
     const GRADE_OPTIONS = ['3rd','4th','5th','6th','7th','8th','9th','10th','11th','12th'];
 
     // Pricing (list vs discounts)
-    const PRICE_LIST_PER = 720;     // list price per student (for comparison)
-    const PRICE_FULL_PER = 670;     // pay-in-full per student (saves $50 vs 720)
-    const PRICE_HALF_NOW = 360;     // due now per student (half plan)
-    const SIBLING_DISCOUNT = 50;    // off the second child (applies once)
+    const PRICE_LIST_PER = 720;   // list total per student (12 × $60)
+    const PRICE_FULL_PER = 670;   // pay-in-full per student (save $50 vs list)
+    const PRICE_HALF_NOW = 360;   // due now per student for half plan
+    const SIBLING_DISCOUNT = 50;  // off the second child (once)
 
     // ---------- STATE ----------
     let currentUser = null;
     let editingId = null;
     const studentsKey = 'portal.students.v1';
     const cartKey = 'portal.cart.v1';
-
     const loadStudents = () => JSON.parse(localStorage.getItem(studentsKey) || '[]');
     const saveStudents = (arr) => localStorage.setItem(studentsKey, JSON.stringify(arr));
-
     const loadCart = () => JSON.parse(localStorage.getItem(cartKey) || '[]');
     const saveCart = (arr) => localStorage.setItem(cartKey, JSON.stringify(arr));
 
@@ -369,7 +368,7 @@
       window.location.href = 'login.html';
     });
 
-    // ---------- TABS ----------
+    // ---------- TABS / UI ----------
     function bindUI(){
       document.querySelectorAll('.tab-button').forEach(btn=>{
         btn.addEventListener('click', () => {
@@ -381,18 +380,15 @@
         });
       });
 
-      // Modal controls
       document.getElementById('addStudentBtn').addEventListener('click', () => openModal());
       document.getElementById('closeModalBtn').addEventListener('click', closeModal);
       document.getElementById('cancelBtn').addEventListener('click', closeModal);
       document.getElementById('saveStudentBtn').addEventListener('click', saveStudentFromModal);
 
-      // Backdrop click closes
       document.getElementById('studentModal').addEventListener('click', (e) => {
         if (e.target.id === 'studentModal') closeModal();
       });
 
-      // Payment
       document.getElementById('payFullBtn').addEventListener('click', () => startCheckout('full'));
       document.getElementById('payHalfBtn').addEventListener('click', () => startCheckout('half'));
     }
@@ -400,21 +396,15 @@
     function populateDropdowns(){
       const ageSel = document.getElementById('age');
       AGE_OPTIONS.forEach(a=>{
-        const opt = document.createElement('option');
-        opt.value = String(a);
-        opt.textContent = String(a);
-        ageSel.appendChild(opt);
+        const opt = document.createElement('option'); opt.value = String(a); opt.textContent = String(a); ageSel.appendChild(opt);
       });
       const gradeSel = document.getElementById('grade');
       GRADE_OPTIONS.forEach(g=>{
-        const opt = document.createElement('option');
-        opt.value = g;
-        opt.textContent = g;
-        gradeSel.appendChild(opt);
+        const opt = document.createElement('option'); opt.value = g; opt.textContent = g; gradeSel.appendChild(opt);
       });
     }
 
-    // ---------- STUDENTS UI ----------
+    // ---------- STUDENTS ----------
     function renderStudents(){
       const wrap = document.getElementById('studentsList');
       const list = loadStudents();
@@ -425,20 +415,14 @@
             <p class="muted" style="margin:.25rem 0 1rem;">No students yet.</p>
             <button class="btn btn-primary" type="button" onclick="openModal()">+ Add Your First Student</button>
           </div>`;
-        renderCart(); 
-        updateTotals();
-        return;
+        renderCart(); updateTotals(); return;
       }
 
       wrap.innerHTML = list.map(s => {
         const options = CLASS_PERIODS.map(p => `<option value="${p}" ${s.classPeriod===p?'selected':''}>${p}</option>`).join('');
         const inClass = !!s.classPeriod;
         const inCart = loadCart().includes(s.id);
-
-        const status = inClass
-          ? `<span class="badge badge-good">In Class</span>`
-          : `<span class="badge badge-warn">Not in Class</span>`;
-
+        const status = inClass ? `<span class="badge badge-good">In Class</span>` : `<span class="badge badge-warn">Not in Class</span>`;
         const actionBtn = inClass
           ? (inCart
               ? `<button class="btn btn-muted" type="button" onclick="removeFromCart('${s.id}')">Remove from Cart</button>`
@@ -458,7 +442,7 @@
                 ${s.classPeriod ? `<br/><span class="muted">Class:</span> ${s.classPeriod}` : ''}
               </div>
               <div class="field" style="margin-top:.4rem; max-width:320px;">
-                <label class="label">Class Period</label>
+                <label class="label">Class Period (Level 1)</label>
                 <select class="select" onchange="setClassPeriod('${s.id}', this.value)">
                   <option value="">Select a period</option>
                   ${options}
@@ -470,12 +454,10 @@
               <button class="btn btn-muted" type="button" onclick="openModal('${s.id}')">Edit</button>
               <button class="btn btn-danger" type="button" onclick="removeStudent('${s.id}')">Remove</button>
             </div>
-          </div>
-        `;
+          </div>`;
       }).join('');
 
-      renderCart();
-      updateTotals();
+      renderCart(); updateTotals();
     }
 
     // ---------- MODAL ----------
@@ -496,10 +478,7 @@
 
       m.classList.add('show');
     }
-    function closeModal(){
-      document.getElementById('studentModal').classList.remove('show');
-      editingId = null;
-    }
+    function closeModal(){ document.getElementById('studentModal').classList.remove('show'); editingId = null; }
 
     function saveStudentFromModal(){
       const firstName = document.getElementById('firstName').value.trim();
@@ -508,43 +487,27 @@
       const grade     = document.getElementById('grade').value;
       const experience= document.getElementById('experience').value;
       const special   = document.getElementById('special').value.trim();
-
-      if (!firstName || !lastName || !age || !grade){
-        alert('Please complete First/Last, Age, and Grade.');
-        return;
-      }
+      if (!firstName || !lastName || !age || !grade){ alert('Please complete First/Last, Age, and Grade.'); return; }
 
       const list = loadStudents();
       if (editingId){
         const i = list.findIndex(x => x.id === editingId);
-        if (i > -1){
-          list[i] = { ...list[i], firstName, lastName, age, grade, experience, special };
-        }
+        if (i > -1){ list[i] = { ...list[i], firstName, lastName, age, grade, experience, special }; }
       } else {
-        list.push({
-          id: cryptoRandom(),
-          firstName, lastName, age, grade, experience, special,
-          classPeriod: ''
-        });
+        list.push({ id: cryptoRandom(), firstName, lastName, age, grade, experience, special, classPeriod: '' });
       }
-
-      saveStudents(list);
-      renderStudents();
-      closeModal();
+      saveStudents(list); renderStudents(); closeModal();
     }
 
     function removeStudent(id){
       if (!confirm('Remove this student?')) return;
-      const list = loadStudents().filter(s => s.id !== id);
-      saveStudents(list);
-      // also remove from cart if present
-      saveCart(loadCart().filter(x => x !== id));
+      saveStudents(loadStudents().filter(s => s.id !== id));
+      saveCart(loadCart().filter(x => x !== id)); // also out of cart
       renderStudents();
     }
 
     function setClassPeriod(id, period){
-      const list = loadStudents();
-      const i = list.findIndex(s => s.id === id);
+      const list = loadStudents(); const i = list.findIndex(s => s.id === id);
       if (i>-1){ list[i].classPeriod = period; saveStudents(list); }
       renderStudents();
     }
@@ -553,62 +516,38 @@
     function addToCart(id){
       const s = loadStudents().find(x=>x.id===id);
       if (!s || !s.classPeriod){ alert('Please select a class period first.'); return; }
-      const cart = loadCart();
-      if (!cart.includes(id)){ cart.push(id); saveCart(cart); }
-      renderCart();
-      renderStudents();
+      const cart = loadCart(); if (!cart.includes(id)){ cart.push(id); saveCart(cart); }
+      renderCart(); renderStudents();
     }
-
     function requireClassThenAdd(id){
       const s = loadStudents().find(x=>x.id===id);
-      if (!s) return;
-      if (!s.classPeriod){
-        alert('Select a class period first, then we can add them to the cart.');
-        return;
-      }
+      if (!s || !s.classPeriod){ alert('Select a class period first, then add to cart.'); return; }
       addToCart(id);
     }
-
-    function removeFromCart(id){
-      saveCart(loadCart().filter(x => x !== id));
-      renderCart();
-      renderStudents();
-    }
+    function removeFromCart(id){ saveCart(loadCart().filter(x => x !== id)); renderCart(); renderStudents(); }
 
     function renderCart(){
       const cartWrap = document.getElementById('cartList');
       const cart = loadCart();
       document.getElementById('cartCount').textContent = cart.length;
 
-      if (!cart.length){
-        cartWrap.innerHTML = `<div class="muted">Your cart is empty.</div>`;
-        updatePayButtons(false);
-        updateTotals();
-        return;
-      }
+      if (!cart.length){ cartWrap.innerHTML = `<div class="muted">Your cart is empty.</div>`; updatePayButtons(false); updateTotals(); return; }
 
       const students = loadStudents();
-      const items = cart
-        .map(id => students.find(s => s.id === id))
-        .filter(Boolean);
-
-      // ensure all cart items have a class period selected
+      const items = cart.map(id => students.find(s => s.id === id)).filter(Boolean);
       const allHavePeriod = items.every(s => !!s.classPeriod);
 
-      const rows = items.map(s => `
+      cartWrap.innerHTML = items.map(s => `
         <div class="student-row">
           <div>
             <div style="font-weight:800">${s.firstName} ${s.lastName}</div>
-            <div class="muted">Class: ${s.classPeriod || '<em>Not selected</em>'}</div>
+            <div class="muted">Class (Level 1): ${s.classPeriod || '<em>Not selected</em>'}</div>
           </div>
           <div class="student-actions">
             <button class="btn btn-muted" type="button" onclick="openModal('${s.id}')">Edit</button>
             <button class="btn btn-danger" type="button" onclick="removeFromCart('${s.id}')">Remove</button>
           </div>
-        </div>
-      `).join('');
-
-      cartWrap.innerHTML = rows;
+        </div>`).join('');
 
       updatePayButtons(allHavePeriod && items.length > 0);
       updateTotals();
@@ -624,30 +563,23 @@
       const totalsBox = document.getElementById('totalsBox');
       const cartIds = loadCart();
       const students = loadStudents().filter(s => cartIds.includes(s.id));
-
       const count = students.length;
       const allHavePeriod = students.every(s => !!s.classPeriod);
 
-      // sibling discount applies once if 2+ students
       const siblingDiscount = count >= 2 ? SIBLING_DISCOUNT : 0;
 
-      // Pay in Full totals (670 ea) – $50 off second child one time
+      // Full: 670 ea, minus one-time sibling $50
       const fullSubtotal = count * PRICE_FULL_PER;
       const fullTotal = Math.max(0, fullSubtotal - siblingDiscount);
 
-      // Half Now totals (list 720 ea, $50 off second child one time)
+      // Half: list 720 ea, minus one-time sibling $50; split 360 now ea
       const halfTotal = count * PRICE_LIST_PER - siblingDiscount;
       const halfNow = count * PRICE_HALF_NOW;
       const halfLater = Math.max(0, halfTotal - halfNow);
 
-      // Enable/disable buttons
-      const canPay = count > 0 && allHavePeriod;
-      updatePayButtons(canPay);
+      updatePayButtons(count > 0 && allHavePeriod);
 
-      if (count === 0) {
-        totalsBox.innerHTML = '';
-        return;
-      }
+      if (count === 0){ totalsBox.innerHTML = ''; return; }
 
       totalsBox.innerHTML = `
         <div class="row"><div><strong>Students in cart</strong></div><div>${count}</div></div>
@@ -655,7 +587,6 @@
         <div class="row"><div><strong>Pay in Full</strong> ($${PRICE_FULL_PER} ea)</div><div>$${fullSubtotal}</div></div>
         ${siblingDiscount ? `<div class="row"><div>Sibling discount (one time)</div><div>−$${SIBLING_DISCOUNT}</div></div>` : ``}
         <div class="row em"><div>Pay in Full – Final Total</div><div>$${fullTotal}</div></div>
-        <div class="row"><div class="muted">You save $50 vs $${PRICE_LIST_PER} list, plus $50 off the second child.</div><div></div></div>
 
         <div style="height:10px;"></div>
 
@@ -666,76 +597,53 @@
       `;
     }
 
-    // ---------- PAYMENT (front-end preview) ----------
+    // ---------- PAYMENT (preview) ----------
     function startCheckout(method){
-      const cartIds = loadCart();
-      if (!cartIds.length){ alert('Add at least one student to the cart.'); return; }
-
+      const cartIds = loadCart(); if (!cartIds.length){ alert('Add at least one student to the cart.'); return; }
       const students = loadStudents().filter(s => cartIds.includes(s.id));
-      if (students.some(s => !s.classPeriod)){ alert('Please select a class period for each student in the cart.'); return; }
+      if (students.some(s => !s.classPeriod)){ alert('Select a class period for each student in the cart.'); return; }
 
-      // Recompute totals for payload (same math as updateTotals)
       const count = students.length;
       const siblingDiscount = count >= 2 ? SIBLING_DISCOUNT : 0;
-
       const fullSubtotal = count * PRICE_FULL_PER;
       const fullTotal = Math.max(0, fullSubtotal - siblingDiscount);
-
       const halfTotal = count * PRICE_LIST_PER - siblingDiscount;
       const halfNow = count * PRICE_HALF_NOW;
       const halfLater = Math.max(0, halfTotal - halfNow);
 
       const payload = {
         parent_email: currentUser?.email || '',
-        parent_name: currentUser?.user_metadata?.name || '',
-        method, // 'full' or 'half'
+        method,
+        level: 'Level 1',
         students: students.map(s => ({
           student_name: `${s.firstName} ${s.lastName}`,
-          age: s.age,
-          grade: s.grade,
-          experience: s.experience,
-          special: s.special,
-          class_period: s.classPeriod
+          age: s.age, grade: s.grade, experience: s.experience, special: s.special,
+          class_period: s.classPeriod, level: 'Level 1'
         })),
-        totals: {
-          count,
-          full_total: fullTotal,
-          half_total: halfTotal,
-          half_due_now: halfNow,
-          half_due_oct15: halfLater
-        }
+        totals: { count, full_total: fullTotal, half_total: halfTotal, half_due_now: halfNow, half_due_oct15: halfLater }
       };
 
       console.log('CHECKOUT PAYLOAD (preview):', payload);
       alert(
         method === 'full'
-          ? `Pay in Full – Final Total: $${fullTotal}`
-          : `Half Now – Due Now: $${halfNow}\nFinal Total: $${halfTotal}\nDue Oct 15: $${halfLater}\n\n(Next step: connect to Stripe + Google Sheets.)`
+          ? `Level 1 • Pay in Full\nFinal Total: $${fullTotal}`
+          : `Level 1 • Half Plan\nDue Now: $${halfNow}\nFinal Total: $${halfTotal}\nDue Oct 15: $${halfLater}\n\n(Next: connect to Stripe + Google Sheets.)`
       );
     }
 
     // ---------- BILLING (placeholder) ----------
     function renderBilling(){
-      const tbody = document.getElementById('billingTable');
-      tbody.innerHTML = `
-        <tr><td>—</td><td>No payments yet</td><td>—</td><td>—</td></tr>
-      `;
+      document.getElementById('billingTable').innerHTML = `<tr><td>—</td><td>No payments yet</td><td>—</td><td>—</td></tr>`;
     }
 
     // ---------- UTIL ----------
     function cryptoRandom(){
-      if (window.crypto?.getRandomValues) {
-        const a = new Uint32Array(2);
-        crypto.getRandomValues(a);
-        return a[0].toString(36) + a[1].toString(36);
-      }
+      if (window.crypto?.getRandomValues) { const a = new Uint32Array(2); crypto.getRandomValues(a); return a[0].toString(36) + a[1].toString(36); }
       return Math.random().toString(36).slice(2) + Math.random().toString(36).slice(2);
     }
-    function escapeHtml(s){
-      return (s||'').replace(/[&<>"']/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));
-    }
+    function escapeHtml(s){ return (s||'').replace(/[&<>"']/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m])); }
 
-    // Expose for inline handlers generated in HTML
+    // Expose for inline handlers
     window.openModal = openModal;
     window.removeStudent = removeStudent;
     window.setClassPeriod = setClassPeriod;
