@@ -515,27 +515,44 @@
     }
 
     /* ====== SUPABASE: ENROLLMENTS (CART) ====== */
-    async function sbUpsertEnrollment(student, classPeriodId) {
-      const p = periodById(classPeriodId);
-      const row = {
-        parent_id: currentUser.id,
-        student_id: student.id,
-        level: 'Level 1',
-        season: 'Fall 2025',
-        class_period_id: p?.id || null,
-        class_time: p?.time || null,
-        payment_plan: 'full',   // final plan decided at checkout
-        amount_list: 720,
-        status: 'cart'
-      };
-      const { data, error } = await sb
-        .from('enrollments')
-        .upsert(row, { onConflict: 'student_id,season' })
-        .select()
-        .single();
-      if (error) throw error;
-      return data;
-    }
+
+async function sbUpsertEnrollment(student, classPeriodId) {
+  const p = periodById(classPeriodId);
+  const season = 'Fall 2025';
+
+  // 1) Look for an existing row for this student+season
+  const { data: existing, error: findErr } = await sb
+    .from('enrollments')
+    .select('id')
+    .eq('student_id', student.id)
+    .eq('season', season)
+    .maybeSingle();
+  if (findErr && findErr.code !== 'PGRST116') throw findErr; // ignore "no rows" code
+
+  const base = {
+    parent_id: currentUser.id,
+    student_id: student.id,
+    level: 'Level 1',
+    season,
+    class_period_id: p?.id ?? null,
+    class_time: p?.time ?? null,
+    payment_plan: 'full',     // UI picks plan later at checkout
+    amount_list: PRICE_LIST_PER,
+    status: 'cart'
+  };
+
+  // 2) Update if found, otherwise insert
+  if (existing?.id) {
+    const { error: upErr } = await sb.from('enrollments').update(base).eq('id', existing.id);
+    if (upErr) throw upErr;
+    return { id: existing.id, ...base };
+  } else {
+    const { data, error: insErr } = await sb.from('enrollments').insert(base).select().single();
+    if (insErr) throw insErr;
+    return data;
+  }
+}
+
 
     async function sbListCart() {
       const { data, error } = await sb
