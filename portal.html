@@ -5,22 +5,22 @@
   <meta name="viewport" content="width=device-width,initial-scale=1" />
   <title>Parent Portal – 3D Jumpstart</title>
 
-  <!-- Fonts & Scripts -->
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet" />
+  <!-- Supabase -->
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.39.3/dist/umd/supabase.min.js"></script>
 
+  <!-- Fonts & Base Styles -->
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800;900&display=swap" rel="stylesheet" />
   <style>
     :root{
       --brand:#f97316; --brand-2:#fb923c; --brand-3:#ea580c;
       --ink:#0f172a; --muted:#64748b; --line:#e2e8f0; --bg:#f8fafc; --card:#ffffff;
+      --ok:#16a34a; --warn:#b91c1c; --indigo:#3730a3;
       --shadow:0 10px 30px rgba(2,8,23,.08); --radius:18px;
-      --ok:#16a34a; --warn:#ef4444; --indigo:#3730a3;
     }
     *{box-sizing:border-box}
     html,body{height:100%}
     body{
-      margin:0; font-family:Inter,system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif;
-      color:var(--ink);
+      margin:0; font-family:Inter,system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif; color:var(--ink);
       background:
         radial-gradient(1200px 500px at -10% -10%, #fff 0, #fff 30%, #fff0 31%) no-repeat,
         radial-gradient(1200px 500px at 110% -10%, #fff 0, #fff 30%, #fff0 31%) no-repeat,
@@ -29,33 +29,24 @@
     }
     .container{max-width:1200px;margin:0 auto;padding:0 20px}
 
-    /* Grid utils */
-    .grid{display:grid; gap:12px}
-    .grid-2{display:grid; gap:12px}
-    @media (min-width: 860px){ .grid-2{grid-template-columns:repeat(2,minmax(0,1fr));} }
-
     /* Header */
     .portal-header{position:sticky; top:0; z-index:10; backdrop-filter:saturate(1.2) blur(6px);
-      background:linear-gradient(180deg, rgba(255,255,255,.85), rgba(255,255,255,.75));
-      border-bottom:1px solid var(--line);}
+      background:linear-gradient(180deg, rgba(255,255,255,.85), rgba(255,255,255,.75)); border-bottom:1px solid var(--line);}
     .header-content{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:14px 0}
-    .logo-wrap{display:flex;align-items:center;gap:14px}
-    .logo-image{height:84px;width:auto;filter:drop-shadow(0 2px 2px rgba(0,0,0,.06))}
-    .user-cluster{display:flex;align-items:center;gap:12px}
-
-    /* Toggle: Parent | Student */
-    .portal-switch{display:flex;gap:6px}
+    .logo-wrap{display:flex;align-items:center;gap:18px}
+    .logo-image{height:88px;width:auto;filter:drop-shadow(0 2px 2px rgba(0,0,0,.06))}
+    .portal-switch{display:flex;gap:8px}
     .switch-btn{
       text-decoration:none; text-align:center; padding:.65rem 1rem; border-radius:12px; font-weight:800; font-size:.95rem;
       border:2px solid var(--line); background:#fff; color:var(--muted); transition:.2s; min-width:150px;
     }
     .switch-btn:hover{color:var(--ink)}
     .switch-btn.active{
-      background:linear-gradient(135deg,var(--brand), var(--brand-3));
-      color:#fff; border-color:transparent; box-shadow:0 8px 20px -6px rgba(234,88,12,.5);
+      background:linear-gradient(135deg,var(--brand), var(--brand-3)); color:#fff; border-color:transparent;
+      box-shadow:0 8px 20px -6px rgba(234,88,12,.5);
     }
+    .user-cluster{display:flex;align-items:center;gap:12px}
 
-    /* Title */
     .page-title{margin:24px 0 18px; font-size:clamp(26px,3vw,34px); font-weight:900; letter-spacing:-.5px;
       background:linear-gradient(135deg,var(--ink), #1f2937); -webkit-background-clip:text; color:transparent;}
 
@@ -64,7 +55,7 @@
     .tab-list{list-style:none;display:flex;gap:6px;padding:0;margin:0;flex-wrap:wrap}
     .tab-button{border:1px solid var(--line); background:#fff; color:var(--muted);
       padding:.6rem .95rem; border-radius:12px; font-weight:800; cursor:pointer;
-      box-shadow:var(--shadow); transition:.18s transform ease, .18s background ease;}
+      box-shadow:var(--shadow); transition:transform .18s ease, background .18s ease;}
     .tab-button:hover{transform:translateY(-1px); color:var(--ink)}
     .tab-button.active{
       background:linear-gradient(135deg,#fff, #fff) padding-box,
@@ -77,14 +68,14 @@
     /* Cards */
     .card{background:var(--card); border:1px solid var(--line); border-radius:var(--radius); padding:18px; box-shadow:var(--shadow)}
     .card + .card{margin-top:14px}
-    .card-title{font-size:1.3rem;font-weight:900;margin:0 0 .6rem;letter-spacing:-.2px}
+    .card-title{font-size:1.25rem;font-weight:900;margin:0 0 .6rem;letter-spacing:-.2px}
     .muted{color:var(--muted)}
 
-    /* Banner */
-    .pay-banner{display:flex;align-items:center;justify-content:space-between;gap:12px; padding:14px 16px;border-radius:14px;color:#7c2d12;
-      background:linear-gradient(135deg,#fff7ed 0%, #ffedd5 100%); border:1px solid #fed7aa; font-weight:900;}
+    .grid{display:grid; gap:12px}
+    .grid-2{display:grid; gap:12px}
+    @media (min-width: 860px){ .grid-2{grid-template-columns:repeat(2,minmax(0,1fr));} }
 
-    /* Student item */
+    /* Student row */
     .student-row{display:flex;align-items:flex-start;justify-content:space-between;gap:14px;border:1px solid var(--line); border-radius:14px; padding:14px; background:#fff;}
     .student-meta{color:var(--muted);line-height:1.7;font-size:.95rem}
     .student-actions{display:flex;align-items:center;gap:8px}
@@ -104,13 +95,10 @@
     .btn-danger{background:#ef4444;color:#fff}
     .btn[disabled]{opacity:.45;cursor:not-allowed}
 
-    /* Badge & Pill */
-    .badge{display:inline-block;padding:.2rem .55rem;border-radius:999px;font-size:.78rem;font-weight:900}
-    .badge-good{background:#dcfce7;color:#166534;border:1px solid #16a34a}
-    .badge-warn{background:#fee2e2;color:#991b1b;border:1px solid #ef4444}
+    /* Pills & Totals */
     .pill{display:inline-flex;align-items:center;gap:.55rem;padding:.35rem .6rem;background:#eef2ff;border-radius:999px;border:1px solid #c7d2fe;color:#3730a3;font-weight:900}
-
-    /* Totals */
+    .pay-banner{display:flex;align-items:center;justify-content:space-between;gap:12px; padding:14px 16px;border-radius:14px;color:#7c2d12;
+      background:linear-gradient(135deg,#fff7ed 0%, #ffedd5 100%); border:1px solid #fed7aa; font-weight:900;}
     .totals-wrap{display:grid;grid-template-columns:repeat(1,minmax(0,1fr));gap:12px;margin-top:12px}
     @media (min-width: 720px){ .totals-wrap{grid-template-columns:repeat(2,minmax(0,1fr));} }
     .total-card{border:1px solid var(--line);border-radius:14px;padding:14px;background:#fff;display:grid;grid-template-columns:auto 1fr;gap:10px;align-items:start;box-shadow:var(--shadow)}
@@ -122,21 +110,6 @@
     .row{display:flex;justify-content:space-between}
     .em{font-weight:900}
 
-    /* Toast */
-    .toast{
-      position:fixed; right:18px; bottom:18px; z-index:60; min-width:220px;
-      background:#111827; color:#fff; padding:12px 14px; border-radius:12px; box-shadow:0 20px 40px rgba(2,8,23,.35);
-      display:none; align-items:center; gap:10px;
-    }
-    .toast.show{display:flex; animation:toast-in .25s ease forwards}
-    .toast.hide{animation:toast-out .2s ease forwards}
-    @keyframes toast-in{from{opacity:0; transform:translateY(10px)} to{opacity:1; transform:translateY(0)}}
-    @keyframes toast-out{to{opacity:0; transform:translateY(10px)}}
-
-    /* Animations */
-    .pop-in{animation:pop-in .22s ease}
-    @keyframes pop-in{from{transform:scale(.98); opacity:0} to{transform:scale(1); opacity:1}}
-
     /* Modal */
     .modal-backdrop{
       position:fixed; inset:0; background:rgba(2,8,23,.45); display:none;
@@ -147,13 +120,22 @@
       width:100%; max-width:680px; background:#fff; border-radius:20px; padding:18px;
       box-shadow:0 30px 80px rgba(2,8,23,.35); border:1px solid var(--line)
     }
+
+    /* Toast */
+    .toast{position:fixed; right:18px; bottom:18px; z-index:60; min-width:220px;
+      background:#111827; color:#fff; padding:12px 14px; border-radius:12px; box-shadow:0 20px 40px rgba(2,8,23,.35);
+      display:none; align-items:center; gap:10px;}
+    .toast.show{display:flex; animation:toast-in .25s ease forwards}
+    .toast.hide{animation:toast-out .2s ease forwards}
+    @keyframes toast-in{from{opacity:0; transform:translateY(10px)} to{opacity:1; transform:translateY(0)}}
+    @keyframes toast-out{to{opacity:0; transform:translateY(10px)}}
   </style>
 </head>
 <body>
   <!-- Toast -->
   <div id="toast" class="toast" role="status" aria-live="polite">
     <span id="toastIcon" style="font-size:18px">✅</span>
-    <span id="toastMsg">Added to cart</span>
+    <span id="toastMsg">Saved</span>
   </div>
 
   <!-- Header -->
@@ -161,13 +143,13 @@
     <div class="container">
       <div class="header-content">
         <div class="logo-wrap">
+          <!-- swap to your hosted logo; this is just a placeholder path -->
           <img src="https://raw.githubusercontent.com/JDaws-Dev/3DJumpstart/main/3d-jumpstart-logo.png" alt="3D Jumpstart" class="logo-image" />
           <div class="portal-switch">
             <a href="portal.html" class="switch-btn active">Parent Portal</a>
             <a href="student-portal.html" class="switch-btn">Student Portal</a>
           </div>
         </div>
-
         <div class="user-cluster">
           <span id="parent-name" class="muted">Loading…</span>
           <button class="btn btn-secondary" id="logoutBtn" type="button">Logout</button>
@@ -200,7 +182,7 @@
         <div id="studentsList" class="grid" style="margin-top:12px;"></div>
       </div>
 
-      <div class="card">
+      <div class="card" style="margin-top:14px">
         <div class="pay-banner">
           <span>Level 1 • 12-week course • $60/class</span>
           <span style="font-weight:900;">List total: $720</span>
@@ -210,7 +192,7 @@
           <div style="min-width:280px;flex:1">
             <h3 class="card-title" style="margin:.1rem 0 .3rem">Payment Options</h3>
             <ul class="muted" style="margin:.25rem 0 0; padding-left:1rem; line-height:1.75">
-              <li>Pick a class period for each student, then add to cart.</li>
+              <li>Select a class period for each student, then add to cart.</li>
               <li><strong>Pay in Full:</strong> <strong>$670</strong> per student (save $50 vs $720 list).</li>
               <li><strong>Pay Half Now:</strong> $360 per student now; remainder due <strong>Oct 15</strong>.</li>
               <li><strong>Sibling discount:</strong> $50 off the second child (applies once).</li>
@@ -249,7 +231,6 @@
           <li>Tuesday 5:30–6:30 <span class="muted">(Grades 8–12)</span></li>
         </ul>
 
-        <!-- 12-Week Dates -->
         <div style="margin-top:1rem; padding:1rem; border-radius:12px; background:#fffbeb; border:1px solid #f4e5b9;">
           <h3 class="card-title" style="font-size:1.05rem;margin-bottom:.5rem;">12-Week Dates</h3>
           <div class="grid" style="grid-template-columns:repeat(3,minmax(0,1fr));gap:8px">
@@ -328,7 +309,6 @@
     <section id="tab-billing" class="tab-content">
       <div class="card">
         <h2 class="card-title">Billing & Payments</h2>
-        <div id="paymentBox"></div>
         <table style="width:100%;border-collapse:collapse">
           <thead>
             <tr><th style="text-align:left;padding:.75rem;border-bottom:1px solid var(--line)">Date</th><th style="text-align:left;padding:.75rem;border-bottom:1px solid var(--line)">Description</th><th style="text-align:left;padding:.75rem;border-bottom:1px solid var(--line)">Amount</th><th style="text-align:left;padding:.75rem;border-bottom:1px solid var(--line)">Status</th></tr>
@@ -350,7 +330,7 @@
   </main>
 
   <!-- Modal -->
-  <div id="studentModal" class="modal-backdrop">
+  <div id="studentModal" class="modal-backdrop" aria-hidden="true">
     <div class="modal" role="dialog" aria-modal="true" aria-labelledby="modalTitle">
       <div style="display:flex;align-items:center;justify-content:space-between;gap:10px;">
         <h3 class="card-title" id="modalTitle" style="margin:0;">Add Student</h3>
@@ -397,43 +377,43 @@
 
   <script>
     /* ====== CONFIG ====== */
-    const SUPABASE_URL = 'https://hucjmggkasahwpjgnwia.supabase.co';
-    const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imh1Y2ptZ2drYXNhaHdwamdud2lhIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTQ2MTI2MDIsImV4cCI6MjA3MDE4ODYwMn0.hxFmoZexaKverih9crJfP9fjWItOTfC_6D_CM7hr_Rg'; // TODO: paste your anon key
-    const CREATE_CHECKOUT_URL = 'https://hucjmggkasahwpjgnwia.supabase.co/functions/v1/create-checkout';
+    const SUPABASE_URL = 'https://hucjmggkasahwpjgnwia.supabase.co';               // <- change if yours differs
+    const SUPABASE_ANON_KEY = 'REPLACE_WITH_YOUR_PUBLIC_ANON_KEY';                 // <- paste anon key
+    const CREATE_CHECKOUT_URL = `${SUPABASE_URL}/functions/v1/create-checkout`;
 
     const sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
-    // Class periods (Level 1) — store by id; show label with grade ranges
+    // Class periods (Level 1)
     const CLASS_PERIODS = [
       { id:'tue_430', label:'Tuesday 4:30–5:30 (Grades 4–7)', time:'Tuesday 4:30–5:30', level:'Level 1', gradeMin:4, gradeMax:7 },
       { id:'tue_530', label:'Tuesday 5:30–6:30 (Grades 8–12)', time:'Tuesday 5:30–6:30', level:'Level 1', gradeMin:8, gradeMax:12 },
     ];
-
-    // Dropdown options
     const AGE_OPTIONS = Array.from({length:11}, (_,i)=>8+i); // 8..18
-    const GRADE_OPTIONS = ['3rd','4th','5th','6th','7th','8th','9th','10th','11th','12th'];
+    const GRADE_OPTIONS = ['4th','5th','6th','7th','8th','9th','10th','11th','12th'];
 
-    // Pricing
+    // Pricing constants
     const PRICE_LIST_PER = 720;   // 12 x $60
     const PRICE_FULL_PER = 670;   // pay in full
     const PRICE_HALF_NOW = 360;   // due now per student
-    const SIBLING_DISCOUNT = 50;  // one-time off second child
+    const SIBLING_DISCOUNT = 50;  // one-time on second child
 
     /* ====== STATE ====== */
     let currentUser = null;
     let editingId = null;
 
-    /* ====== HELPERS: Grade ↔ class eligibility ====== */
-    function gradeToNum(gradeStr){
-      const n = parseInt(String(gradeStr).replace(/\D+/g,''), 10);
-      return isNaN(n) ? null : n;
-    }
+    /* ====== HELPERS ====== */
+    function $(id){ return document.getElementById(id); }
+    function isUuid(v){ return typeof v==='string' && /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(v); }
+    function gradeToNum(gradeStr){ const n=parseInt(String(gradeStr).replace(/\D+/g,''),10); return isNaN(n)?null:n; }
     function allowedPeriodsForGrade(gradeStr){
-      const g = gradeToNum(gradeStr);
-      if (g==null) return [];
-      return CLASS_PERIODS.filter(p => g>=p.gradeMin && g<=p.gradeMax);
+      const g = gradeToNum(gradeStr); if (g==null) return []; return CLASS_PERIODS.filter(p => g>=p.gradeMin && g<=p.gradeMax);
     }
     function periodById(id){ return CLASS_PERIODS.find(p=>p.id===id); }
+    function toast(msg, ok=true){
+      const t=$('toast'); $('toastIcon').textContent= ok?'✅':'✖️'; $('toastMsg').textContent=msg;
+      t.classList.remove('hide'); t.classList.add('show'); setTimeout(()=>{ t.classList.add('hide'); t.classList.remove('show'); }, 1600);
+    }
+    function escapeHtml(s){ return (s||'').replace(/[&<>"']/g, m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m])); }
 
     /* ====== AUTH BOOT ====== */
     document.addEventListener('DOMContentLoaded', () => {
@@ -441,17 +421,17 @@
         const { data: { session } } = await sb.auth.getSession();
         if (!session){ window.location.href = 'login.html'; return; }
         currentUser = session.user;
-        document.getElementById('parent-name').textContent = currentUser.email || 'Parent';
+        $('parent-name').textContent = currentUser.email || 'Parent';
 
         bindUI();
         populateDropdowns();
         await render();
+        await loadBilling();
       })().catch(console.error);
     });
 
-    document.getElementById('logoutBtn').addEventListener('click', async () => {
-      await sb.auth.signOut();
-      window.location.href = 'login.html';
+    $('logoutBtn').addEventListener('click', async () => {
+      await sb.auth.signOut(); window.location.href = 'login.html';
     });
 
     /* ====== UI & TABS ====== */
@@ -461,28 +441,24 @@
           document.querySelectorAll('.tab-button').forEach(b=>b.classList.remove('active'));
           btn.classList.add('active');
           document.querySelectorAll('.tab-content').forEach(c=>c.classList.remove('active'));
-          document.getElementById('tab-'+btn.dataset.tab).classList.add('active');
+          $('tab-'+btn.dataset.tab).classList.add('active');
         });
       });
 
-      document.getElementById('addStudentBtn').addEventListener('click', () => openModal());
-      document.getElementById('closeModalBtn').addEventListener('click', closeModal);
-      document.getElementById('cancelBtn').addEventListener('click', closeModal);
-      document.getElementById('saveStudentBtn').addEventListener('click', saveStudentFromModal);
+      $('addStudentBtn').addEventListener('click', () => openModal());
+      $('closeModalBtn').addEventListener('click', closeModal);
+      $('cancelBtn').addEventListener('click', closeModal);
+      $('saveStudentBtn').addEventListener('click', saveStudentFromModal);
 
-      document.getElementById('studentModal').addEventListener('click', (e) => {
-        if (e.target.id === 'studentModal') closeModal();
-      });
+      $('studentModal').addEventListener('click', (e) => { if (e.target.id === 'studentModal') closeModal(); });
 
-      document.getElementById('payFullBtn').addEventListener('click', () => startCheckout('full'));
-      document.getElementById('payHalfBtn').addEventListener('click', () => startCheckout('half'));
+      $('payFullBtn').addEventListener('click', () => startCheckout('full'));
+      $('payHalfBtn').addEventListener('click', () => startCheckout('half'));
     }
 
     function populateDropdowns(){
-      const age = document.getElementById('age');
-      AGE_OPTIONS.forEach(v=>{ const o=document.createElement('option'); o.value=v; o.textContent=v; age.appendChild(o); });
-      const grade = document.getElementById('grade');
-      GRADE_OPTIONS.forEach(v=>{ const o=document.createElement('option'); o.value=v; o.textContent=v; grade.appendChild(o); });
+      const age = $('age'); AGE_OPTIONS.forEach(v=>{ const o=document.createElement('option'); o.value=v; o.textContent=v; age.appendChild(o); });
+      const grade = $('grade'); GRADE_OPTIONS.forEach(v=>{ const o=document.createElement('option'); o.value=v; o.textContent=v; grade.appendChild(o); });
     }
 
     /* ====== SUPABASE: STUDENTS ====== */
@@ -492,33 +468,26 @@
       return data || [];
     }
 
-async function sbSaveStudent(row) {
-  const base = {
-    parent_id: currentUser.id,
-    first_name: row.first_name,
-    last_name: row.last_name,
-    age: Number(row.age),
-    grade: row.grade,
-    experience: row.experience,
-    special: row.special || null,
-  };
-
-  let resp;
-  if (row.id) {
-    resp = await sb.from('students').update(base).eq('id', row.id).select().maybeSingle();
-  } else {
-    resp = await sb.from('students').insert(base).select().maybeSingle();
-  }
-  const { data, error } = resp;
-  if (error) {
-    console.error('students upsert error:', error);
-    alert('Could not save student: ' + (error.message || JSON.stringify(error)));
-    throw error;
-  }
-  return data;
-}
-
-    
+    async function sbSaveStudent(row) {
+      const base = {
+        parent_id: currentUser.id,
+        first_name: row.first_name,
+        last_name: row.last_name,
+        age: Number(row.age),
+        grade: row.grade,
+        experience: row.experience,
+        special: row.special || null,
+      };
+      let resp;
+      if (row.id) {
+        resp = await sb.from('students').update(base).eq('id', row.id).select().maybeSingle();
+      } else {
+        resp = await sb.from('students').insert(base).select().maybeSingle();
+      }
+      const { data, error } = resp;
+      if (error) { console.error('students upsert error:', error); alert('Could not save student: ' + (error.message || JSON.stringify(error))); throw error; }
+      return data;
+    }
 
     async function sbDeleteStudent(studentId) {
       const { error } = await sb.from('students').delete().eq('id', studentId);
@@ -526,44 +495,41 @@ async function sbSaveStudent(row) {
     }
 
     /* ====== SUPABASE: ENROLLMENTS (CART) ====== */
+    async function sbUpsertEnrollment(student, classPeriodId) {
+      const p = periodById(classPeriodId);
+      const season = 'Fall 2025';
 
-async function sbUpsertEnrollment(student, classPeriodId) {
-  const p = periodById(classPeriodId);
-  const season = 'Fall 2025';
+      // find-then-update/insert (avoids ON CONFLICT index requirement)
+      const { data: existing, error: findErr } = await sb
+        .from('enrollments')
+        .select('id')
+        .eq('student_id', student.id)
+        .eq('season', season)
+        .maybeSingle();
+      if (findErr && findErr.code !== 'PGRST116') throw findErr;
 
-  // 1) Look for an existing row for this student+season
-  const { data: existing, error: findErr } = await sb
-    .from('enrollments')
-    .select('id')
-    .eq('student_id', student.id)
-    .eq('season', season)
-    .maybeSingle();
-  if (findErr && findErr.code !== 'PGRST116') throw findErr; // ignore "no rows" code
+      const base = {
+        parent_id: currentUser.id,
+        student_id: student.id,
+        level: 'Level 1',
+        season,
+        class_period_id: p?.id ?? null,
+        class_time: p?.time ?? null,
+        payment_plan: 'full',     // final plan decided at checkout
+        amount_list: PRICE_LIST_PER,
+        status: 'cart'
+      };
 
-  const base = {
-    parent_id: currentUser.id,
-    student_id: student.id,
-    level: 'Level 1',
-    season,
-    class_period_id: p?.id ?? null,
-    class_time: p?.time ?? null,
-    payment_plan: 'full',     // UI picks plan later at checkout
-    amount_list: PRICE_LIST_PER,
-    status: 'cart'
-  };
-
-  // 2) Update if found, otherwise insert
-  if (existing?.id) {
-    const { error: upErr } = await sb.from('enrollments').update(base).eq('id', existing.id);
-    if (upErr) throw upErr;
-    return { id: existing.id, ...base };
-  } else {
-    const { data, error: insErr } = await sb.from('enrollments').insert(base).select().single();
-    if (insErr) throw insErr;
-    return data;
-  }
-}
-
+      if (existing?.id) {
+        const { error: upErr } = await sb.from('enrollments').update(base).eq('id', existing.id);
+        if (upErr) throw upErr;
+        return { id: existing.id, ...base };
+      } else {
+        const { data, error: insErr } = await sb.from('enrollments').insert(base).select().single();
+        if (insErr) throw insErr;
+        return data;
+      }
+    }
 
     async function sbListCart() {
       const { data, error } = await sb
@@ -580,21 +546,21 @@ async function sbUpsertEnrollment(student, classPeriodId) {
     /* ====== RENDER ====== */
     async function render() {
       const [students, cart] = await Promise.all([sbListStudents(), sbListCart()]);
-      renderStudents(students, cart);
+      renderStudents(students);
       renderCart(cart, students);
       updateTotals(cart);
     }
 
     function renderStudents(list){
-      const wrap = document.getElementById('studentsList');
+      const wrap = $('studentsList');
 
       if (!list.length){
         wrap.innerHTML = `
-          <div class="card pop-in" style="text-align:center;background:#f8fafc;border:1px dashed var(--line)">
+          <div class="card" style="text-align:center;background:#f8fafc;border:1px dashed var(--line)">
             <p class="muted" style="margin:.25rem 0 1rem;">No students yet.</p>
             <button class="btn btn-primary" type="button" id="ctaAddFirst">+ Add Your First Student</button>
           </div>`;
-        document.getElementById('ctaAddFirst')?.addEventListener('click', openModal);
+        $('ctaAddFirst')?.addEventListener('click', openModal);
         return;
       }
 
@@ -604,13 +570,13 @@ async function sbUpsertEnrollment(student, classPeriodId) {
         options += allowed.map(p=>`<option value="${p.id}">${p.label}</option>`).join('');
 
         return `
-          <div class="student-row pop-in" data-id="${s.id}">
+          <div class="student-row" data-id="${s.id}">
             <div>
               <div style="display:flex;align-items:center;gap:.5rem">
                 <div style="font-weight:900;font-size:1.05rem">${s.first_name} ${s.last_name}</div>
               </div>
               <div class="student-meta">
-                Age ${s.age} • Grade ${s.grade} • ${s.experience}
+                Age ${s.age ?? '—'} • Grade ${s.grade ?? '—'} • ${s.experience ?? '—'}
                 ${s.special ? `<br/><span class="muted">Notes:</span> ${escapeHtml(s.special)}` : ''}
               </div>
               <div class="field" style="margin-top:.4rem;max-width:420px">
@@ -661,38 +627,41 @@ async function sbUpsertEnrollment(student, classPeriodId) {
     }
 
     function renderCart(cart, students){
-      const wrap=document.getElementById('cartList');
-      document.getElementById('cartCount').textContent = cart.length;
+      const wrap=$('cartList'); $('cartCount').textContent = cart.length;
 
       if(!cart.length){ wrap.innerHTML=`<div class="muted">Your cart is empty.</div>`; updatePayButtons(false); return; }
 
       wrap.innerHTML = cart.map(e=>{
         const s = students.find(x=>x.id===e.student_id);
         return `
-          <div class="student-row pop-in">
+          <div class="student-row">
             <div>
               <div style="font-weight:900">${s ? `${s.first_name} ${s.last_name}` : 'Student'}</div>
               <div class="muted">Class (Level 1): ${e.class_time || '<em>Not selected</em>'}</div>
             </div>
             <div class="student-actions">
-              <button class="btn btn-muted" type="button" onclick="openModal('${e.student_id}')">Edit</button>
-              <button class="btn btn-danger" type="button" onclick="removeFromCart('${e.id}')">Remove</button>
+              <button class="btn btn-muted cart-edit" data-student="${e.student_id}" type="button">Edit</button>
+              <button class="btn btn-danger cart-remove" data-enrollment="${e.id}" type="button">Remove</button>
             </div>
           </div>`;
       }).join('');
+
+      // Wire after render
+      wrap.querySelectorAll('.cart-edit').forEach(b => b.addEventListener('click', () => openModal(b.dataset.student)));
+      wrap.querySelectorAll('.cart-remove').forEach(b => b.addEventListener('click', async () => { await removeFromCart(b.dataset.enrollment); await render(); }));
 
       const allHavePeriod = cart.every(e=>!!e.class_period_id);
       updatePayButtons(allHavePeriod && cart.length>0);
     }
 
     function updatePayButtons(enable){
-      document.getElementById('payFullBtn').disabled = !enable;
-      document.getElementById('payHalfBtn').disabled = !enable;
+      $('payFullBtn').disabled = !enable;
+      $('payHalfBtn').disabled = !enable;
     }
 
     /* ====== LIVE TOTALS ====== */
     function updateTotals(cart){
-      const wrap=document.getElementById('totalsWrap');
+      const wrap=$('totalsWrap');
       const count=cart.length;
 
       const sibling = count>=2 ? SIBLING_DISCOUNT : 0;
@@ -707,7 +676,7 @@ async function sbUpsertEnrollment(student, classPeriodId) {
       if(count===0){ wrap.innerHTML=''; return; }
 
       wrap.innerHTML = `
-        <div class="total-card pop-in">
+        <div class="total-card">
           <div class="total-ico ico-full">💳</div>
           <div>
             <div class="total-title">Pay in Full</div>
@@ -719,7 +688,7 @@ async function sbUpsertEnrollment(student, classPeriodId) {
           </div>
         </div>
 
-        <div class="total-card pop-in">
+        <div class="total-card">
           <div class="total-ico ico-half">🗓️</div>
           <div>
             <div class="total-title">Pay Half Now</div>
@@ -740,9 +709,11 @@ async function sbUpsertEnrollment(student, classPeriodId) {
         if (!cart.length) { alert('Add at least one student to the cart.'); return; }
         if (cart.some(e=>!e.class_period_id)) { alert('Select a class period for each student.'); return; }
 
-        // enrich with names
         const ids = [...new Set(cart.map(e => e.student_id))];
-        const { data: students } = await sb.from('students').select('id,first_name,last_name').in('id', ids);
+        const { data: students, error: studErr } = ids.length
+          ? await sb.from('students').select('id,first_name,last_name').in('id', ids)
+          : { data: [], error: null };
+        if (studErr) { console.error(studErr); alert('Could not load students'); return; }
 
         const enrollments = cart.map(e => {
           const s = students?.find(st => st.id === e.student_id);
@@ -784,106 +755,93 @@ async function sbUpsertEnrollment(student, classPeriodId) {
     }
 
     /* ====== MODAL (Add/Edit Student) ====== */
+    function openModal(id=null){
+      // If bound as handler without arg, browsers pass a PointerEvent
+      if (id && typeof id === 'object' && 'isTrusted' in id) id = null;
+      editingId = isUuid(id) ? id : null;
+      $('modalTitle').textContent = editingId ? 'Edit Student' : 'Add Student';
 
-    
-    
-    function isUuid(v){
-  return typeof v === 'string' &&
-    /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(v);
-}
-
-
-    
-function openModal(id=null){
-  // If bound as an event handler without args, browsers pass a PointerEvent.
-  if (id && typeof id === 'object' && 'isTrusted' in id) id = null;
-
-  editingId = isUuid(id) ? id : null;
-  document.getElementById('modalTitle').textContent =
-    editingId ? 'Edit Student' : 'Add Student';
-
-  (async () => {
-    let s = null;
-    if (editingId){
-      const { data, error } = await sb.from('students')
-        .select('*').eq('id', editingId).single();
-      if (error) console.error(error);
-      s = data || null;
+      (async ()=>{
+        let s = null;
+        if (editingId){
+          const { data, error } = await sb.from('students').select('*').eq('id', editingId).single();
+          if (error) console.error(error);
+          s = data || null;
+        }
+        firstName.value=s?.first_name||''; lastName.value=s?.last_name||'';
+        age.value=s?.age||AGE_OPTIONS[0]; grade.value=s?.grade||GRADE_OPTIONS[0];
+        experience.value=s?.experience||'Beginner'; special.value=s?.special||'';
+        $('studentModal').classList.add('show');
+      })();
     }
-    firstName.value   = s?.first_name || '';
-    lastName.value    = s?.last_name  || '';
-    age.value         = s?.age        || AGE_OPTIONS[0];
-    grade.value       = s?.grade      || GRADE_OPTIONS[0];
-    experience.value  = s?.experience || 'Beginner';
-    special.value     = s?.special    || '';
+    function closeModal(){ $('studentModal').classList.remove('show'); editingId=null; }
 
-    document.getElementById('studentModal').classList.add('show');
-  })();
-}
+    async function saveStudentFromModal(e){
+      e?.preventDefault?.();
+      const first = $('firstName').value.trim();
+      const last  = $('lastName').value.trim();
+      const ageV  = $('age').value;
+      const gradeV= $('grade').value;
+      const exp   = $('experience').value;
+      const spec  = $('special').value.trim();
+      if(!first || !last || !ageV || !gradeV){ alert('Please complete First/Last, Age, and Grade.'); return; }
 
-async function saveStudentFromModal(e){
-  e?.preventDefault?.();
-
-  const first = firstName.value.trim();
-  const last  = lastName.value.trim();
-  const ageV  = Number(age.value);
-  const gradeV= grade.value;
-  const exp   = experience.value;
-  const spec  = special.value.trim();
-
-  if(!first || !last || !ageV || !gradeV){
-    alert('Please complete First/Last, Age, and Grade.');
-    return;
-  }
-
-  const payload = {
-    id: isUuid(editingId) ? editingId : undefined,   // << only send UUID
-    first_name:first, last_name:last, age:ageV,
-    grade:gradeV, experience:exp, special:spec
-  };
-
-  await sbSaveStudent(payload);
-  closeModal();
-  await render();
-}
-
-
-
-
-
-    
-    function closeModal(){ document.getElementById('studentModal').classList.remove('show'); editingId=null; }
-
-    async function saveStudentFromModal(){
-      const first = document.getElementById('firstName').value.trim();
-      const last  = document.getElementById('lastName').value.trim();
-      const age   = document.getElementById('age').value;
-      const grade = document.getElementById('grade').value;
-      const exp   = document.getElementById('experience').value;
-      const spec  = document.getElementById('special').value.trim();
-      if(!first || !last || !age || !grade){ alert('Please complete First/Last, Age, and Grade.'); return; }
-
-      await sbSaveStudent({ id:editingId, first_name:first, last_name:last, age, grade, experience:exp, special:spec });
+      await sbSaveStudent({ id:editingId, first_name:first, last_name:last, age:ageV, grade:gradeV, experience:exp, special:spec });
       closeModal();
       await render();
+      toast('Student saved');
     }
 
     async function removeFromCart(enrollmentId) {
       if (!confirm('Remove from cart?')) return;
       const { error } = await sb.from('enrollments').delete().eq('id', enrollmentId);
       if (error) alert(error.message);
-      await render();
     }
 
-    /* ====== UTILS ====== */
-    function toast(msg, ok=true){
-      const t=document.getElementById('toast');
-      document.getElementById('toastIcon').textContent = ok?'✅':'✖️';
-      document.getElementById('toastMsg').textContent = msg;
-      t.classList.remove('hide'); t.classList.add('show');
-      setTimeout(()=>{ t.classList.add('hide'); t.classList.remove('show'); }, 1600);
+    /* ====== BILLING ====== */
+    async function loadBilling(){
+      const tbody = $('billingTable');
+      if (!tbody) return;
+
+      let { data: pays, error } = await sb
+        .from('payments')
+        .select('created_at, description, amount, status')
+        .order('created_at', { ascending: false })
+        .limit(20);
+      if (error) { console.error(error); pays = []; }
+
+      if (!pays || pays.length === 0) {
+        // Fallback: show paid enrollments if no payments yet
+        const { data: enr } = await sb
+          .from('enrollments')
+          .select('created_at, amount_final, status')
+          .eq('status', 'paid')
+          .order('created_at', { ascending: false })
+          .limit(20);
+        if (enr && enr.length) {
+          pays = enr.map(e => ({
+            created_at: e.created_at,
+            description: 'Enrollment',
+            amount: (e.amount_final ?? PRICE_FULL_PER) * 100, // cents for UI consistency
+            status: e.status
+          }));
+        }
+      }
+
+      if (!pays || pays.length === 0) {
+        tbody.innerHTML = `<tr><td>—</td><td>No payments yet</td><td>—</td><td>—</td></tr>`;
+        return;
+      }
+
+      tbody.innerHTML = pays.map(p => `
+        <tr>
+          <td style="padding:.75rem">${new Date(p.created_at).toLocaleDateString()}</td>
+          <td style="padding:.75rem">${p.description || 'Enrollment Payment'}</td>
+          <td style="padding:.75rem">$${((p.amount ?? 0)/100).toFixed(2)}</td>
+          <td style="padding:.75rem">${(p.status || '').toUpperCase()}</td>
+        </tr>
+      `).join('');
     }
-    function escapeHtml(s){ return (s||'').replace(/[&<>"']/g, m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m])); }
   </script>
 </body>
 </html>
