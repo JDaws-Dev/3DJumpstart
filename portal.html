@@ -86,14 +86,27 @@
 
     /* Student item */
     .student-row{display:flex;align-items:flex-start;justify-content:space-between;gap:14px;border:1px solid var(--line); border-radius:14px; padding:14px; background:#fff;}
+    .student-row.enrolled{border-color:#16a34a; background:linear-gradient(135deg, #f0fdf4, #dcfce7);}
+    .student-row.pending{border-color:#f59e0b; background:linear-gradient(135deg, #fffbeb, #fef3c7);}
     .student-meta{color:var(--muted);line-height:1.7;font-size:.95rem}
     .student-actions{display:flex;align-items:center;gap:8px}
+
+    /* Status badges */
+    .status-badge{display:inline-flex;align-items:center;gap:6px;padding:4px 10px;border-radius:999px;font-weight:700;font-size:.875rem}
+    .status-enrolled{background:#dcfce7;color:#166534;border:1px solid #16a34a}
+    .status-pending{background:#fef3c7;color:#92400e;border:1px solid #f59e0b}
+
+    /* Enrollment summary */
+    .enrollment-summary{background:linear-gradient(135deg, #eef2ff, #e0e7ff);border:1px solid #c7d2fe;border-radius:14px;padding:16px;margin-bottom:14px}
+    .enrollment-item{padding:8px 0;border-bottom:1px solid #e0e7ff}
+    .enrollment-item:last-child{border-bottom:none}
 
     /* Inputs */
     .field{display:flex;flex-direction:column;gap:.35rem}
     .label{font-weight:800;font-size:.9rem;color:#334155}
     .input,.select,.textarea{width:100%; border:1px solid var(--line); background:#fff; padding:.65rem .75rem; border-radius:12px; font:inherit; outline:none; transition:border .12s;}
     .input:focus,.select:focus,.textarea:focus{border-color:#cbd5e1; box-shadow:0 0 0 4px rgba(251,146,60,.18)}
+    .select:disabled{background:#f3f4f6;color:#9ca3af;cursor:not-allowed}
 
     /* Buttons */
     .btn{appearance:none;border:0;border-radius:12px;padding:.7rem 1rem;font-weight:900;font-size:.95rem;cursor:pointer;display:inline-flex;align-items:center;gap:.45rem;text-decoration:none}
@@ -192,6 +205,12 @@
 
     <!-- Students -->
     <section id="tab-students" class="tab-content active">
+      <!-- Active Enrollments Summary -->
+      <div id="enrollmentSummary" class="enrollment-summary" style="display:none">
+        <h3 style="margin:0 0 12px;font-size:1.1rem">Active Enrollments</h3>
+        <div id="enrollmentList"></div>
+      </div>
+
       <div class="card">
         <div style="display:flex;align-items:center;justify-content:space-between;gap:12px;">
           <h2 class="card-title" style="margin:0">Your Students</h2>
@@ -331,9 +350,17 @@
         <div id="paymentBox"></div>
         <table style="width:100%;border-collapse:collapse">
           <thead>
-            <tr><th style="text-align:left;padding:.75rem;border-bottom:1px solid var(--line)">Date</th><th style="text-align:left;padding:.75rem;border-bottom:1px solid var(--line)">Description</th><th style="text-align:left;padding:.75rem;border-bottom:1px solid var(--line)">Amount</th><th style="text-align:left;padding:.75rem;border-bottom:1px solid var(--line)">Status</th></tr>
+            <tr>
+              <th style="text-align:left;padding:.75rem;border-bottom:1px solid var(--line)">Date</th>
+              <th style="text-align:left;padding:.75rem;border-bottom:1px solid var(--line)">Student</th>
+              <th style="text-align:left;padding:.75rem;border-bottom:1px solid var(--line)">Description</th>
+              <th style="text-align:left;padding:.75rem;border-bottom:1px solid var(--line)">Amount</th>
+              <th style="text-align:left;padding:.75rem;border-bottom:1px solid var(--line)">Status</th>
+            </tr>
           </thead>
-          <tbody id="billingTable"><tr><td style="padding:.75rem;border-bottom:1px solid var(--line)">—</td><td style="padding:.75rem;border-bottom:1px solid var(--line)">No payments yet</td><td style="padding:.75rem;border-bottom:1px solid var(--line)">—</td><td style="padding:.75rem;border-bottom:1px solid var(--line)">—</td></tr></tbody>
+          <tbody id="billingTable">
+            <tr><td colspan="5" style="padding:.75rem;border-bottom:1px solid var(--line);text-align:center;color:var(--muted)">Loading payments...</td></tr>
+          </tbody>
         </table>
       </div>
     </section>
@@ -422,6 +449,7 @@
     /* ====== STATE ====== */
     let currentUser = null;
     let editingId = null;
+    let allEnrollments = []; // Track all enrollments including paid ones
 
     /* ====== HELPERS ====== */
     function gradeToNum(gradeStr){
@@ -474,6 +502,11 @@
           btn.classList.add('active');
           document.querySelectorAll('.tab-content').forEach(c=>c.classList.remove('active'));
           document.getElementById('tab-'+btn.dataset.tab).classList.add('active');
+          
+          // Load billing when tab is clicked
+          if(btn.dataset.tab === 'billing') {
+            loadBilling();
+          }
         });
       });
 
@@ -546,21 +579,45 @@
     }
 
     async function sbDeleteStudent(studentId) {
+      // Check if student has paid enrollments
+      const hasEnrollment = allEnrollments.find(e => 
+        e.student_id === studentId && 
+        (e.status === 'enrolled' || e.status === 'pending')
+      );
+      
+      if(hasEnrollment) {
+        alert('Cannot remove enrolled students. Please contact jeremiah@3djumpstart.com for refunds or changes.');
+        return false;
+      }
+      
       const { error } = await sb.from('students').delete().eq('id', studentId);
       if (error) throw error;
+      return true;
     }
 
-    /* ====== SUPABASE: ENROLLMENTS (CART) ====== */
+    /* ====== SUPABASE: ENROLLMENTS ====== */
     async function sbUpsertEnrollment(student, classPeriodId) {
+      // Check if student already has an active enrollment
+      const existingEnrollment = allEnrollments.find(e => 
+        e.student_id === student.id && 
+        (e.status === 'enrolled' || e.status === 'pending')
+      );
+      
+      if(existingEnrollment) {
+        alert(`${student.first_name} is already enrolled in ${existingEnrollment.class_time}. Contact us to make changes.`);
+        return null;
+      }
+
       const p = periodById(classPeriodId);
       const season = 'Fall 2025';
 
-      // Look for existing enrollment
+      // Look for existing cart enrollment
       const { data: existing, error: findErr } = await sb
         .from('enrollments')
         .select('id')
         .eq('student_id', student.id)
         .eq('season', season)
+        .eq('status', 'cart')
         .maybeSingle();
       
       if (findErr && findErr.code !== 'PGRST116') throw findErr;
@@ -600,15 +657,60 @@
       return data || [];
     }
 
+    async function sbListAllEnrollments() {
+      const { data, error } = await sb
+        .from('enrollments')
+        .select('*')
+        .eq('parent_id', currentUser.id)
+        .order('created_at');
+      if (error) throw error;
+      return data || [];
+    }
+
     /* ====== RENDER ====== */
     async function render() {
-      const [students, cart] = await Promise.all([sbListStudents(), sbListCart()]);
-      renderStudents(students, cart);
+      const [students, cart, enrollments] = await Promise.all([
+        sbListStudents(), 
+        sbListCart(),
+        sbListAllEnrollments()
+      ]);
+      allEnrollments = enrollments;
+      renderEnrollmentSummary(enrollments, students);
+      renderStudents(students, enrollments);
       renderCart(cart, students);
       updateTotals(cart);
     }
 
-    function renderStudents(list, cart){
+    function renderEnrollmentSummary(enrollments, students) {
+      const activeEnrollments = enrollments.filter(e => 
+        e.status === 'enrolled' || e.status === 'pending'
+      );
+
+      const summaryDiv = document.getElementById('enrollmentSummary');
+      const listDiv = document.getElementById('enrollmentList');
+
+      if(activeEnrollments.length === 0) {
+        summaryDiv.style.display = 'none';
+        return;
+      }
+
+      summaryDiv.style.display = 'block';
+      listDiv.innerHTML = activeEnrollments.map(e => {
+        const student = students.find(s => s.id === e.student_id);
+        const statusText = e.status === 'enrolled' ? '✓ Enrolled' : '⏳ Pending (Pay by Oct 15)';
+        const statusClass = e.status === 'enrolled' ? 'status-enrolled' : 'status-pending';
+        
+        return `
+          <div class="enrollment-item">
+            <strong>${student ? student.first_name + ' ' + student.last_name : 'Student'}</strong> - 
+            ${e.class_time || 'Time TBD'} 
+            <span class="status-badge ${statusClass}">${statusText}</span>
+          </div>
+        `;
+      }).join('');
+    }
+
+    function renderStudents(list, enrollments){
       const wrap = document.getElementById('studentsList');
 
       if (!list.length){
@@ -621,12 +723,55 @@
       }
 
       wrap.innerHTML = list.map(s=>{
+        // Check if student has active enrollment
+        const enrollment = enrollments.find(e => 
+          e.student_id === s.id && 
+          (e.status === 'enrolled' || e.status === 'pending')
+        );
+        
+        const isEnrolled = !!enrollment;
+        const rowClass = isEnrolled ? (enrollment.status === 'enrolled' ? 'enrolled' : 'pending') : '';
+        
         const allowed = allowedPeriodsForGrade(s.grade);
-        let options = `<option value="">Select a period</option>`;
-        options += allowed.map(p=>`<option value="${p.id}">${p.label}</option>`).join('');
+        
+        let enrollmentContent = '';
+        if(isEnrolled) {
+          const statusBadge = enrollment.status === 'enrolled' ? 
+            '<span class="status-badge status-enrolled">✓ Enrolled</span>' : 
+            '<span class="status-badge status-pending">⏳ Pending Payment</span>';
+          
+          enrollmentContent = `
+            <div class="field" style="margin-top:.4rem;">
+              <div class="label">Enrolled in Level 1</div>
+              <div style="padding:10px;background:#f9fafb;border-radius:8px;margin-top:4px">
+                <strong>${enrollment.class_time}</strong> ${statusBadge}
+              </div>
+              <div class="muted" style="margin-top:8px;font-size:0.875rem">
+                Contact jeremiah@3djumpstart.com for any changes
+              </div>
+            </div>
+          `;
+        } else {
+          let options = `<option value="">Select a period</option>`;
+          options += allowed.map(p=>`<option value="${p.id}">${p.label}</option>`).join('');
+          
+          enrollmentContent = `
+            <div class="field" style="margin-top:.4rem;max-width:420px">
+              <label class="label">Class Period (Level 1)</label>
+              <select class="select classSelect" data-student="${s.id}">
+                ${options}
+              </select>
+              ${!allowed.length ? `<div class="muted" style="margin-top:.35rem;">No class available for grade <strong>${s.grade}</strong>.</div>` : ''}
+            </div>
+          `;
+        }
+
+        const removeButton = isEnrolled ? 
+          `<span class="muted" style="font-size:0.875rem">Contact us for changes</span>` :
+          `<button class="btn btn-danger btn-remove" data-id="${s.id}" type="button">Remove</button>`;
 
         return `
-          <div class="student-row pop-in" data-id="${s.id}">
+          <div class="student-row ${rowClass} pop-in" data-id="${s.id}">
             <div>
               <div style="display:flex;align-items:center;gap:.5rem">
                 <div style="font-weight:900;font-size:1.05rem">${s.first_name} ${s.last_name}</div>
@@ -635,17 +780,11 @@
                 Age ${s.age} • Grade ${s.grade} • ${s.experience}
                 ${s.special ? `<br/><span class="muted">Notes:</span> ${escapeHtml(s.special)}` : ''}
               </div>
-              <div class="field" style="margin-top:.4rem;max-width:420px">
-                <label class="label">Class Period (Level 1)</label>
-                <select class="select classSelect" data-student="${s.id}">
-                  ${options}
-                </select>
-                ${!allowed.length ? `<div class="muted" style="margin-top:.35rem;">No class available for grade <strong>${s.grade}</strong>.</div>` : ''}
-              </div>
+              ${enrollmentContent}
             </div>
             <div class="student-actions">
               <button class="btn btn-muted btn-edit" data-id="${s.id}" type="button">Edit</button>
-              <button class="btn btn-danger btn-remove" data-id="${s.id}" type="button">Remove</button>
+              ${removeButton}
             </div>
           </div>`;
       }).join('');
@@ -666,9 +805,11 @@
             return;
           }
           
-          await sbUpsertEnrollment(student, period);
-          toast('Added to cart');
-          await render();
+          const result = await sbUpsertEnrollment(student, period);
+          if(result) {
+            toast('Added to cart');
+            await render();
+          }
         });
       });
 
@@ -679,8 +820,10 @@
       wrap.querySelectorAll('.btn-remove').forEach(btn=>{
         btn.addEventListener('click', async () => {
           if(!confirm('Remove this student?')) return;
-          await sbDeleteStudent(btn.dataset.id);
-          await render();
+          const deleted = await sbDeleteStudent(btn.dataset.id);
+          if(deleted) {
+            await render();
+          }
         });
       });
     }
@@ -763,6 +906,78 @@
             </div>
           </div>
         </div>`;
+    }
+
+    /* ====== BILLING ====== */
+    async function loadBilling() {
+      try {
+        // Get payments with enrollment and student info
+        const { data: payments, error } = await sb
+          .from('payments')
+          .select(`
+            *,
+            enrollments!enrollment_id (
+              student_id,
+              class_time,
+              students:student_id (
+                first_name,
+                last_name
+              )
+            )
+          `)
+          .order('created_at', { ascending: false });
+
+        if (error) {
+          console.error('Billing query error:', error);
+          renderBilling([]);
+          return;
+        }
+
+        // Filter to only show payments for this parent's students
+        const myStudentIds = (await sbListStudents()).map(s => s.id);
+        const myPayments = payments?.filter(p => 
+          p.enrollments && myStudentIds.includes(p.enrollments.student_id)
+        ) || [];
+
+        renderBilling(myPayments);
+      } catch(err) {
+        console.error('Billing load error:', err);
+        renderBilling([]);
+      }
+    }
+
+    function renderBilling(payments) {
+      const tbody = document.getElementById('billingTable');
+      
+      if(!payments || payments.length === 0) {
+        tbody.innerHTML = `
+          <tr>
+            <td colspan="5" style="padding:.75rem;border-bottom:1px solid var(--line);text-align:center;color:var(--muted)">
+              No payments yet
+            </td>
+          </tr>`;
+        return;
+      }
+
+      tbody.innerHTML = payments.map(p => {
+        const date = new Date(p.created_at).toLocaleDateString();
+        const student = p.enrollments?.students || {};
+        const studentName = `${student.first_name || ''} ${student.last_name || ''}`.trim() || 'Unknown';
+        const classTime = p.enrollments?.class_time || 'N/A';
+        const amount = `$${p.amount}`;
+        const status = p.event_type === 'Pay in Full' ? 
+          '<span style="color:var(--ok)">Paid</span>' : 
+          '<span style="color:#f59e0b">Partial (Balance due Oct 15)</span>';
+        
+        return `
+          <tr>
+            <td style="padding:.75rem;border-bottom:1px solid var(--line)">${date}</td>
+            <td style="padding:.75rem;border-bottom:1px solid var(--line)">${studentName}</td>
+            <td style="padding:.75rem;border-bottom:1px solid var(--line)">${p.event_type} - ${classTime}</td>
+            <td style="padding:.75rem;border-bottom:1px solid var(--line)">${amount}</td>
+            <td style="padding:.75rem;border-bottom:1px solid var(--line)">${status}</td>
+          </tr>`;
+      }).join('');
     }
 
     /* ====== CHECKOUT ====== */
