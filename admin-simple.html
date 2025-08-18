@@ -1,0 +1,216 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Admin — Simple Data Viewer</title>
+
+  <!-- Supabase client -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+  <style>
+    :root { --bg:#f9fafb; --card:#fff; --ink:#111827; --muted:#6b7280; --line:#e5e7eb; --accent:#111827; }
+    *{box-sizing:border-box} body{margin:0;font-family:Inter,system-ui,Segoe UI,Arial,sans-serif;background:var(--bg);color:var(--ink)}
+    header{position:sticky;top:0;background:var(--card);border-bottom:1px solid var(--line);padding:.75rem 1rem;z-index:10}
+    .wrap{max-width:1200px;margin:0 auto;padding:1rem}
+    .toolbar{display:flex;gap:.5rem;flex-wrap:wrap;align-items:center}
+    select, input, button{border:1px solid var(--line);border-radius:.5rem;padding:.5rem .75rem;font:inherit;background:#fff}
+    button{cursor:pointer} button.primary{background:var(--accent);color:#fff;border-color:var(--accent)}
+    .card{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:1rem}
+    table{width:100%;border-collapse:collapse}
+    th, td{padding:.5rem .75rem;border-bottom:1px solid var(--line);vertical-align:top}
+    th{background:#f3f4f6;text-align:left;white-space:nowrap}
+    .muted{color:var(--muted)} .rowcount{font-size:.875rem;color:var(--muted)}
+    .controls{display:flex;gap:.5rem;align-items:center;justify-content:space-between;margin:.75rem 0}
+    .grid{display:grid;gap:1rem}
+    .error{color:#b91c1c;background:#fee2e2;border:1px solid #fecaca;padding:.5rem .75rem;border-radius:.5rem}
+    .ok{color:#166534;background:#dcfce7;border:1px solid #bbf7d0;padding:.5rem .75rem;border-radius:.5rem}
+    .nowrap{white-space:nowrap}
+    .mono{font-family:ui-monospace, SFMono-Regular, Menlo, Consolas, "Liberation Mono", monospace;}
+  </style>
+</head>
+<body>
+
+<header>
+  <div class="wrap toolbar">
+    <strong>Simple Data Viewer</strong>
+    <span class="muted">• read-only</span>
+    <div style="flex:1"></div>
+    <span id="status" class="muted">Connecting…</span>
+  </div>
+</header>
+
+<main class="wrap grid">
+
+  <div class="card">
+    <div class="toolbar" style="margin-bottom:.5rem">
+      <label>Table
+        <select id="tableSelect">
+          <!-- You can add/remove tables here -->
+          <option value="parents">parents</option>
+          <option value="students" selected>students</option>
+          <option value="class_slots">class_slots</option>
+          <option value="orders">orders</option>
+          <option value="order_items">order_items</option>
+          <option value="enrollments">enrollments</option>
+          <option value="payments">payments</option>
+          <option value="bookings">bookings</option>
+        </select>
+      </label>
+
+      <label>Search
+        <input id="searchInput" placeholder="contains (any field)" />
+      </label>
+
+      <button id="refreshBtn">Refresh</button>
+      <span id="rowCount" class="rowcount"></span>
+
+      <div style="flex:1"></div>
+
+      <label>Rows per page
+        <select id="pageSize">
+          <option>25</option>
+          <option selected>50</option>
+          <option>100</option>
+        </select>
+      </label>
+      <div class="controls">
+        <button id="prevBtn">Prev</button>
+        <span id="pageLabel" class="muted nowrap">Page 1</span>
+        <button id="nextBtn">Next</button>
+      </div>
+    </div>
+
+    <div id="msg"></div>
+
+    <div class="card" style="padding:0">
+      <div style="overflow:auto">
+        <table id="dataTable">
+          <thead><tr id="thead"></tr></thead>
+          <tbody id="tbody"></tbody>
+        </table>
+      </div>
+    </div>
+    <div style="margin-top:.5rem" class="muted mono">Note: all columns are shown by selecting <code>*</code> for the table. Values are displayed as-is.</div>
+  </div>
+
+</main>
+
+<script>
+/* ===========================
+   CONFIG — paste your values
+   =========================== */
+const SUPABASE_URL  = 'https://YOUR_PROJECT.supabase.co';
+const SUPABASE_ANON = 'YOUR_ANON_KEY';
+
+/* ===========================
+   BOOT
+   =========================== */
+const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON);
+const ui = {
+  status:    document.getElementById('status'),
+  table:     document.getElementById('tableSelect'),
+  search:    document.getElementById('searchInput'),
+  refresh:   document.getElementById('refreshBtn'),
+  msg:       document.getElementById('msg'),
+  thead:     document.getElementById('thead'),
+  tbody:     document.getElementById('tbody'),
+  rowCount:  document.getElementById('rowCount'),
+  pageLabel: document.getElementById('pageLabel'),
+  prev:      document.getElementById('prevBtn'),
+  next:      document.getElementById('nextBtn'),
+  pageSize:  document.getElementById('pageSize'),
+};
+
+let state = {
+  table: ui.table.value,
+  page: 1,
+  pageSize: Number(ui.pageSize.value),
+  totalRows: null,
+  lastRows: []
+};
+
+ui.table.addEventListener('change', () => { state.table = ui.table.value; state.page=1; load(); });
+ui.pageSize.addEventListener('change', () => { state.pageSize = Number(ui.pageSize.value); state.page=1; load(); });
+ui.prev.addEventListener('click', () => { if (state.page>1){ state.page--; load(); }});
+ui.next.addEventListener('click', () => { if (state.lastRows.length === state.pageSize){ state.page++; load(); }});
+ui.refresh.addEventListener('click', () => load());
+ui.search.addEventListener('keydown', (e)=>{ if(e.key==='Enter'){ state.page=1; load(); }});
+
+document.addEventListener('DOMContentLoaded', async ()=>{
+  ui.status.textContent = 'Ready';
+  await load();
+});
+
+/* ===========================
+   DATA LOADING
+   =========================== */
+async function load() {
+  ui.msg.innerHTML = '';
+  ui.status.textContent = 'Loading…';
+
+  const from = (state.page-1) * state.pageSize;
+  const to   = from + state.pageSize - 1;
+
+  // Build base query
+  let q = supabase.from(state.table).select('*', { count: 'exact' }).range(from, to);
+
+  // "Contains anywhere" filter: we don't know column types,
+  // so we fetch the page first, then filter client-side if a search is provided.
+  const { data, error, count } = await q;
+
+  if (error) {
+    ui.msg.innerHTML = `<div class="error">Error: ${escapeHtml(error.message)}</div>`;
+    ui.status.textContent = 'Error';
+    ui.thead.innerHTML = '';
+    ui.tbody.innerHTML = '';
+    ui.rowCount.textContent = '';
+    ui.pageLabel.textContent = `Page ${state.page}`;
+    return;
+  }
+
+  let rows = data || [];
+  state.totalRows = typeof count === 'number' ? count : null;
+
+  // client-side search across all fields (contains)
+  const term = (ui.search.value || '').trim().toLowerCase();
+  if (term) {
+    rows = rows.filter(r => Object.values(r ?? {}).some(v => String(v ?? '').toLowerCase().includes(term)));
+  }
+
+  state.lastRows = rows;
+  renderTable(rows);
+  ui.status.textContent = 'Loaded';
+  ui.pageLabel.textContent = `Page ${state.page}`;
+  ui.rowCount.textContent = state.totalRows != null ? `${state.totalRows} total rows` : '';
+}
+
+function renderTable(rows){
+  // Columns: union of keys from current page (covers “all fields” without schema calls)
+  const cols = Array.from(new Set(rows.flatMap(r => Object.keys(r ?? {})))).sort();
+
+  // Headers
+  ui.thead.innerHTML = cols.map(c => `<th>${escapeHtml(c)}</th>`).join('') || '<th class="muted">No columns</th>';
+
+  // Body
+  if (!rows.length) {
+    ui.tbody.innerHTML = `<tr><td class="muted">No rows on this page.</td></tr>`;
+    return;
+  }
+  ui.tbody.innerHTML = rows.map(r => {
+    return `<tr>${cols.map(c => `<td>${formatCell(r[c])}</td>`).join('')}</tr>`;
+  }).join('');
+}
+
+/* ===========================
+   HELPERS
+   =========================== */
+function escapeHtml(s){ return String(s).replace(/[&<>"']/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;','\'':'&#39;'}[m])); }
+function formatCell(v){
+  if (v == null) return '<span class="muted">NULL</span>';
+  if (typeof v === 'object') return `<pre class="mono" style="margin:0;white-space:pre-wrap">${escapeHtml(JSON.stringify(v, null, 2))}</pre>`;
+  return `<span class="mono">${escapeHtml(String(v))}</span>`;
+}
+</script>
+</body>
+</html>
