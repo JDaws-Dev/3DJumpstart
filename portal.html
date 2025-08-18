@@ -1,7 +1,1203 @@
-Couple of notes about UI/UX - 
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Parent Portal – 3D Jumpstart</title>
 
-Select period dropdown is not intuitive. I couldn’t figure out why it wouldn’t let me pay for a second.
+  <!-- Fonts & Scripts -->
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet" />
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.39.3/dist/umd/supabase.min.js"></script>
 
-After successful payment - I’d hide the payment thing when coming back after payment. Bring it back if you add another kid who isn’t enrolled.
+  <style>
+    :root{
+      --brand:#f97316; --brand-2:#fb923c; --brand-3:#ea580c;
+      --ink:#0f172a; --muted:#64748b; --line:#e2e8f0; --bg:#f8fafc; --card:#ffffff;
+      --shadow:0 10px 30px rgba(2,8,23,.08); --radius:18px;
+      --ok:#16a34a; --warn:#ef4444; --indigo:#3730a3;
+    }
+    *{box-sizing:border-box}
+    html,body{height:100%}
+    body{
+      margin:0; font-family:Inter,system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif;
+      color:var(--ink);
+      background:
+        radial-gradient(1200px 500px at -10% -10%, #fff 0, #fff 30%, #fff0 31%) no-repeat,
+        radial-gradient(1200px 500px at 110% -10%, #fff 0, #fff 30%, #fff0 31%) no-repeat,
+        linear-gradient(180deg,#fff, var(--bg));
+      background-attachment: fixed;
+    }
+    .container{max-width:1200px;margin:0 auto;padding:0 20px}
 
-Can you work on these simple fixes?  Propose solutions.  Dont do anything yet.
+    /* Grid utils */
+    .grid{display:grid; gap:12px}
+    .grid-2{display:grid; gap:12px}
+    @media (min-width: 860px){ .grid-2{grid-template-columns:repeat(2,minmax(0,1fr));} }
+
+    /* Header */
+    .portal-header{position:sticky; top:0; z-index:10; backdrop-filter:saturate(1.2) blur(6px);
+      background:linear-gradient(180deg, rgba(255,255,255,.85), rgba(255,255,255,.75));
+      border-bottom:1px solid var(--line);}
+    .header-content{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:14px 0}
+    .logo-wrap{display:flex;align-items:center;gap:14px}
+    .logo-image{height:84px;width:auto;filter:drop-shadow(0 2px 2px rgba(0,0,0,.06))}
+    .user-cluster{display:flex;align-items:center;gap:12px}
+
+    /* Toggle: Parent | Student */
+    .portal-switch{display:flex;gap:6px}
+    .switch-btn{
+      text-decoration:none; text-align:center; padding:.65rem 1rem; border-radius:12px; font-weight:800; font-size:.95rem;
+      border:2px solid var(--line); background:#fff; color:var(--muted); transition:.2s; min-width:150px;
+    }
+    .switch-btn:hover{color:var(--ink)}
+    .switch-btn.active{
+      background:linear-gradient(135deg,var(--brand), var(--brand-3));
+      color:#fff; border-color:transparent; box-shadow:0 8px 20px -6px rgba(234,88,12,.5);
+    }
+
+    /* Title */
+    .page-title{margin:24px 0 18px; font-size:clamp(26px,3vw,34px); font-weight:900; letter-spacing:-.5px;
+      background:linear-gradient(135deg,var(--ink), #1f2937); -webkit-background-clip:text; color:transparent;}
+
+    /* Tabs */
+    .tabs{margin:0 0 18px}
+    .tab-list{list-style:none;display:flex;gap:6px;padding:0;margin:0;flex-wrap:wrap}
+    .tab-button{border:1px solid var(--line); background:#fff; color:var(--muted);
+      padding:.6rem .95rem; border-radius:12px; font-weight:800; cursor:pointer;
+      box-shadow:var(--shadow); transition:.18s transform ease, .18s background ease;}
+    .tab-button:hover{transform:translateY(-1px); color:var(--ink)}
+    .tab-button.active{
+      background:linear-gradient(135deg,#fff, #fff) padding-box,
+                 linear-gradient(135deg, var(--brand), var(--brand-2)) border-box;
+      border:2px solid transparent; color:var(--brand-3);}
+    .tab-content{display:none}
+    .tab-content.active{display:block; animation:fade .2s ease}
+    @keyframes fade{from{opacity:0; transform:translateY(4px)} to{opacity:1; transform:translateY(0)}}
+
+    /* Cards */
+    .card{background:var(--card); border:1px solid var(--line); border-radius:var(--radius); padding:18px; box-shadow:var(--shadow)}
+    .card + .card{margin-top:14px}
+    .card-title{font-size:1.3rem;font-weight:900;margin:0 0 .6rem;letter-spacing:-.2px}
+    .muted{color:var(--muted)}
+
+    /* Banner */
+    .pay-banner{display:flex;align-items:center;justify-content:space-between;gap:12px; padding:14px 16px;border-radius:14px;color:#7c2d12;
+      background:linear-gradient(135deg,#fff7ed 0%, #ffedd5 100%); border:1px solid #fed7aa; font-weight:900;}
+
+    /* Student item */
+    .student-row{display:flex;align-items:flex-start;justify-content:space-between;gap:14px;border:1px solid var(--line); border-radius:14px; padding:14px; background:#fff;}
+    .student-row.enrolled{border-color:#16a34a; background:linear-gradient(135deg, #f0fdf4, #dcfce7);}
+    .student-row.pending{border-color:#f59e0b; background:linear-gradient(135deg, #fffbeb, #fef3c7);}
+    .student-meta{color:var(--muted);line-height:1.7;font-size:.95rem}
+    .student-actions{display:flex;align-items:center;gap:8px}
+
+    /* Status badges */
+    .status-badge{display:inline-flex;align-items:center;gap:6px;padding:4px 10px;border-radius:999px;font-weight:700;font-size:.875rem}
+    .status-enrolled{background:#dcfce7;color:#166534;border:1px solid #16a34a}
+    .status-pending{background:#fef3c7;color:#92400e;border:1px solid #f59e0b}
+
+    /* Enrollment summary */
+    .enrollment-summary{background:linear-gradient(135deg, #eef2ff, #e0e7ff);border:1px solid #c7d2fe;border-radius:14px;padding:16px;margin-bottom:14px}
+    .enrollment-item{padding:8px 0;border-bottom:1px solid #e0e7ff}
+    .enrollment-item:last-child{border-bottom:none}
+
+    /* Success message card */
+    .success-card{background:#dcfce7;border:2px solid #16a34a;border-radius:1rem;padding:2rem;text-align:center;margin-bottom:14px}
+
+    /* Inputs */
+    .field{display:flex;flex-direction:column;gap:.35rem}
+    .label{font-weight:800;font-size:.9rem;color:#334155}
+    .input,.select,.textarea{width:100%; border:1px solid var(--line); background:#fff; padding:.65rem .75rem; border-radius:12px; font:inherit; outline:none; transition:border .12s;}
+    .input:focus,.select:focus,.textarea:focus{border-color:#cbd5e1; box-shadow:0 0 0 4px rgba(251,146,60,.18)}
+    .select:disabled{background:#f3f4f6;color:#9ca3af;cursor:not-allowed}
+    .select.highlight{border:2px solid #ea580c; background:#fffbeb;}
+
+    /* Buttons */
+    .btn{appearance:none;border:0;border-radius:12px;padding:.7rem 1rem;font-weight:900;font-size:.95rem;cursor:pointer;display:inline-flex;align-items:center;gap:.45rem;text-decoration:none}
+    .btn-primary{color:#fff;background:linear-gradient(135deg,var(--brand) 0%, var(--brand-3) 100%);box-shadow:0 10px 18px -8px rgba(234,88,12,.55)}
+    .btn-primary:hover{transform:translateY(-1px)}
+    .btn-secondary{color:#fff;background:#334155}
+    .btn-muted{background:#e2e8f0;color:#334155}
+    .btn-danger{background:#ef4444;color:#fff}
+    .btn[disabled]{opacity:.45;cursor:not-allowed}
+
+    /* Badge & Pill */
+    .badge{display:inline-block;padding:.2rem .55rem;border-radius:999px;font-size:.78rem;font-weight:900}
+    .badge-good{background:#dcfce7;color:#166534;border:1px solid #16a34a}
+    .badge-warn{background:#fee2e2;color:#991b1b;border:1px solid #ef4444}
+    .pill{display:inline-flex;align-items:center;gap:.55rem;padding:.35rem .6rem;background:#eef2ff;border-radius:999px;border:1px solid #c7d2fe;color:#3730a3;font-weight:900}
+
+    /* Added indicator */
+    .added-indicator{
+      display:inline-block;
+      padding:0.25rem 0.75rem;
+      background:#16a34a;
+      color:white;
+      border-radius:999px;
+      font-size:0.875rem;
+      font-weight:600;
+      margin-left:0.5rem;
+      animation:slideIn 0.3s ease;
+    }
+    @keyframes slideIn{
+      from{opacity:0; transform:translateX(-10px)}
+      to{opacity:1; transform:translateX(0)}
+    }
+
+    /* Totals */
+    .totals-wrap{display:grid;grid-template-columns:repeat(1,minmax(0,1fr));gap:12px;margin-top:12px}
+    @media (min-width: 720px){ .totals-wrap{grid-template-columns:repeat(2,minmax(0,1fr));} }
+    .total-card{border:1px solid var(--line);border-radius:14px;padding:14px;background:#fff;display:grid;grid-template-columns:auto 1fr;gap:10px;align-items:start;box-shadow:var(--shadow)}
+    .total-ico{width:40px;height:40px;border-radius:10px;display:grid;place-items:center}
+    .ico-full{background:rgba(22,163,74,.12); color:var(--ok); border:1px solid rgba(22,163,74,.25)}
+    .ico-half{background:rgba(55,48,163,.12); color:var(--indigo); border:1px solid rgba(55,48,163,.25)}
+    .total-title{font-weight:900}
+    .total-rows{display:grid;gap:4px;font-size:.95rem}
+    .row{display:flex;justify-content:space-between}
+    .em{font-weight:900}
+
+    /* Toast */
+    .toast{
+      position:fixed; right:18px; bottom:18px; z-index:60; min-width:220px;
+      background:#111827; color:#fff; padding:12px 14px; border-radius:12px; box-shadow:0 20px 40px rgba(2,8,23,.35);
+      display:none; align-items:center; gap:10px;
+    }
+    .toast.show{display:flex; animation:toast-in .25s ease forwards}
+    .toast.hide{animation:toast-out .2s ease forwards}
+    @keyframes toast-in{from{opacity:0; transform:translateY(10px)} to{opacity:1; transform:translateY(0)}}
+    @keyframes toast-out{to{opacity:0; transform:translateY(10px)}}
+
+    /* Animations */
+    .pop-in{animation:pop-in .22s ease}
+    @keyframes pop-in{from{transform:scale(.98); opacity:0} to{transform:scale(1); opacity:1}}
+
+    /* Modal */
+    .modal-backdrop{
+      position:fixed; inset:0; background:rgba(2,8,23,.45); display:none;
+      align-items:center; justify-content:center; padding:18px; z-index:80;
+    }
+    .modal-backdrop.show{display:flex}
+    .modal{
+      width:100%; max-width:680px; background:#fff; border-radius:20px; padding:18px;
+      box-shadow:0 30px 80px rgba(2,8,23,.35); border:1px solid var(--line)
+    }
+  </style>
+</head>
+<body>
+  <!-- Toast -->
+  <div id="toast" class="toast" role="status" aria-live="polite">
+    <span id="toastIcon" style="font-size:18px">✅</span>
+    <span id="toastMsg">Added to cart</span>
+  </div>
+
+  <!-- Header -->
+  <header class="portal-header">
+    <div class="container">
+      <div class="header-content">
+        <div class="logo-wrap">
+          <img src="https://raw.githubusercontent.com/JDaws-Dev/3DJumpstart/main/3d-jumpstart-logo.png" alt="3D Jumpstart" class="logo-image" />
+          <div class="portal-switch">
+            <a href="portal.html" class="switch-btn active">Parent Portal</a>
+            <a href="student-portal.html" class="switch-btn">Student Portal</a>
+          </div>
+        </div>
+
+        <div class="user-cluster">
+          <span id="parent-name" class="muted">Loading…</span>
+          <button class="btn btn-secondary" id="logoutBtn" type="button">Logout</button>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <main class="container">
+    <h1 class="page-title">Welcome to Your Parent Portal</h1>
+
+    <!-- Tabs -->
+    <nav class="tabs">
+      <ul class="tab-list">
+        <li><button class="tab-button active" data-tab="students" type="button">My Students</button></li>
+        <li><button class="tab-button" data-tab="class-info" type="button">Class Information</button></li>
+        <li><button class="tab-button" data-tab="support" type="button">Support Services</button></li>
+        <li><button class="tab-button" data-tab="billing" type="button">Billing</button></li>
+        <li><button class="tab-button" data-tab="contact" type="button">Contact</button></li>
+      </ul>
+    </nav>
+
+    <!-- Students -->
+    <section id="tab-students" class="tab-content active">
+      <!-- Active Enrollments Summary -->
+      <div id="enrollmentSummary" class="enrollment-summary" style="display:none">
+        <h3 style="margin:0 0 12px;font-size:1.1rem">Active Enrollments</h3>
+        <div id="enrollmentList"></div>
+      </div>
+
+      <!-- Success Message Card -->
+      <div id="allEnrolledMessage" class="success-card" style="display:none">
+        <h3 style="color:#166534;margin-bottom:0.5rem;">✅ All Students Enrolled!</h3>
+        <p style="color:#166534;">Want to enroll another child? Click "Add Student" above.</p>
+      </div>
+
+      <div class="card">
+        <div style="display:flex;align-items:center;justify-content:space-between;gap:12px;">
+          <h2 class="card-title" style="margin:0">Your Students</h2>
+          <button class="btn btn-primary" id="addStudentBtn" type="button">+ Add Student</button>
+        </div>
+        <div id="studentsList" class="grid" style="margin-top:12px;"></div>
+      </div>
+
+      <div id="paymentCard" class="card">
+        <div class="pay-banner">
+          <span>Level 1 • 12-week course • $60/class</span>
+          <span style="font-weight:900;">List total: $720</span>
+        </div>
+
+        <div style="display:flex;align-items:flex-start;gap:16px;justify-content:space-between;margin-top:14px;flex-wrap:wrap">
+          <div style="min-width:280px;flex:1">
+            <h3 class="card-title" style="margin:.1rem 0 .3rem">Payment Options</h3>
+            <ul class="muted" style="margin:.25rem 0 0; padding-left:1rem; line-height:1.75">
+              <li>Pick a class period for each student, then add to cart.</li>
+              <li><strong>Pay in Full:</strong> <strong>$670</strong> per student (save $50 vs $720 list).</li>
+              <li><strong>Pay Half Now:</strong> $360 per student now; remainder due <strong>Oct 15</strong>.</li>
+              <li><strong>Sibling discount:</strong> $50 off the second child (applies once).</li>
+            </ul>
+          </div>
+          <div style="text-align:right;min-width:120px">
+            <span class="pill">Cart: <span id="cartCount">0</span></span>
+          </div>
+        </div>
+
+        <div id="cartList" class="grid" style="margin:12px 0;"></div>
+
+        <!-- Totals -->
+        <div class="totals-wrap" id="totalsWrap"></div>
+
+        <div class="student-actions" style="gap:10px;margin-top:12px;flex-wrap:wrap">
+          <button id="payFullBtn" class="btn btn-primary" type="button" disabled>Pay In Full</button>
+          <button id="payHalfBtn" class="btn btn-secondary" type="button" disabled>Pay Half Now</button>
+        </div>
+      </div>
+    </section>
+
+    <!-- Class Information -->
+    <section id="tab-class-info" class="tab-content">
+      <div class="card">
+        <h2 class="card-title">Location</h2>
+        <div class="muted" style="font-size:1.05rem;">
+          <strong>Shadowbrook Church</strong><br/>4187 Suwanee Dam Rd NW, Suwanee, GA 30024
+        </div>
+      </div>
+
+      <div class="card">
+        <h2 class="card-title">Level 1 Schedule (12 Weeks)</h2>
+        <ul class="muted" style="line-height:1.9; margin:0 0 1rem;">
+          <li>Tuesday 4:30–5:30 <span class="muted">(Grades 4–7)</span></li>
+          <li>Tuesday 5:30–6:30 <span class="muted">(Grades 8–12)</span></li>
+        </ul>
+
+        <!-- 12-Week Dates -->
+        <div style="margin-top:1rem; padding:1rem; border-radius:12px; background:#fffbeb; border:1px solid #f4e5b9;">
+          <h3 class="card-title" style="font-size:1.05rem;margin-bottom:.5rem;">12-Week Dates</h3>
+          <div class="grid" style="grid-template-columns:repeat(3,minmax(0,1fr));gap:8px">
+            <div class="btn-muted" style="padding:.5rem .6rem;border-radius:10px">Week 1 – Sep 9</div>
+            <div class="btn-muted" style="padding:.5rem .6rem;border-radius:10px">Week 2 – Sep 16</div>
+            <div class="btn-muted" style="padding:.5rem .6rem;border-radius:10px">Week 3 – Sep 23</div>
+            <div class="btn-muted" style="padding:.5rem .6rem;border-radius:10px">Week 4 – Sep 30</div>
+            <div class="btn-muted" style="padding:.5rem .6rem;border-radius:10px">Week 5 – Oct 7</div>
+            <div class="btn-muted" style="padding:.5rem .6rem;border-radius:10px">Week 6 – Oct 14</div>
+            <div class="btn-muted" style="padding:.5rem .6rem;border-radius:10px">Week 7 – Oct 21</div>
+            <div class="btn-muted" style="padding:.5rem .6rem;border-radius:10px">Week 8 – Oct 28</div>
+            <div class="btn-muted" style="padding:.5rem .6rem;border-radius:10px">Week 9 – Nov 4</div>
+            <div class="btn-muted" style="padding:.5rem .6rem;border-radius:10px">Week 10 – Nov 11</div>
+            <div class="btn-muted" style="padding:.5rem .6rem;border-radius:10px">Week 11 – Nov 18</div>
+            <div class="btn-muted" style="padding:.5rem .6rem;border-radius:10px">Week 12 – Dec 2</div>
+          </div>
+          <div class="muted" style="margin-top:.5rem;"><strong>Note:</strong> No class on <strong>Nov 25</strong> (Thanksgiving Break).</div>
+        </div>
+      </div>
+
+      <div class="card">
+        <h2 class="card-title">What Your Student Needs</h2>
+        <p class="muted" style="font-size:1.05rem;">
+          <strong>Computers are provided</strong>—no laptop needed.
+        </p>
+        <p class="muted">
+          <strong>Software:</strong> We use Autodesk Fusion 360. It's <strong>free for students</strong> through Autodesk's education program.
+        </p>
+        <p class="muted">
+          <strong>Required Supply:</strong> Imperial (inch) Digital or Dial Calipers.
+        </p>
+        <a href="https://a.co/d/7BT1kL0" target="_blank" class="btn btn-primary" style="width:max-content;">View Recommended Calipers →</a>
+      </div>
+    </section>
+
+    <!-- Support Services -->
+    <section id="tab-support" class="tab-content">
+      <div class="card">
+        <h2 class="card-title">Professional 3D Printer Support (Available Now)</h2>
+        <p class="muted" style="margin-bottom:10px;">
+          We offer <strong>at-home Bambu Lab printer</strong> services. <strong>Bambu printers only</strong> at this time.
+          Email us to schedule—slots are limited.
+        </p>
+
+        <div class="grid-2">
+          <div class="card" style="border:1px dashed var(--line);background:#fafafa">
+            <h3 class="card-title">Printer Setup Service</h3>
+            <p class="muted">We come to you and set up your Bambu printer.</p>
+            <ul class="muted" style="line-height:1.7;">
+              <li>Assembly & calibration</li>
+              <li>Software install (Bambu Studio)</li>
+              <li>First print guaranteed</li>
+            </ul>
+            <p class="muted" style="margin:.25rem 0 0;"><em>Note: $150 fee <strong>does not include the printer</strong>.</em></p>
+            <strong style="color:var(--brand-3); display:block; margin-top:.35rem;">$150</strong>
+          </div>
+
+          <div class="card" style="border:1px dashed var(--line);background:#fafafa">
+            <h3 class="card-title">Troubleshooting / Optimization Visit</h3>
+            <p class="muted">Fix issues, perform maintenance, and tune for better results.</p>
+            <ul class="muted" style="line-height:1.7;">
+              <li>Diagnose & resolve printing problems</li>
+              <li>Material profiles & tips</li>
+              <li>Advanced training as needed</li>
+            </ul>
+            <strong style="color:var(--brand-3); display:block; margin-top:.35rem;">$100</strong>
+          </div>
+        </div>
+
+        <a class="btn btn-primary" href="mailto:jeremiah@3djumpstart.com" style="margin-top:12px">Email to Book a Visit</a>
+        <p class="muted" style="margin:.6rem 0 0;">Service area limited; email for availability.</p>
+      </div>
+    </section>
+
+    <!-- Billing -->
+    <section id="tab-billing" class="tab-content">
+      <div class="card">
+        <h2 class="card-title">Billing & Payments</h2>
+        <div id="paymentBox"></div>
+        <table style="width:100%;border-collapse:collapse">
+          <thead>
+            <tr>
+              <th style="text-align:left;padding:.75rem;border-bottom:1px solid var(--line)">Date</th>
+              <th style="text-align:left;padding:.75rem;border-bottom:1px solid var(--line)">Student</th>
+              <th style="text-align:left;padding:.75rem;border-bottom:1px solid var(--line)">Description</th>
+              <th style="text-align:left;padding:.75rem;border-bottom:1px solid var(--line)">Amount</th>
+              <th style="text-align:left;padding:.75rem;border-bottom:1px solid var(--line)">Status</th>
+            </tr>
+          </thead>
+          <tbody id="billingTable">
+            <tr><td colspan="5" style="padding:.75rem;border-bottom:1px solid var(--line);text-align:center;color:var(--muted)">Loading payments...</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- Contact -->
+    <section id="tab-contact" class="tab-content">
+      <div class="card" style="background:linear-gradient(135deg,#ffedd5 0%, #fdba74 100%); color:#7c2d12; border:0;">
+        <h2 class="card-title" style="color:#7c2d12">Questions? Reach out anytime!</h2>
+        <p><strong>Jeremiah Daws</strong> • 3D Jumpstart Instructor</p>
+        <p>📧 <a style="color:#7c2d12; font-weight:900;" href="mailto:jeremiah@3djumpstart.com">jeremiah@3djumpstart.com</a></p>
+        <p>📱 <a style="color:#7c2d12; font-weight:900;" href="tel:310-845-5702">310-845-5702</a></p>
+      </div>
+    </section>
+  </main>
+
+  <!-- Modal -->
+  <div id="studentModal" class="modal-backdrop">
+    <div class="modal" role="dialog" aria-modal="true" aria-labelledby="modalTitle">
+      <div style="display:flex;align-items:center;justify-content:space-between;gap:10px;">
+        <h3 class="card-title" id="modalTitle" style="margin:0;">Add Student</h3>
+        <button class="btn btn-muted" id="closeModalBtn" type="button">Close</button>
+      </div>
+
+      <div class="grid-2" style="margin-top:10px;">
+        <div class="field">
+          <label class="label" for="firstName">First Name</label>
+          <input id="firstName" class="input" />
+        </div>
+        <div class="field">
+          <label class="label" for="lastName">Last Name</label>
+          <input id="lastName" class="input" />
+        </div>
+        <div class="field">
+          <label class="label" for="age">Age</label>
+          <select id="age" class="select"></select>
+        </div>
+        <div class="field">
+          <label class="label" for="grade">Grade</label>
+          <select id="grade" class="select"></select>
+        </div>
+        <div class="field">
+          <label class="label" for="experience">Prior Experience</label>
+          <select id="experience" class="select">
+            <option value="Beginner">Beginner</option>
+            <option value="Some Experience">Some Experience</option>
+            <option value="Advanced">Advanced</option>
+          </select>
+        </div>
+        <div class="field" style="grid-column:1/-1;">
+          <label class="label" for="special">Special Considerations</label>
+          <textarea id="special" class="textarea" placeholder="Allergies, learning accommodations, etc."></textarea>
+        </div>
+      </div>
+
+      <div style="margin-top:12px; display:flex; gap:8px; justify-content:flex-end;">
+        <button class="btn btn-muted" id="cancelBtn" type="button">Cancel</button>
+        <button class="btn btn-primary" id="saveStudentBtn" type="button">Save Student</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    /* ====== CONFIG ====== */
+    const SUPABASE_URL = 'https://hucjmggkasahwpjgnwia.supabase.co';
+    const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imh1Y2ptZ2drYXNhaHdwamdud2lhIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTQ2MTI2MDIsImV4cCI6MjA3MDE4ODYwMn0.hxFmoZexaKverih9crJfP9fjWItOTfC_6D_CM7hr_Rg';
+    const CREATE_CHECKOUT_URL = 'https://hucjmggkasahwpjgnwia.supabase.co/functions/v1/create-checkout';
+
+    const sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+    // Class periods (Level 1)
+    const CLASS_PERIODS = [
+      { id:'tue_430', label:'Tuesday 4:30–5:30 (Grades 4–7)', time:'Tuesday 4:30–5:30', level:'Level 1', gradeMin:4, gradeMax:7 },
+      { id:'tue_530', label:'Tuesday 5:30–6:30 (Grades 8–12)', time:'Tuesday 5:30–6:30', level:'Level 1', gradeMin:8, gradeMax:12 },
+    ];
+
+    // Dropdown options
+    const AGE_OPTIONS = Array.from({length:11}, (_,i)=>8+i); // 8..18
+    const GRADE_OPTIONS = ['3rd','4th','5th','6th','7th','8th','9th','10th','11th','12th'];
+
+    // Pricing
+    const PRICE_LIST_PER = 720;   // 12 x $60
+    const PRICE_FULL_PER = 670;   // pay in full
+    const PRICE_HALF_NOW = 360;   // due now per student
+    const SIBLING_DISCOUNT = 50;  // one-time off second child
+
+    /* ====== STATE ====== */
+    let currentUser = null;
+    let editingId = null;
+    let allEnrollments = []; // Track all enrollments including paid ones
+
+    /* ====== HELPERS ====== */
+    function gradeToNum(gradeStr){
+      const n = parseInt(String(gradeStr).replace(/\D+/g,''), 10);
+      return isNaN(n) ? null : n;
+    }
+    
+    function allowedPeriodsForGrade(gradeStr){
+      const g = gradeToNum(gradeStr);
+      if (g==null) return [];
+      return CLASS_PERIODS.filter(p => g>=p.gradeMin && g<=p.gradeMax);
+    }
+    
+    function periodById(id){ 
+      return CLASS_PERIODS.find(p=>p.id===id); 
+    }
+
+    function isUuid(v){
+      return typeof v === 'string' &&
+        /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(v);
+    }
+
+    /* ====== AUTH BOOT ====== */
+    document.addEventListener('DOMContentLoaded', () => {
+      (async () => {
+        const { data: { session } } = await sb.auth.getSession();
+        if (!session){ 
+          window.location.href = 'login.html'; 
+          return; 
+        }
+        currentUser = session.user;
+        document.getElementById('parent-name').textContent = currentUser.email || 'Parent';
+
+        bindUI();
+        populateDropdowns();
+        await render();
+      })().catch(console.error);
+    });
+
+    document.getElementById('logoutBtn').addEventListener('click', async () => {
+      await sb.auth.signOut();
+      window.location.href = 'login.html';
+    });
+
+    /* ====== UI & TABS ====== */
+    function bindUI(){
+      document.querySelectorAll('.tab-button').forEach(btn=>{
+        btn.addEventListener('click', () => {
+          document.querySelectorAll('.tab-button').forEach(b=>b.classList.remove('active'));
+          btn.classList.add('active');
+          document.querySelectorAll('.tab-content').forEach(c=>c.classList.remove('active'));
+          document.getElementById('tab-'+btn.dataset.tab).classList.add('active');
+          
+          // Load billing when tab is clicked
+          if(btn.dataset.tab === 'billing') {
+            loadBilling();
+          }
+        });
+      });
+
+      document.getElementById('addStudentBtn').addEventListener('click', () => openModal());
+      document.getElementById('closeModalBtn').addEventListener('click', closeModal);
+      document.getElementById('cancelBtn').addEventListener('click', closeModal);
+      document.getElementById('saveStudentBtn').addEventListener('click', saveStudentFromModal);
+
+      document.getElementById('studentModal').addEventListener('click', (e) => {
+        if (e.target.id === 'studentModal') closeModal();
+      });
+
+      document.getElementById('payFullBtn').addEventListener('click', () => startCheckout('full'));
+      document.getElementById('payHalfBtn').addEventListener('click', () => startCheckout('half'));
+    }
+
+    function populateDropdowns(){
+      const age = document.getElementById('age');
+      AGE_OPTIONS.forEach(v=>{ 
+        const o=document.createElement('option'); 
+        o.value=v; 
+        o.textContent=v; 
+        age.appendChild(o); 
+      });
+      
+      const grade = document.getElementById('grade');
+      GRADE_OPTIONS.forEach(v=>{ 
+        const o=document.createElement('option'); 
+        o.value=v; 
+        o.textContent=v; 
+        grade.appendChild(o); 
+      });
+    }
+
+    /* ====== SUPABASE: STUDENTS ====== */
+    async function sbListStudents() {
+      const { data, error } = await sb.from('students')
+        .select('*')
+        .eq('parent_id', currentUser.id)
+        .order('created_at');
+      if (error) throw error;
+      return data || [];
+    }
+
+    async function sbSaveStudent(row) {
+      const base = {
+        parent_id: currentUser.id,
+        first_name: row.first_name,
+        last_name: row.last_name,
+        age: Number(row.age),
+        grade: row.grade,
+        experience: row.experience,
+        special: row.special || null,
+      };
+
+      let resp;
+      if (row.id) {
+        resp = await sb.from('students').update(base).eq('id', row.id).select().maybeSingle();
+      } else {
+        resp = await sb.from('students').insert(base).select().maybeSingle();
+      }
+      
+      const { data, error } = resp;
+      if (error) {
+        console.error('students upsert error:', error);
+        alert('Could not save student: ' + (error.message || JSON.stringify(error)));
+        throw error;
+      }
+      return data;
+    }
+
+    async function sbDeleteStudent(studentId) {
+      // Check if student has paid enrollments
+      const hasEnrollment = allEnrollments.find(e => 
+        e.student_id === studentId && 
+        (e.status === 'enrolled' || e.status === 'pending')
+      );
+      
+      if(hasEnrollment) {
+        alert('Cannot remove enrolled students. Please contact jeremiah@3djumpstart.com for refunds or changes.');
+        return false;
+      }
+      
+      const { error } = await sb.from('students').delete().eq('id', studentId);
+      if (error) throw error;
+      return true;
+    }
+
+    /* ====== SUPABASE: ENROLLMENTS ====== */
+    async function sbUpsertEnrollment(student, classPeriodId) {
+      // Check if student already has an active enrollment
+      const existingEnrollment = allEnrollments.find(e => 
+        e.student_id === student.id && 
+        (e.status === 'enrolled' || e.status === 'pending')
+      );
+      
+      if(existingEnrollment) {
+        alert(`${student.first_name} is already enrolled in ${existingEnrollment.class_time}. Contact us to make changes.`);
+        return null;
+      }
+
+      const p = periodById(classPeriodId);
+      const season = 'Fall 2025';
+
+      // Look for existing cart enrollment
+      const { data: existing, error: findErr } = await sb
+        .from('enrollments')
+        .select('id')
+        .eq('student_id', student.id)
+        .eq('season', season)
+        .eq('status', 'cart')
+        .maybeSingle();
+      
+      if (findErr && findErr.code !== 'PGRST116') throw findErr;
+
+      const base = {
+        parent_id: currentUser.id,
+        student_id: student.id,
+        level: 'Level 1',
+        season,
+        class_period_id: p?.id ?? null,
+        class_time: p?.time ?? null,
+        payment_plan: 'full',
+        amount_list: PRICE_LIST_PER,
+        status: 'cart'
+      };
+
+      if (existing?.id) {
+        const { error: upErr } = await sb.from('enrollments').update(base).eq('id', existing.id);
+        if (upErr) throw upErr;
+        return { id: existing.id, ...base };
+      } else {
+        const { data, error: insErr } = await sb.from('enrollments').insert(base).select().single();
+        if (insErr) throw insErr;
+        return data;
+      }
+    }
+
+    async function sbListCart() {
+      const { data, error } = await sb
+        .from('enrollments')
+        .select('*')
+        .eq('parent_id', currentUser.id)
+        .eq('status', 'cart')
+        .not('class_period_id', 'is', null)
+        .order('created_at');
+      if (error) throw error;
+      return data || [];
+    }
+
+    async function sbListAllEnrollments() {
+      const { data, error } = await sb
+        .from('enrollments')
+        .select('*')
+        .eq('parent_id', currentUser.id)
+        .order('created_at');
+      if (error) throw error;
+      return data || [];
+    }
+
+    /* ====== RENDER ====== */
+    async function render() {
+      const [students, cart, enrollments] = await Promise.all([
+        sbListStudents(), 
+        sbListCart(),
+        sbListAllEnrollments()
+      ]);
+      allEnrollments = enrollments;
+      renderEnrollmentSummary(enrollments, students);
+      renderStudents(students, enrollments);
+      renderCart(cart, students);
+      updateTotals(cart);
+      updatePaymentCardVisibility(students, cart, enrollments);
+    }
+
+    function updatePaymentCardVisibility(students, cart, enrollments) {
+      const paymentCard = document.getElementById('paymentCard');
+      const successMessage = document.getElementById('allEnrolledMessage');
+      
+      // Check if all students are enrolled
+      const allEnrolled = students.length > 0 && students.every(s => 
+        enrollments.find(e => e.student_id === s.id && ['enrolled', 'pending'].includes(e.status))
+      );
+      
+      if (cart.length > 0) {
+        // Show payment card if there are items in cart
+        paymentCard.style.display = 'block';
+        successMessage.style.display = 'none';
+      } else if (allEnrolled) {
+        // Hide payment card and show success message if all enrolled
+        paymentCard.style.display = 'none';
+        successMessage.style.display = 'block';
+      } else {
+        // Hide both if no cart and not all enrolled
+        paymentCard.style.display = 'none';
+        successMessage.style.display = 'none';
+      }
+    }
+
+    function renderEnrollmentSummary(enrollments, students) {
+      const activeEnrollments = enrollments.filter(e => 
+        e.status === 'enrolled' || e.status === 'pending'
+      );
+
+      const summaryDiv = document.getElementById('enrollmentSummary');
+      const listDiv = document.getElementById('enrollmentList');
+
+      if(activeEnrollments.length === 0) {
+        summaryDiv.style.display = 'none';
+        return;
+      }
+
+      summaryDiv.style.display = 'block';
+      listDiv.innerHTML = activeEnrollments.map(e => {
+        const student = students.find(s => s.id === e.student_id);
+        const statusText = e.status === 'enrolled' ? '✓ Enrolled' : '⏳ Pending (Pay by Oct 15)';
+        const statusClass = e.status === 'enrolled' ? 'status-enrolled' : 'status-pending';
+        
+        return `
+          <div class="enrollment-item">
+            <strong>${student ? student.first_name + ' ' + student.last_name : 'Student'}</strong> - 
+            ${e.class_time || 'Time TBD'} 
+            <span class="status-badge ${statusClass}">${statusText}</span>
+          </div>
+        `;
+      }).join('');
+    }
+
+    function renderStudents(list, enrollments){
+      const wrap = document.getElementById('studentsList');
+
+      if (!list.length){
+        wrap.innerHTML = `
+          <div class="card pop-in" style="text-align:center;background:#f8fafc;border:1px dashed var(--line)">
+            <p class="muted" style="margin:.25rem 0 1rem;">No students yet.</p>
+            <button class="btn btn-primary" type="button" onclick="openModal()">+ Add Your First Student</button>
+          </div>`;
+        return;
+      }
+
+      wrap.innerHTML = list.map(s=>{
+        // Check if student has active enrollment
+        const enrollment = enrollments.find(e => 
+          e.student_id === s.id && 
+          (e.status === 'enrolled' || e.status === 'pending')
+        );
+        
+        const isEnrolled = !!enrollment;
+        const rowClass = isEnrolled ? (enrollment.status === 'enrolled' ? 'enrolled' : 'pending') : '';
+        
+        const allowed = allowedPeriodsForGrade(s.grade);
+        
+        let enrollmentContent = '';
+        if(isEnrolled) {
+          const statusBadge = enrollment.status === 'enrolled' ? 
+            '<span class="status-badge status-enrolled">✓ Enrolled</span>' : 
+            '<span class="status-badge status-pending">⏳ Pending Payment</span>';
+          
+          enrollmentContent = `
+            <div class="field" style="margin-top:.4rem;">
+              <div class="label">Enrolled in Level 1</div>
+              <div style="padding:10px;background:#f9fafb;border-radius:8px;margin-top:4px">
+                <strong>${enrollment.class_time}</strong> ${statusBadge}
+              </div>
+              <div class="muted" style="margin-top:8px;font-size:0.875rem">
+                Contact jeremiah@3djumpstart.com for any changes
+              </div>
+            </div>
+          `;
+        } else {
+          let options = `<option value="">➕ Select Class Time to Add to Cart</option>`;
+          options += allowed.map(p=>`<option value="${p.id}">${p.label}</option>`).join('');
+          
+          enrollmentContent = `
+            <div class="field" style="margin-top:.4rem;max-width:420px">
+              <label class="label" style="color:#ea580c;font-weight:700;">Select Class Time (adds to cart automatically)</label>
+              <select class="select classSelect highlight" data-student="${s.id}">
+                ${options}
+              </select>
+              <div class="muted" style="margin-top:0.5rem;font-size:0.875rem;">
+                Select a time slot above to add this student to your cart
+              </div>
+              ${!allowed.length ? `<div class="muted" style="margin-top:.35rem;">No class available for grade <strong>${s.grade}</strong>.</div>` : ''}
+              <div id="added-${s.id}" style="display:none;" class="added-indicator">✓ Added to cart!</div>
+            </div>
+          `;
+        }
+
+        const removeButton = isEnrolled ? 
+          `<span class="muted" style="font-size:0.875rem">Contact us for changes</span>` :
+          `<button class="btn btn-danger btn-remove" data-id="${s.id}" type="button">Remove</button>`;
+
+        return `
+          <div class="student-row ${rowClass} pop-in" data-id="${s.id}">
+            <div>
+              <div style="display:flex;align-items:center;gap:.5rem">
+                <div style="font-weight:900;font-size:1.05rem">${s.first_name} ${s.last_name}</div>
+              </div>
+              <div class="student-meta">
+                Age ${s.age} • Grade ${s.grade} • ${s.experience}
+                ${s.special ? `<br/><span class="muted">Notes:</span> ${escapeHtml(s.special)}` : ''}
+              </div>
+              ${enrollmentContent}
+            </div>
+            <div class="student-actions">
+              <button class="btn btn-muted btn-edit" data-id="${s.id}" type="button">Edit</button>
+              ${removeButton}
+            </div>
+          </div>`;
+      }).join('');
+
+      // Wire selects & buttons with improved UX
+      wrap.querySelectorAll('.classSelect').forEach(sel => {
+        sel.addEventListener('change', async (e) => {
+          const studentId = e.target.getAttribute('data-student');
+          const period = e.target.value;
+          if (!period) return;
+          
+          const { data: student } = await sb.from('students').select('*').eq('id', studentId).single();
+          const allowed = allowedPeriodsForGrade(student.grade).map(p=>p.id);
+          
+          if (!allowed.includes(period)) {
+            alert(`Selected class period isn't available for grade ${student.grade}.`);
+            e.target.value = '';
+            return;
+          }
+          
+          const result = await sbUpsertEnrollment(student, period);
+          if(result) {
+            // Show added indicator briefly
+            const indicator = document.getElementById(`added-${studentId}`);
+            if (indicator) {
+              indicator.style.display = 'inline-block';
+              setTimeout(() => {
+                indicator.style.display = 'none';
+              }, 2000);
+            }
+            
+            toast('Added to cart');
+            await render();
+          }
+        });
+      });
+
+      wrap.querySelectorAll('.btn-edit').forEach(btn=>{
+        btn.addEventListener('click', () => openModal(btn.dataset.id));
+      });
+      
+      wrap.querySelectorAll('.btn-remove').forEach(btn=>{
+        btn.addEventListener('click', async () => {
+          if(!confirm('Remove this student?')) return;
+          const deleted = await sbDeleteStudent(btn.dataset.id);
+          if(deleted) {
+            await render();
+          }
+        });
+      });
+    }
+
+    function renderCart(cart, students){
+      const wrap=document.getElementById('cartList');
+      document.getElementById('cartCount').textContent = cart.length;
+
+      if(!cart.length){ 
+        wrap.innerHTML=`<div class="muted">Your cart is empty.</div>`; 
+        updatePayButtons(false); 
+        return; 
+      }
+
+      wrap.innerHTML = cart.map(e=>{
+        const s = students.find(x=>x.id===e.student_id);
+        return `
+          <div class="student-row pop-in">
+            <div>
+              <div style="font-weight:900">${s ? `${s.first_name} ${s.last_name}` : 'Student'}</div>
+              <div class="muted">Class (Level 1): ${e.class_time || '<em>Not selected</em>'}</div>
+            </div>
+            <div class="student-actions">
+              <button class="btn btn-muted" type="button" onclick="openModal('${e.student_id}')">Edit</button>
+              <button class="btn btn-danger" type="button" onclick="removeFromCart('${e.id}')">Remove</button>
+            </div>
+          </div>`;
+      }).join('');
+
+      const allHavePeriod = cart.every(e=>!!e.class_period_id);
+      updatePayButtons(allHavePeriod && cart.length>0);
+    }
+
+    function updatePayButtons(enable){
+      document.getElementById('payFullBtn').disabled = !enable;
+      document.getElementById('payHalfBtn').disabled = !enable;
+    }
+
+    /* ====== LIVE TOTALS ====== */
+    function updateTotals(cart){
+      const wrap=document.getElementById('totalsWrap');
+      const count=cart.length;
+
+      const sibling = count>=2 ? SIBLING_DISCOUNT : 0;
+
+      const fullSubtotal = count*PRICE_FULL_PER;
+      const fullTotal = Math.max(0, fullSubtotal - sibling);
+
+      const halfTotal = count*PRICE_LIST_PER - sibling;
+      const halfNow = count*PRICE_HALF_NOW;
+      const halfLater = Math.max(0, halfTotal - halfNow);
+
+      if(count===0){ 
+        wrap.innerHTML=''; 
+        return; 
+      }
+
+      wrap.innerHTML = `
+        <div class="total-card pop-in">
+          <div class="total-ico ico-full">💳</div>
+          <div>
+            <div class="total-title">Pay in Full</div>
+            <div class="total-rows">
+              <div class="row"><div>Students × $${PRICE_FULL_PER}</div><div>$${fullSubtotal}</div></div>
+              ${sibling ? `<div class="row"><div>Sibling discount (one time)</div><div>−$${SIBLING_DISCOUNT}</div></div>`:''}
+              <div class="row em"><div>Final Total</div><div>$${fullTotal}</div></div>
+            </div>
+          </div>
+        </div>
+
+        <div class="total-card pop-in">
+          <div class="total-ico ico-half">🗓️</div>
+          <div>
+            <div class="total-title">Pay Half Now</div>
+            <div class="total-rows">
+              <div class="row"><div>Due Now ($${PRICE_HALF_NOW} ea)</div><div>$${halfNow}</div></div>
+              ${sibling ? `<div class="row"><div>Sibling discount (applied to final total)</div><div>−$${SIBLING_DISCOUNT}</div></div>`:''}
+              <div class="row"><div>Final Total (list $${PRICE_LIST_PER} ea)</div><div>$${halfTotal}</div></div>
+              <div class="row em"><div>Due Oct 15</div><div>$${halfLater}</div></div>
+            </div>
+          </div>
+        </div>`;
+    }
+
+    /* ====== BILLING ====== */
+    async function loadBilling() {
+      try {
+        // Get payments with enrollment and student info
+        const { data: payments, error } = await sb
+          .from('payments')
+          .select(`
+            *,
+            enrollments!enrollment_id (
+              student_id,
+              class_time,
+              students:student_id (
+                first_name,
+                last_name
+              )
+            )
+          `)
+          .order('created_at', { ascending: false });
+
+        if (error) {
+          console.error('Billing query error:', error);
+          renderBilling([]);
+          return;
+        }
+
+        // Filter to only show payments for this parent's students
+        const myStudentIds = (await sbListStudents()).map(s => s.id);
+        const myPayments = payments?.filter(p => 
+          p.enrollments && myStudentIds.includes(p.enrollments.student_id)
+        ) || [];
+
+        renderBilling(myPayments);
+      } catch(err) {
+        console.error('Billing load error:', err);
+        renderBilling([]);
+      }
+    }
+
+    function renderBilling(payments) {
+      const tbody = document.getElementById('billingTable');
+      
+      if(!payments || payments.length === 0) {
+        tbody.innerHTML = `
+          <tr>
+            <td colspan="5" style="padding:.75rem;border-bottom:1px solid var(--line);text-align:center;color:var(--muted)">
+              No payments yet
+            </td>
+          </tr>`;
+        return;
+      }
+
+      tbody.innerHTML = payments.map(p => {
+        const date = new Date(p.created_at).toLocaleDateString();
+        const student = p.enrollments?.students || {};
+        const studentName = `${student.first_name || ''} ${student.last_name || ''}`.trim() || 'Unknown';
+        const classTime = p.enrollments?.class_time || 'N/A';
+        const amount = `$${p.amount}`;
+        const status = p.event_type === 'Pay in Full' ? 
+          '<span style="color:var(--ok)">Paid</span>' : 
+          '<span style="color:#f59e0b">Partial (Balance due Oct 15)</span>';
+        
+        return `
+          <tr>
+            <td style="padding:.75rem;border-bottom:1px solid var(--line)">${date}</td>
+            <td style="padding:.75rem;border-bottom:1px solid var(--line)">${studentName}</td>
+            <td style="padding:.75rem;border-bottom:1px solid var(--line)">${p.event_type} - ${classTime}</td>
+            <td style="padding:.75rem;border-bottom:1px solid var(--line)">${amount}</td>
+            <td style="padding:.75rem;border-bottom:1px solid var(--line)">${status}</td>
+          </tr>`;
+      }).join('');
+    }
+
+    /* ====== CHECKOUT ====== */
+    async function startCheckout(method) {
+      try {
+        const cart = await sbListCart();
+        if (!cart.length) { 
+          alert('Add at least one student to the cart.'); 
+          return; 
+        }
+        if (cart.some(e=>!e.class_period_id)) { 
+          alert('Select a class period for each student.'); 
+          return; 
+        }
+
+        // Get student names
+        const ids = [...new Set(cart.map(e => e.student_id))];
+        const { data: students } = await sb.from('students')
+          .select('id,first_name,last_name')
+          .in('id', ids);
+
+        const enrollments = cart.map(e => {
+          const s = students?.find(st => st.id === e.student_id);
+          return {
+            enrollment_id: e.id,
+            student_id: e.student_id,
+            student_name: s ? `${s.first_name} ${s.last_name}` : '',
+            class_period_id: e.class_period_id,
+            class_time: e.class_time,
+            level: e.level || 'Level 1'
+          };
+        });
+
+        const res = await fetch(CREATE_CHECKOUT_URL, {
+          method: 'POST',
+          headers: { 'Content-Type':'application/json' },
+          body: JSON.stringify({
+            parent_id: currentUser.id,
+            parent_email: currentUser.email,
+            method,
+            enrollments,
+            return_base_url: window.location.origin
+          })
+        });
+
+        if (!res.ok) {
+          const msg = await res.text();
+          console.error('Checkout error:', msg);
+          alert('Checkout error: ' + msg);
+          return;
+        }
+
+        const { url } = await res.json();
+        window.location.href = url;
+      } catch (err) {
+        console.error(err);
+        alert('Could not start checkout.');
+      }
+    }
+
+    /* ====== MODAL ====== */
+    function openModal(id=null){
+      // Handle event object if passed instead of ID
+      if (id && typeof id === 'object' && 'isTrusted' in id) id = null;
+
+      editingId = isUuid(id) ? id : null;
+      document.getElementById('modalTitle').textContent =
+        editingId ? 'Edit Student' : 'Add Student';
+
+      (async () => {
+        let s = null;
+        if (editingId){
+          const { data, error } = await sb.from('students')
+            .select('*').eq('id', editingId).single();
+          if (error) console.error(error);
+          s = data || null;
+        }
+        
+        document.getElementById('firstName').value = s?.first_name || '';
+        document.getElementById('lastName').value = s?.last_name || '';
+        document.getElementById('age').value = s?.age || AGE_OPTIONS[0];
+        document.getElementById('grade').value = s?.grade || GRADE_OPTIONS[0];
+        document.getElementById('experience').value = s?.experience || 'Beginner';
+        document.getElementById('special').value = s?.special || '';
+
+        document.getElementById('studentModal').classList.add('show');
+      })();
+    }
+
+    function closeModal(){ 
+      document.getElementById('studentModal').classList.remove('show'); 
+      editingId=null; 
+    }
+
+    async function saveStudentFromModal(){
+      const first = document.getElementById('firstName').value.trim();
+      const last  = document.getElementById('lastName').value.trim();
+      const age   = document.getElementById('age').value;
+      const grade = document.getElementById('grade').value;
+      const exp   = document.getElementById('experience').value;
+      const spec  = document.getElementById('special').value.trim();
+      
+      if(!first || !last || !age || !grade){ 
+        alert('Please complete First/Last, Age, and Grade.'); 
+        return; 
+      }
+
+      const payload = {
+        id: editingId,
+        first_name:first, 
+        last_name:last, 
+        age:age, 
+        grade:grade, 
+        experience:exp, 
+        special:spec
+      };
+
+      await sbSaveStudent(payload);
+      closeModal();
+      await render();
+    }
+
+    // Global function for remove from cart
+    window.removeFromCart = async function(enrollmentId) {
+      if (!confirm('Remove from cart?')) return;
+      const { error } = await sb.from('enrollments').delete().eq('id', enrollmentId);
+      if (error) alert(error.message);
+      await render();
+    }
+
+    // Global reference for openModal
+    window.openModal = openModal;
+
+    /* ====== UTILS ====== */
+    function toast(msg, ok=true){
+      const t=document.getElementById('toast');
+      document.getElementById('toastIcon').textContent = ok?'✅':'✖️';
+      document.getElementById('toastMsg').textContent = msg;
+      t.classList.remove('hide'); 
+      t.classList.add('show');
+      setTimeout(()=>{ 
+        t.classList.add('hide'); 
+        t.classList.remove('show'); 
+      }, 1600);
+    }
+    
+    function escapeHtml(s){ 
+      return (s||'').replace(/[&<>"']/g, m=>({
+        '&':'&amp;',
+        '<':'&lt;',
+        '>':'&gt;',
+        '"':'&quot;',
+        "'":'&#39;'
+      }[m])); 
+    }
+  </script>
+</body>
+</html>
