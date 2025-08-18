@@ -64,12 +64,58 @@
             font-size: 0.875rem;
             color: #6b7280;
             margin-bottom: 0.5rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
         }
 
         .stat-value {
             font-size: 2rem;
             font-weight: 700;
             color: #111827;
+        }
+
+        .stat-detail {
+            color: #6b7280;
+            font-size: 0.875rem;
+            margin-top: 0.25rem;
+        }
+
+        /* Tabs */
+        .tabs {
+            display: flex;
+            gap: 1rem;
+            margin-bottom: 2rem;
+            border-bottom: 2px solid #e2e8f0;
+        }
+
+        .tab {
+            padding: 0.75rem 1.5rem;
+            background: none;
+            border: none;
+            font-weight: 600;
+            color: #64748b;
+            cursor: pointer;
+            border-bottom: 2px solid transparent;
+            margin-bottom: -2px;
+            transition: all 0.2s;
+        }
+
+        .tab:hover {
+            color: #0f172a;
+        }
+
+        .tab.active {
+            color: #ea580c;
+            border-bottom-color: #ea580c;
+        }
+
+        .tab-content {
+            display: none;
+        }
+
+        .tab-content.active {
+            display: block;
         }
 
         /* Tables */
@@ -109,6 +155,21 @@
 
         tr:hover {
             background: #f9fafb;
+        }
+
+        /* Filter Bar */
+        .filter-bar {
+            display: flex;
+            gap: 1rem;
+            margin-bottom: 1rem;
+            align-items: center;
+        }
+
+        select, input[type="search"] {
+            padding: 0.5rem;
+            border: 1px solid #e2e8f0;
+            border-radius: 6px;
+            font-family: inherit;
         }
 
         /* Buttons */
@@ -181,20 +242,29 @@
             font-weight: 600;
         }
 
-        .badge-success {
+        .badge-success, .badge-enrolled {
             background: #dcfce7;
             color: #15803d;
         }
 
-        .badge-warning {
+        .badge-warning, .badge-pending {
             background: #fef3c7;
             color: #92400e;
         }
 
-        .badge-info {
+        .badge-info, .badge-cart {
             background: #dbeafe;
             color: #1e40af;
         }
+
+        .money {
+            font-family: 'Courier New', monospace;
+            font-weight: 600;
+        }
+
+        .success { color: #16a34a; }
+        .warning { color: #f59e0b; }
+        .danger { color: #dc2626; }
     </style>
 </head>
 <body>
@@ -212,15 +282,171 @@
     </header>
 
     <!-- Main Content -->
-    <main class="container" id="main-content">
-        <div class="loading">Loading dashboard...</div>
+    <main class="container" id="main-content" style="display: none;">
+        <!-- Stats Grid -->
+        <div class="dashboard-grid">
+            <div class="stat-card">
+                <div class="stat-title">Total Revenue</div>
+                <div class="stat-value money success">$<span id="totalRevenue">0</span></div>
+                <div class="stat-detail">All payments received</div>
+            </div>
+            
+            <div class="stat-card">
+                <div class="stat-title">Outstanding Balance</div>
+                <div class="stat-value money warning">$<span id="outstandingBalance">0</span></div>
+                <div class="stat-detail">Due October 15</div>
+            </div>
+            
+            <div class="stat-card">
+                <div class="stat-title">Enrolled Students</div>
+                <div class="stat-value"><span id="enrolledCount">0</span></div>
+                <div class="stat-detail">Active enrollments</div>
+            </div>
+            
+            <div class="stat-card">
+                <div class="stat-title">Available Spots</div>
+                <div class="stat-value"><span id="availableSpots">0</span></div>
+                <div class="stat-detail">Across all classes</div>
+            </div>
+        </div>
+
+        <!-- Tabs -->
+        <div class="tabs">
+            <button class="tab active" onclick="switchTab('roster')">Class Roster</button>
+            <button class="tab" onclick="switchTab('payments')">Payments</button>
+            <button class="tab" onclick="switchTab('enrollments')">All Enrollments</button>
+            <button class="tab" onclick="switchTab('parents')">Parents</button>
+        </div>
+
+        <!-- Roster Tab -->
+        <div id="tab-roster" class="tab-content active">
+            <div class="filter-bar">
+                <select id="classFilter" onchange="filterRoster()">
+                    <option value="">All Classes</option>
+                    <option value="Tuesday 4:30-5:30">Tuesday 4:30-5:30 (Grades 4-7)</option>
+                    <option value="Tuesday 5:30-6:30">Tuesday 5:30-6:30 (Grades 8-12)</option>
+                </select>
+                <input type="search" id="searchStudent" placeholder="Search students..." onkeyup="filterRoster()">
+                <button class="btn btn-primary" onclick="exportRoster()">Export CSV</button>
+            </div>
+            
+            <div class="data-section">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Student</th>
+                            <th>Grade</th>
+                            <th>Age</th>
+                            <th>Class Time</th>
+                            <th>Parent</th>
+                            <th>Contact</th>
+                            <th>Status</th>
+                            <th>Special Notes</th>
+                        </tr>
+                    </thead>
+                    <tbody id="rosterTable">
+                        <tr><td colspan="8" style="text-align: center;">Loading...</td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- Payments Tab -->
+        <div id="tab-payments" class="tab-content">
+            <div class="filter-bar">
+                <select id="paymentFilter" onchange="loadPayments()">
+                    <option value="">All Payments</option>
+                    <option value="Pay in Full">Pay in Full</option>
+                    <option value="Pay Half Now">Pay Half Now</option>
+                </select>
+                <span style="margin-left: auto;">
+                    Total: <strong class="money success">$<span id="paymentTotal">0</span></strong>
+                </span>
+            </div>
+            
+            <div class="data-section">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Date</th>
+                            <th>Parent</th>
+                            <th>Student(s)</th>
+                            <th>Type</th>
+                            <th>Amount</th>
+                            <th>Balance Due</th>
+                            <th>Stripe ID</th>
+                        </tr>
+                    </thead>
+                    <tbody id="paymentsTable">
+                        <tr><td colspan="7" style="text-align: center;">Loading...</td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- Enrollments Tab -->
+        <div id="tab-enrollments" class="tab-content">
+            <div class="filter-bar">
+                <select id="statusFilter" onchange="loadEnrollments()">
+                    <option value="">All Statuses</option>
+                    <option value="enrolled">Enrolled</option>
+                    <option value="pending">Pending Payment</option>
+                    <option value="cart">In Cart</option>
+                </select>
+            </div>
+            
+            <div class="data-section">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Student</th>
+                            <th>Parent</th>
+                            <th>Class</th>
+                            <th>Status</th>
+                            <th>Paid Date</th>
+                            <th>Balance Due</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="enrollmentsTable">
+                        <tr><td colspan="7" style="text-align: center;">Loading...</td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- Parents Tab -->
+        <div id="tab-parents" class="tab-content">
+            <div class="filter-bar">
+                <input type="search" id="searchParent" placeholder="Search parents..." onkeyup="filterParents()">
+            </div>
+            
+            <div class="data-section">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Parent Name</th>
+                            <th>Email</th>
+                            <th>Phone</th>
+                            <th>Students</th>
+                            <th>Total Paid</th>
+                            <th>Balance Due</th>
+                        </tr>
+                    </thead>
+                    <tbody id="parentsTable">
+                        <tr><td colspan="6" style="text-align: center;">Loading...</td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
     </main>
 
     <!-- Auth Error (hidden by default) -->
     <div id="auth-error" class="auth-error" style="display: none;">
-        <h2>⛔ Access Denied</h2>
-        <p style="margin-bottom: 1.5rem;">You don't have permission to view this page.</p>
-        <button class="btn btn-primary" onclick="window.location.href='login.html'">Back to Login</button>
+        <h2>⛔ Admin Access Required</h2>
+        <p style="margin-bottom: 1.5rem;">You must be logged in as an administrator to view this page.</p>
+        <p>Admin email: jeremiah@3djumpstart.com</p>
+        <button class="btn btn-primary" onclick="window.location.href='login.html'">Go to Login</button>
     </div>
 
     <script>
@@ -230,8 +456,16 @@
         
         const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
+        // Admin emails (add yours here)
+        const ADMIN_EMAILS = ['jeremiah@3djumpstart.com'];
+        
         let currentUser = null;
-        let isAdmin = false;
+        let allData = {
+            enrollments: [],
+            payments: [],
+            students: [],
+            parents: []
+        };
 
         // Initialize
         document.addEventListener('DOMContentLoaded', async () => {
@@ -250,23 +484,16 @@
 
                 currentUser = session.user;
                 
-                // Check if user is admin
-                const { data: adminData, error: adminError } = await supabase
-                    .from('admins')
-                    .select('*')
-                    .eq('email', currentUser.email)
-                    .single();
-
-                if (adminError || !adminData) {
-                    console.error('Admin check failed:', adminError);
+                // Check if user is admin using simple email check
+                if (!ADMIN_EMAILS.includes(currentUser.email)) {
                     showAuthError('Not an admin');
                     return;
                 }
 
                 // User is authenticated and is admin
-                isAdmin = true;
                 document.getElementById('admin-email').textContent = currentUser.email;
-                await loadDashboard();
+                document.getElementById('main-content').style.display = 'block';
+                await loadAllData();
 
             } catch (error) {
                 console.error('Auth error:', error);
@@ -280,230 +507,324 @@
             console.error('Auth error:', message);
         }
 
-        async function loadDashboard() {
-            const mainContent = document.getElementById('main-content');
-            
+        async function loadAllData() {
             try {
-                // Get stats - Note: No parents table, so we'll count unique parent_ids
-                const [students, enrollments, payments] = await Promise.all([
-                    supabase.from('students').select('*'),
-                    supabase.from('enrollments').select('*'),
-                    supabase.from('payments').select('*')
-                ]);
-
-                // Calculate stats
-                const uniqueParentIds = [...new Set(students.data?.map(s => s.parent_id) || [])];
-                const totalParents = uniqueParentIds.length;
-                const totalStudents = students.data?.length || 0;
-                const totalEnrollments = enrollments.data?.filter(e => e.status === 'enrolled' || e.status === 'pending').length || 0;
-                const totalRevenue = payments.data?.reduce((sum, p) => sum + (p.amount || 0), 0) || 0;
-
-                // Render dashboard
-                mainContent.innerHTML = `
-                    <!-- Stats Grid -->
-                    <div class="dashboard-grid">
-                        <div class="stat-card">
-                            <div class="stat-title">Total Parents</div>
-                            <div class="stat-value">${totalParents}</div>
-                        </div>
-                        <div class="stat-card">
-                            <div class="stat-title">Total Students</div>
-                            <div class="stat-value">${totalStudents}</div>
-                        </div>
-                        <div class="stat-card">
-                            <div class="stat-title">Active Enrollments</div>
-                            <div class="stat-value">${totalEnrollments}</div>
-                        </div>
-                        <div class="stat-card">
-                            <div class="stat-title">Total Revenue</div>
-                            <div class="stat-value">$${totalRevenue.toLocaleString()}</div>
-                        </div>
-                    </div>
-
-                    <!-- Recent Enrollments -->
-                    <div class="data-section">
-                        <h2 class="section-title">Recent Enrollments</h2>
-                        <div id="enrollments-table">Loading...</div>
-                    </div>
-
-                    <!-- Recent Payments -->
-                    <div class="data-section">
-                        <h2 class="section-title">Recent Payments</h2>
-                        <div id="payments-table">Loading...</div>
-                    </div>
-
-                    <!-- Students List -->
-                    <div class="data-section">
-                        <h2 class="section-title">All Students</h2>
-                        <div id="students-table">Loading...</div>
-                    </div>
-                `;
-
-                // Load detailed data
-                await loadEnrollments();
-                await loadPayments();
-                await loadStudents();
-
-            } catch (error) {
-                console.error('Dashboard load error:', error);
-                mainContent.innerHTML = `
-                    <div class="error-message">
-                        Error loading dashboard: ${error.message}
-                    </div>
-                `;
-            }
-        }
-
-        async function loadEnrollments() {
-            try {
-                // First get enrollments
-                const { data: enrollmentsData, error: enrollmentsError } = await supabase
+                // Load all enrollments with related data
+                const { data: enrollments } = await supabase
                     .from('enrollments')
-                    .select('*')
-                    .order('created_at', { ascending: false })
-                    .limit(10);
+                    .select(`
+                        *,
+                        students:student_id (
+                            id,
+                            first_name,
+                            last_name,
+                            grade,
+                            age,
+                            special,
+                            parent_id
+                        ),
+                        parents:parent_id (
+                            id,
+                            name,
+                            email,
+                            phone
+                        )
+                    `)
+                    .order('created_at', { ascending: false });
+                
+                allData.enrollments = enrollments || [];
 
-                if (enrollmentsError) throw enrollmentsError;
-
-                // Then get related students
-                const studentIds = [...new Set(enrollmentsData?.map(e => e.student_id).filter(id => id) || [])];
-                const { data: studentsData } = await supabase
-                    .from('students')
-                    .select('*')
-                    .in('id', studentIds);
-
-                // Create a map for quick lookup
-                const studentsMap = {};
-                studentsData?.forEach(s => {
-                    studentsMap[s.id] = s;
-                });
-
-                const tableHtml = `
-                    <table>
-                        <thead>
-                            <tr>
-                                <th>Date</th>
-                                <th>Student</th>
-                                <th>Grade</th>
-                                <th>Class</th>
-                                <th>Status</th>
-                                <th>Payment</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            ${enrollmentsData.map(e => {
-                                const student = studentsMap[e.student_id] || {};
-                                return `
-                                    <tr>
-                                        <td>${new Date(e.created_at).toLocaleDateString()}</td>
-                                        <td>${student.first_name || ''} ${student.last_name || ''}</td>
-                                        <td>${student.grade || '-'}</td>
-                                        <td>${e.class_time || 'Not selected'}</td>
-                                        <td>
-                                            <span class="badge ${e.status === 'enrolled' ? 'badge-success' : e.status === 'pending' ? 'badge-warning' : 'badge-info'}">
-                                                ${e.status}
-                                            </span>
-                                        </td>
-                                        <td>${e.payment_plan || '-'}</td>
-                                    </tr>
-                                `;
-                            }).join('')}
-                        </tbody>
-                    </table>
-                `;
-
-                document.getElementById('enrollments-table').innerHTML = tableHtml;
-            } catch (error) {
-                document.getElementById('enrollments-table').innerHTML = `<div class="error-message">Error: ${error.message}</div>`;
-            }
-        }
-
-        async function loadPayments() {
-            try {
-                const { data, error } = await supabase
+                // Load payments
+                const { data: payments } = await supabase
                     .from('payments')
                     .select('*')
-                    .order('created_at', { ascending: false })
-                    .limit(10);
+                    .order('created_at', { ascending: false });
+                
+                allData.payments = payments || [];
 
-                if (error) throw error;
+                // Load all students
+                const { data: students } = await supabase
+                    .from('students')
+                    .select(`
+                        *,
+                        parents:parent_id (
+                            name,
+                            email,
+                            phone
+                        )
+                    `);
+                
+                allData.students = students || [];
 
-                const tableHtml = `
-                    <table>
-                        <thead>
-                            <tr>
-                                <th>Date</th>
-                                <th>Type</th>
-                                <th>Amount</th>
-                                <th>Status</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            ${data.map(p => `
-                                <tr>
-                                    <td>${new Date(p.created_at).toLocaleDateString()}</td>
-                                    <td>${p.event_type || 'Payment'}</td>
-                                    <td>$${p.amount || 0}</td>
-                                    <td>
-                                        <span class="badge badge-success">
-                                            Paid
-                                        </span>
-                                    </td>
-                                </tr>
-                            `).join('')}
-                        </tbody>
-                    </table>
-                `;
+                // Load all parents
+                const { data: parents } = await supabase
+                    .from('parents')
+                    .select('*');
+                
+                allData.parents = parents || [];
 
-                document.getElementById('payments-table').innerHTML = tableHtml;
+                // Calculate stats
+                updateStats();
+                
+                // Load initial views
+                loadRoster();
+                loadPayments();
+                loadEnrollments();
+                loadParents();
             } catch (error) {
-                document.getElementById('payments-table').innerHTML = `<div class="error-message">Error: ${error.message}</div>`;
+                console.error('Data load error:', error);
             }
         }
 
-        async function loadStudents() {
-            try {
-                const { data, error } = await supabase
-                    .from('students')
-                    .select('*')
-                    .order('created_at', { ascending: false });
+        function updateStats() {
+            // Calculate total revenue
+            const totalRevenue = allData.payments.reduce((sum, p) => sum + (p.amount || 0), 0);
+            document.getElementById('totalRevenue').textContent = totalRevenue.toFixed(0);
 
-                if (error) throw error;
+            // Calculate outstanding balance (pending enrollments)
+            const pendingEnrollments = allData.enrollments.filter(e => e.status === 'pending');
+            const outstandingBalance = pendingEnrollments.length * 360; // $360 per pending enrollment
+            document.getElementById('outstandingBalance').textContent = outstandingBalance.toFixed(0);
 
-                // Get parent emails from auth if needed
-                // Since there's no parents table, we'll show parent_id for now
+            // Count enrolled students
+            const enrolledCount = allData.enrollments.filter(e => 
+                e.status === 'enrolled' || e.status === 'pending'
+            ).length;
+            document.getElementById('enrolledCount').textContent = enrolledCount;
 
-                const tableHtml = `
-                    <table>
-                        <thead>
-                            <tr>
-                                <th>Name</th>
-                                <th>Grade</th>
-                                <th>Age</th>
-                                <th>Experience</th>
-                                <th>Parent ID</th>
-                                <th>Created</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            ${data.map(s => `
-                                <tr>
-                                    <td>${s.first_name} ${s.last_name}</td>
-                                    <td>${s.grade}</td>
-                                    <td>${s.age}</td>
-                                    <td>${s.experience}</td>
-                                    <td style="font-size: 0.75rem; color: #6b7280;">${s.parent_id.substring(0, 8)}...</td>
-                                    <td>${new Date(s.created_at).toLocaleDateString()}</td>
-                                </tr>
-                            `).join('')}
-                        </tbody>
-                    </table>
-                `;
+            // Calculate available spots (10 per class, 2 classes = 20 total)
+            const availableSpots = 20 - enrolledCount;
+            document.getElementById('availableSpots').textContent = availableSpots;
+        }
 
-                document.getElementById('students-table').innerHTML = tableHtml;
-            } catch (error) {
-                document.getElementById('students-table').innerHTML = `<div class="error-message">Error: ${error.message}</div>`;
+        function loadRoster() {
+            const tbody = document.getElementById('rosterTable');
+            const activeEnrollments = allData.enrollments.filter(e => 
+                e.status === 'enrolled' || e.status === 'pending'
+            );
+
+            if (activeEnrollments.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="8" style="text-align: center;">No enrolled students yet</td></tr>';
+                return;
             }
+
+            tbody.innerHTML = activeEnrollments.map(e => {
+                const student = e.students || {};
+                const parent = e.parents || {};
+                const statusBadge = e.status === 'enrolled' ? 
+                    '<span class="badge badge-enrolled">Enrolled</span>' : 
+                    '<span class="badge badge-pending">Pending</span>';
+
+                return `
+                    <tr>
+                        <td><strong>${student.first_name || ''} ${student.last_name || ''}</strong></td>
+                        <td>${student.grade || '-'}</td>
+                        <td>${student.age || '-'}</td>
+                        <td>${e.class_time || 'TBD'}</td>
+                        <td>${parent.name || 'N/A'}</td>
+                        <td>${parent.email || 'N/A'}<br>${parent.phone || ''}</td>
+                        <td>${statusBadge}</td>
+                        <td>${student.special || '-'}</td>
+                    </tr>
+                `;
+            }).join('');
+        }
+
+        function filterRoster() {
+            const classFilter = document.getElementById('classFilter').value.toLowerCase();
+            const searchTerm = document.getElementById('searchStudent').value.toLowerCase();
+            
+            const tbody = document.getElementById('rosterTable');
+            const rows = tbody.getElementsByTagName('tr');
+            
+            for (let row of rows) {
+                const classTime = row.cells[3]?.textContent.toLowerCase() || '';
+                const studentName = row.cells[0]?.textContent.toLowerCase() || '';
+                
+                const matchesClass = !classFilter || classTime.includes(classFilter);
+                const matchesSearch = !searchTerm || studentName.includes(searchTerm);
+                
+                row.style.display = matchesClass && matchesSearch ? '' : 'none';
+            }
+        }
+
+        function loadPayments() {
+            const tbody = document.getElementById('paymentsTable');
+            const filter = document.getElementById('paymentFilter').value;
+            
+            let filtered = allData.payments;
+            if (filter) {
+                filtered = filtered.filter(p => p.event_type === filter);
+            }
+
+            if (filtered.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="7" style="text-align: center;">No payments found</td></tr>';
+                document.getElementById('paymentTotal').textContent = '0';
+                return;
+            }
+
+            // Calculate total
+            const total = filtered.reduce((sum, p) => sum + (p.amount || 0), 0);
+            document.getElementById('paymentTotal').textContent = total.toFixed(0);
+
+            tbody.innerHTML = filtered.map(p => {
+                const date = new Date(p.created_at).toLocaleDateString();
+                const enrollment = allData.enrollments.find(e => e.id === p.enrollment_id);
+                const student = enrollment?.students || {};
+                const parent = enrollment?.parents || {};
+                const balanceDue = p.event_type === 'Pay Half Now' ? 360 : 0;
+
+                return `
+                    <tr>
+                        <td>${date}</td>
+                        <td>${parent.name || 'Unknown'}</td>
+                        <td>${student.first_name || ''} ${student.last_name || ''}</td>
+                        <td>${p.event_type || 'Payment'}</td>
+                        <td class="money success">$${p.amount || 0}</td>
+                        <td class="money ${balanceDue > 0 ? 'warning' : ''}">$${balanceDue}</td>
+                        <td style="font-size: 0.75rem;">${p.stripe_object_id?.substring(0, 20) || ''}...</td>
+                    </tr>
+                `;
+            }).join('');
+        }
+
+        function loadEnrollments() {
+            const tbody = document.getElementById('enrollmentsTable');
+            const filter = document.getElementById('statusFilter').value;
+            
+            let filtered = allData.enrollments;
+            if (filter) {
+                filtered = filtered.filter(e => e.status === filter);
+            }
+
+            if (filtered.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="7" style="text-align: center;">No enrollments found</td></tr>';
+                return;
+            }
+
+            tbody.innerHTML = filtered.map(e => {
+                const student = e.students || {};
+                const parent = e.parents || {};
+                const statusBadge = {
+                    'enrolled': '<span class="badge badge-enrolled">Enrolled</span>',
+                    'pending': '<span class="badge badge-pending">Pending</span>',
+                    'cart': '<span class="badge badge-cart">In Cart</span>'
+                }[e.status] || e.status;
+
+                const paidDate = e.paid_at ? new Date(e.paid_at).toLocaleDateString() : '-';
+                const balanceDue = e.status === 'pending' ? 360 : 0;
+
+                return `
+                    <tr>
+                        <td>${student.first_name || ''} ${student.last_name || ''}</td>
+                        <td>${parent.name || 'N/A'}</td>
+                        <td>${e.class_time || 'Not selected'}</td>
+                        <td>${statusBadge}</td>
+                        <td>${paidDate}</td>
+                        <td class="money ${balanceDue > 0 ? 'warning' : ''}">$${balanceDue}</td>
+                        <td>
+                            ${e.status === 'pending' ? 
+                                `<button class="btn btn-secondary" onclick="markPaid('${e.id}')">Mark Paid</button>` : 
+                                '-'
+                            }
+                        </td>
+                    </tr>
+                `;
+            }).join('');
+        }
+
+        function loadParents() {
+            const tbody = document.getElementById('parentsTable');
+            
+            if (allData.parents.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="6" style="text-align: center;">No parents found</td></tr>';
+                return;
+            }
+
+            tbody.innerHTML = allData.parents.map(parent => {
+                // Get this parent's students
+                const students = allData.students.filter(s => s.parent_id === parent.id);
+                const studentNames = students.map(s => `${s.first_name} ${s.last_name}`).join(', ');
+                
+                // Calculate total paid and balance due
+                const parentEnrollments = allData.enrollments.filter(e => e.parent_id === parent.id);
+                const parentPayments = allData.payments.filter(p => {
+                    const enrollment = allData.enrollments.find(e => e.id === p.enrollment_id);
+                    return enrollment?.parent_id === parent.id;
+                });
+                
+                const totalPaid = parentPayments.reduce((sum, p) => sum + (p.amount || 0), 0);
+                const pendingEnrollments = parentEnrollments.filter(e => e.status === 'pending');
+                const balanceDue = pendingEnrollments.length * 360;
+
+                return `
+                    <tr>
+                        <td>${parent.name || 'N/A'}</td>
+                        <td>${parent.email}</td>
+                        <td>${parent.phone || '-'}</td>
+                        <td>${studentNames || '-'}</td>
+                        <td class="money success">$${totalPaid}</td>
+                        <td class="money ${balanceDue > 0 ? 'warning' : ''}">$${balanceDue}</td>
+                    </tr>
+                `;
+            }).join('');
+        }
+
+        function filterParents() {
+            const searchTerm = document.getElementById('searchParent').value.toLowerCase();
+            const tbody = document.getElementById('parentsTable');
+            const rows = tbody.getElementsByTagName('tr');
+            
+            for (let row of rows) {
+                const text = row.textContent.toLowerCase();
+                row.style.display = !searchTerm || text.includes(searchTerm) ? '' : 'none';
+            }
+        }
+
+        function switchTab(tab) {
+            // Update tab buttons
+            document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+            event.target.classList.add('active');
+            
+            // Update content
+            document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+            document.getElementById(`tab-${tab}`).classList.add('active');
+        }
+
+        async function markPaid(enrollmentId) {
+            if (!confirm('Mark this enrollment as fully paid?')) return;
+            
+            const { error } = await supabase
+                .from('enrollments')
+                .update({ status: 'enrolled' })
+                .eq('id', enrollmentId);
+            
+            if (error) {
+                alert('Error updating enrollment: ' + error.message);
+            } else {
+                await loadAllData();
+            }
+        }
+
+        function exportRoster() {
+            const activeEnrollments = allData.enrollments.filter(e => 
+                e.status === 'enrolled' || e.status === 'pending'
+            );
+
+            let csv = 'Student Name,Grade,Age,Class Time,Parent Name,Parent Email,Parent Phone,Status,Special Notes\n';
+            
+            activeEnrollments.forEach(e => {
+                const s = e.students || {};
+                const p = e.parents || {};
+                csv += `"${s.first_name} ${s.last_name}",${s.grade},${s.age},"${e.class_time}","${p.name}","${p.email}","${p.phone || ''}",${e.status},"${s.special || ''}"\n`;
+            });
+
+            const blob = new Blob([csv], { type: 'text/csv' });
+            const url = window.URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `roster-${new Date().toISOString().split('T')[0]}.csv`;
+            a.click();
         }
 
         async function logout() {
