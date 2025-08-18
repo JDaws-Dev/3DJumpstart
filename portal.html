@@ -780,5 +780,315 @@
     window.openModal=openModal; window.removeStudent=removeStudent; window.setClassPeriod=setClassPeriod;
     window.addToCart=addToCart; window.removeFromCart=removeFromCart; window.requireClassThenAdd=requireClassThenAdd;
   </script>
+
+<script>
+// ================== CONFIG ==================
+const SUPABASE_URL = 'https://hucjmggkasahwpjgnwia.supabase.co';
+const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imh1Y2ptZ2drYXNhaHdwamdud2lhIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTQ2MTI2MDIsImV4cCI6MjA3MDE4ODYwMn0.hxFmoZexaKverih9crJfP9fjWItOTfC_6D_CM7hr_Rg
+';
+const CREATE_CHECKOUT_URL = 'https://hucjmggkasahwpjgnwia.supabase.co/functions/v1/create-checkout';
+
+const sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+// Class periods (UI label + stable id)
+const CLASS_PERIODS = [
+  { id: 'tue_430', label: 'Tuesday 4:30–5:30 (Grades 4–7)' },
+  { id: 'tue_530', label: 'Tuesday 5:30–6:30 (Grades 8–12)' }
+];
+
+// ================== UTILITIES ==================
+function allowedPeriodsForGrade(gradeText) {
+  const n = parseInt(gradeText, 10);
+  if (n >= 4 && n <= 7) return ['tue_430'];
+  if (n >= 8 && n <= 12) return ['tue_530'];
+  return [];
+}
+function classLabel(id) {
+  const c = CLASS_PERIODS.find(x => x.id === id);
+  return c ? c.label : '';
+}
+
+// Discounts/price math
+function computeTotals(cartCount) {
+  // Pay in full: $670 each, with $50 off the second child (applies once)
+  const PER_FULL = 670;
+  let fullTotal = cartCount * PER_FULL;
+  if (cartCount >= 2) fullTotal -= 50;
+
+  // Pay half now: $360 each (deposit now). (Sibling discount does not change deposit.)
+  const halfNow = cartCount * 360;
+  // You may apply sibling discount to the second payment later via invoice if desired.
+
+  return { fullTotal, halfNow, listTotal: cartCount * 720 };
+}
+
+// ================== STUDENTS ==================
+async function sbCurrentUser() {
+  const { data: { user } } = await sb.auth.getUser();
+  if (!user) throw new Error('Not signed in');
+  return user;
+}
+
+async function sbListStudents() {
+  const user = await sbCurrentUser();
+  const { data, error } = await sb.from('students').select('*').eq('parent_id', user.id).order('created_at');
+  if (error) throw error;
+  return data || [];
+}
+
+async function sbSaveStudent(s) {
+  const user = await sbCurrentUser();
+  const row = {
+    id: s.id || undefined,
+    parent_id: user.id,
+    first_name: s.first_name,
+    last_name: s.last_name,
+    age: Number(s.age),
+    grade: s.grade,
+    experience: s.experience,
+    special: s.special || null,
+  };
+  const { data, error } = s.id
+    ? await sb.from('students').update(row).eq('id', s.id).select().single()
+    : await sb.from('students').insert(row).select().single();
+  if (error) throw error;
+  return data;
+}
+
+async function sbDeleteStudent(studentId) {
+  const { error } = await sb.from('students').delete().eq('id', studentId);
+  if (error) throw error;
+}
+
+// ================== ENROLLMENTS (CART) ==================
+async function sbUpsertEnrollment(student, classPeriodId) {
+  const user = await sbCurrentUser();
+  const label = classLabel(classPeriodId);
+  const row = {
+    parent_id: user.id,
+    student_id: student.id,
+    level: 'Level 1',
+    season: 'Fall 2025',
+    class_period_id: classPeriodId,
+    class_time: label,
+    payment_plan: 'full',   // default; final choice at checkout
+    amount_list: 720,
+    status: 'cart'
+  };
+  const { data, error } = await sb
+    .from('enrollments')
+    .upsert(row, { onConflict: 'student_id,season' })
+    .select()
+    .single();
+  if (error) throw error;
+  return data;
+}
+
+async function sbListCart() {
+  const user = await sbCurrentUser();
+  const { data, error } = await sb
+    .from('enrollments')
+    .select('*')
+    .eq('parent_id', user.id)
+    .eq('status', 'cart')
+    .not('class_period_id', 'is', null)
+    .order('created_at');
+  if (error) throw error;
+  return data || [];
+}
+
+// ================== CHECKOUT ==================
+async function startCheckout(method /* 'full' | 'half' */) {
+  const user = await sbCurrentUser();
+  const cart = await sbListCart();
+  if (!cart.length) { alert('No students in cart'); return; }
+
+  // enrich with names
+  const ids = [...new Set(cart.map(e => e.student_id))];
+  const { data: students } = await sb.from('students').select('id,first_name,last_name').in('id', ids);
+
+  const enrollments = cart.map(e => {
+    const s = students?.find(st => st.id === e.student_id);
+    return {
+      enrollment_id: e.id,
+      student_id: e.student_id,
+      student_name: s ? `${s.first_name} ${s.last_name}` : '',
+      class_period_id: e.class_period_id,
+      class_time: e.class_time,
+      level: e.level || 'Level 1'
+    };
+  });
+
+  const res = await fetch(CREATE_CHECKOUT_URL, {
+    method: 'POST',
+    headers: { 'Content-Type':'application/json' },
+    body: JSON.stringify({
+      parent_id: user.id,
+      parent_email: user.email,
+      method,
+      enrollments,
+      return_base_url: window.location.origin
+    })
+  });
+  if (!res.ok) { alert(await res.text()); return; }
+  const { url } = await res.json();
+  window.location.href = url;
+}
+
+// ================== UI WIRING ==================
+// These expect you have simple containers in your HTML:
+// <div id="studentsList"></div>
+// <div id="paymentBox"></div>
+
+async function render() {
+  const students = await sbListStudents();
+  const cart = await sbListCart();
+  renderStudents(students, cart);
+  renderPayment(cart, students);
+}
+
+function renderStudents(students, cart) {
+  const el = document.getElementById('studentsList');
+  if (!el) return;
+  el.innerHTML = students.map(s => {
+    const allowed = allowedPeriodsForGrade(s.grade);
+    const sel = `
+      <select data-student="${s.id}" class="classSelect">
+        <option value="">Select class…</option>
+        ${CLASS_PERIODS
+          .filter(c => allowed.includes(c.id))
+          .map(c => `<option value="${c.id}">${c.label}</option>`).join('')}
+      </select>`;
+    const inCart = cart.find(e => e.student_id === s.id);
+    return `
+      <div class="student-card">
+        <div><strong>${s.first_name} ${s.last_name}</strong> • Age ${s.age} • Grade ${s.grade} • ${s.experience}</div>
+        <div class="muted">Notes: ${s.special || '—'}</div>
+        <div style="margin-top:.5rem">${sel}</div>
+        ${inCart ? `<div class="badge" style="margin-top:.5rem">In Cart: ${inCart.class_time}</div>` : ''}
+        <div style="margin-top:.5rem;display:flex;gap:.5rem">
+          <button class="btn btn-muted" onclick="editStudent('${s.id}')">Edit</button>
+          <button class="btn btn-danger" onclick="removeStudent('${s.id}')">Remove</button>
+        </div>
+      </div>`;
+  }).join('') + `
+    <div style="margin-top:1rem">
+      <button class="btn" onclick="openAddStudent()">+ Add Student</button>
+    </div>`;
+
+  // attach change handlers
+  el.querySelectorAll('.classSelect').forEach(sel => {
+    sel.addEventListener('change', async (e) => {
+      const studentId = e.target.getAttribute('data-student');
+      const period = e.target.value;
+      if (!period) return;
+      const { data: student } = await sb.from('students').select('*').eq('id', studentId).single();
+      // guard by grade
+      const allowed = allowedPeriodsForGrade(student.grade);
+      if (!allowed.includes(period)) {
+        alert('This class time is not available for the student’s grade.');
+        e.target.value = '';
+        return;
+      }
+      await sbUpsertEnrollment(student, period);
+      await render();
+    });
+  });
+}
+
+function renderPayment(cart, students) {
+  const box = document.getElementById('paymentBox');
+  if (!box) return;
+
+  const count = cart.length;
+  const { fullTotal, halfNow, listTotal } = computeTotals(count);
+
+  const cartLines = cart.map(e => {
+    const s = students.find(x => x.id === e.student_id);
+    return `<div class="cart-line">
+      <div><strong>${s ? `${s.first_name} ${s.last_name}` : 'Student'}</strong></div>
+      <div class="muted">${e.class_time}</div>
+      <button class="btn btn-danger btn-sm" onclick="removeFromCart('${e.id}')">Remove</button>
+    </div>`;
+  }).join('') || `<div class="muted">Your cart is empty.</div>`;
+
+  box.innerHTML = `
+    <div class="card">
+      <div class="card-header" style="display:flex;justify-content:space-between;align-items:center">
+        <strong>Level 1 • 12-week course • $60/class</strong>
+        <span class="muted">List total: $${listTotal.toLocaleString()}</span>
+      </div>
+      <div class="card-body">
+        <div class="muted" style="margin-bottom:.5rem">
+          • Pick a class period per student, then add to cart.<br>
+          • <strong>Pay in Full:</strong> $670 per student (save $50 vs $720 list).<br>
+          • <strong>Pay Half Now:</strong> $360 per student now; remainder due Oct 15.<br>
+          • <strong>Sibling discount:</strong> $50 off the second child (applies once).
+        </div>
+        <div style="margin-bottom:1rem">${cartLines}</div>
+        <div class="totals">
+          <div><strong>Pay in Full — Final Total</strong>: $${fullTotal.toLocaleString()}</div>
+          <div class="muted">You save $50 vs $720 list; plus $50 off the second child.</div>
+          <div style="height:.5rem"></div>
+          <div><strong>Pay Half Now</strong>: $${halfNow.toLocaleString()} <span class="muted">(due now)</span></div>
+          <div class="muted">Second payment due Oct 15 (sibling discount applied on final balance).</div>
+        </div>
+        <div style="margin-top:1rem;display:flex;gap:.5rem">
+          <button class="btn" onclick="startCheckout('full')" ${count? '' : 'disabled'}>Pay In Full</button>
+          <button class="btn btn-muted" onclick="startCheckout('half')" ${count? '' : 'disabled'}>Pay Half Now</button>
+        </div>
+      </div>
+    </div>`;
+}
+
+// ================== SIMPLE MODAL HOOKS (stub) ==================
+// Wire these into your existing modal UI.
+async function openAddStudent() {
+  // Replace with your modal; for quick test:
+  const first = prompt('First name?'); if (!first) return;
+  const last = prompt('Last name?'); if (!last) return;
+  const age = prompt('Age?'); if (!age) return;
+  const grade = prompt('Grade (e.g., 4th, 7th, 10th)?'); if (!grade) return;
+  const experience = 'Beginner';
+  const special = '';
+  await sbSaveStudent({ first_name:first, last_name:last, age, grade, experience, special });
+  await render();
+}
+async function editStudent(id) {
+  const { data: s } = await sb.from('students').select('*').eq('id', id).single();
+  if (!s) return;
+  const first = prompt('First name?', s.first_name) ?? s.first_name;
+  const last = prompt('Last name?', s.last_name) ?? s.last_name;
+  const age = prompt('Age?', s.age) ?? s.age;
+  const grade = prompt('Grade?', s.grade) ?? s.grade;
+  const experience = s.experience;
+  const special = s.special || '';
+  await sbSaveStudent({ id, first_name:first, last_name:last, age, grade, experience, special });
+  await render();
+}
+async function removeStudent(id) {
+  if (!confirm('Remove this student?')) return;
+  await sbDeleteStudent(id);
+  await render();
+}
+async function removeFromCart(enrollmentId) {
+  if (!confirm('Remove from cart?')) return;
+  const { error } = await sb.from('enrollments').delete().eq('id', enrollmentId);
+  if (error) alert(error.message);
+  await render();
+}
+
+// ============= BOOTSTRAP =============
+(async function initPortal() {
+  try {
+    await render();
+  } catch (e) {
+    console.warn(e);
+  }
+})();
+</script>
+
+
+  
 </body>
 </html>
