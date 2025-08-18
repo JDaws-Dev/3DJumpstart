@@ -669,172 +669,192 @@ async function sbListCart() {
     }
 
     /* ====== RENDER ====== */
-    async function render() {
-      const [students, cart, enrollments] = await Promise.all([
-        sbListStudents(), 
-        sbListCart(),
-        sbListAllEnrollments()
-      ]);
-      allEnrollments = enrollments;
-      renderEnrollmentSummary(enrollments, students);
-      renderStudents(students, enrollments);
-      renderCart(cart, students);
-      updateTotals(cart);
+async function render() {
+  const [students, cart, enrollments] = await Promise.all([
+    sbListStudents(), 
+    sbListCart(),
+    sbListAllEnrollments()
+  ]);
+  allEnrollments = enrollments;
+  renderEnrollmentSummary(enrollments, students);
+  renderStudents(students, enrollments);
+  renderCart(cart, students);
+  updateTotals(cart);
+  
+  // Smart payment card visibility
+  const paymentCard = document.querySelector('.card:has(.pay-banner)');
+  if (paymentCard) {
+    if (cart.length > 0) {
+      paymentCard.style.display = 'block';
+    } else {
+      paymentCard.style.display = 'none';
+      
+      // Show success message if all students enrolled
+      if (students.length > 0) {
+        const allEnrolled = students.every(s => 
+          allEnrollments.find(e => e.student_id === s.id && ['enrolled', 'pending'].includes(e.status))
+        );
+        
+        if (allEnrolled) {
+          const successMsg = document.createElement('div');
+          successMsg.className = 'card';
+          successMsg.style = 'text-align:center;padding:2rem;background:#dcfce7;border-radius:1rem;';
+          successMsg.innerHTML = `
+            <h3 style="color:#166534;margin-bottom:0.5rem;">✅ All Students Enrolled!</h3>
+            <p style="color:#166534;">Want to enroll another child? Click "Add Student" above.</p>
+          `;
+          paymentCard.parentNode.insertBefore(successMsg, paymentCard.nextSibling);
+        }
+      }
     }
-
-function renderEnrollmentSummary(enrollments, students) {
-  const activeEnrollments = enrollments.filter(e => 
-    e.status === 'enrolled' || e.status === 'pending'
-  );
-
-  const summaryDiv = document.getElementById('enrollmentSummary');
-  const listDiv = document.getElementById('enrollmentList');
-
-  if(activeEnrollments.length === 0) {
-    summaryDiv.style.display = 'none';
-    return;
   }
-
-  summaryDiv.style.display = 'block';
-  listDiv.innerHTML = activeEnrollments.map(e => {
-    const student = students.find(s => s.id === e.student_id);
-    let statusText = e.status === 'enrolled' ? '✓ Enrolled' : '⏳ Pending';
-    const statusClass = e.status === 'enrolled' ? 'status-enrolled' : 'status-pending';
-    
-    // Add balance due info for pending payments
-    if (e.status === 'pending' && e.balance_due > 0) {
-      statusText += ` - $${e.balance_due} due Oct 15`;
-    }
-    
-    return `
-      <div class="enrollment-item">
-        <strong>${student ? student.first_name + ' ' + student.last_name : 'Student'}</strong> - 
-        ${e.class_time || 'Time TBD'} 
-        <span class="status-badge ${statusClass}">${statusText}</span>
-      </div>
-    `;
-  }).join('');
 }
 
 
     
-    function renderStudents(list, enrollments){
-      const wrap = document.getElementById('studentsList');
 
-      if (!list.length){
-        wrap.innerHTML = `
-          <div class="card pop-in" style="text-align:center;background:#f8fafc;border:1px dashed var(--line)">
-            <p class="muted" style="margin:.25rem 0 1rem;">No students yet.</p>
-            <button class="btn btn-primary" type="button" onclick="openModal()">+ Add Your First Student</button>
-          </div>`;
-        return;
-      }
 
-      wrap.innerHTML = list.map(s=>{
-        // Check if student has active enrollment
-        const enrollment = enrollments.find(e => 
-          e.student_id === s.id && 
-          (e.status === 'enrolled' || e.status === 'pending')
-        );
-        
-        const isEnrolled = !!enrollment;
-        const rowClass = isEnrolled ? (enrollment.status === 'enrolled' ? 'enrolled' : 'pending') : '';
-        
-        const allowed = allowedPeriodsForGrade(s.grade);
-        
-        let enrollmentContent = '';
-        if(isEnrolled) {
-          const statusBadge = enrollment.status === 'enrolled' ? 
-            '<span class="status-badge status-enrolled">✓ Enrolled</span>' : 
-            '<span class="status-badge status-pending">⏳ Pending Payment</span>';
-          
-          enrollmentContent = `
-            <div class="field" style="margin-top:.4rem;">
-              <div class="label">Enrolled in Level 1</div>
-              <div style="padding:10px;background:#f9fafb;border-radius:8px;margin-top:4px">
-                <strong>${enrollment.class_time}</strong> ${statusBadge}
-              </div>
-              <div class="muted" style="margin-top:8px;font-size:0.875rem">
-                Contact jeremiah@3djumpstart.com for any changes
-              </div>
-            </div>
-          `;
-        } else {
-          let options = `<option value="">Select a period</option>`;
-          options += allowed.map(p=>`<option value="${p.id}">${p.label}</option>`).join('');
-          
-          enrollmentContent = `
-            <div class="field" style="margin-top:.4rem;max-width:420px">
-              <label class="label">Class Period (Level 1)</label>
-              <select class="select classSelect" data-student="${s.id}">
-                ${options}
-              </select>
-              ${!allowed.length ? `<div class="muted" style="margin-top:.35rem;">No class available for grade <strong>${s.grade}</strong>.</div>` : ''}
-            </div>
-          `;
-        }
+    
+function renderStudents(list, enrollments){
+  const wrap = document.getElementById('studentsList');
 
-        const removeButton = isEnrolled ? 
-          `<span class="muted" style="font-size:0.875rem">Contact us for changes</span>` :
-          `<button class="btn btn-danger btn-remove" data-id="${s.id}" type="button">Remove</button>`;
+  if (!list.length){
+    wrap.innerHTML = `
+      <div class="card pop-in" style="text-align:center;background:#f8fafc;border:1px dashed var(--line)">
+        <p class="muted" style="margin:.25rem 0 1rem;">No students yet.</p>
+        <button class="btn btn-primary" type="button" onclick="openModal()">+ Add Your First Student</button>
+      </div>`;
+    return;
+  }
 
-        return `
-          <div class="student-row ${rowClass} pop-in" data-id="${s.id}">
-            <div>
-              <div style="display:flex;align-items:center;gap:.5rem">
-                <div style="font-weight:900;font-size:1.05rem">${s.first_name} ${s.last_name}</div>
-              </div>
-              <div class="student-meta">
-                Age ${s.age} • Grade ${s.grade} • ${s.experience}
-                ${s.special ? `<br/><span class="muted">Notes:</span> ${escapeHtml(s.special)}` : ''}
-              </div>
-              ${enrollmentContent}
-            </div>
-            <div class="student-actions">
-              <button class="btn btn-muted btn-edit" data-id="${s.id}" type="button">Edit</button>
-              ${removeButton}
-            </div>
-          </div>`;
-      }).join('');
+  wrap.innerHTML = list.map(s=>{
+    const enrollment = enrollments.find(e => 
+      e.student_id === s.id && 
+      (e.status === 'enrolled' || e.status === 'pending')
+    );
+    
+    const isEnrolled = !!enrollment;
+    const rowClass = isEnrolled ? (enrollment.status === 'enrolled' ? 'enrolled' : 'pending') : '';
+    
+    const allowed = allowedPeriodsForGrade(s.grade);
+    
+    let enrollmentContent = '';
+    if(isEnrolled) {
+      const statusBadge = enrollment.status === 'enrolled' ? 
+        '<span class="status-badge status-enrolled">✓ Enrolled</span>' : 
+        '<span class="status-badge status-pending">⏳ Pending Payment</span>';
+      
+      enrollmentContent = `
+        <div class="field" style="margin-top:.4rem;">
+          <div class="label">Enrolled in Level 1</div>
+          <div style="padding:10px;background:#f9fafb;border-radius:8px;margin-top:4px">
+            <strong>${enrollment.class_time}</strong> ${statusBadge}
+          </div>
+          <div class="muted" style="margin-top:8px;font-size:0.875rem">
+            Contact jeremiah@3djumpstart.com for any changes
+          </div>
+        </div>
+      `;
+    } else {
+      let options = `<option value="">-- Choose Tuesday 4:30pm or 5:30pm --</option>`;
+      options += allowed.map(p=>`<option value="${p.id}">${p.label}</option>`).join('');
+      
+      enrollmentContent = `
+        <div class="field" style="margin-top:.4rem;max-width:420px;padding:1rem;background:#fef3c7;border-radius:8px;border:2px solid #f59e0b;">
+          <label class="label" style="color:#ea580c;font-weight:700;font-size:1rem;margin-bottom:0.5rem;">
+            ⚠️ Action Required: Select Class Time
+          </label>
+          <select class="select classSelect" data-student="${s.id}" style="border:2px solid #ea580c;background:white;">
+            ${options}
+          </select>
+          <button class="btn btn-primary add-to-cart" data-student="${s.id}" style="margin-top:0.5rem;width:100%;display:none;" disabled>
+            Add to Cart →
+          </button>
+          <div class="muted" style="margin-top:0.5rem;font-size:0.875rem;">
+            After selecting a time, click "Add to Cart" to continue
+          </div>
+          ${!allowed.length ? `<div class="muted" style="margin-top:.35rem;color:#dc2626;">No class available for grade <strong>${s.grade}</strong>.</div>` : ''}
+        </div>
+      `;
+    }
 
-      // Wire selects & buttons
-      wrap.querySelectorAll('.classSelect').forEach(sel => {
-        sel.addEventListener('change', async (e) => {
-          const studentId = e.target.getAttribute('data-student');
-          const period = e.target.value;
-          if (!period) return;
-          
+    const removeButton = isEnrolled ? 
+      `<span class="muted" style="font-size:0.875rem">Contact us for changes</span>` :
+      `<button class="btn btn-danger btn-remove" data-id="${s.id}" type="button">Remove</button>`;
+
+    return `
+      <div class="student-row ${rowClass} pop-in" data-id="${s.id}">
+        <div>
+          <div style="display:flex;align-items:center;gap:.5rem">
+            <div style="font-weight:900;font-size:1.05rem">${s.first_name} ${s.last_name}</div>
+          </div>
+          <div class="student-meta">
+            Age ${s.age} • Grade ${s.grade} • ${s.experience}
+            ${s.special ? `<br/><span class="muted">Notes:</span> ${escapeHtml(s.special)}` : ''}
+          </div>
+          ${enrollmentContent}
+        </div>
+        <div class="student-actions">
+          <button class="btn btn-muted btn-edit" data-id="${s.id}" type="button">Edit</button>
+          ${removeButton}
+        </div>
+      </div>`;
+  }).join('');
+
+  // Wire up the new add-to-cart flow
+  wrap.querySelectorAll('.classSelect').forEach(sel => {
+    sel.addEventListener('change', (e) => {
+      const studentId = e.target.getAttribute('data-student');
+      const addBtn = wrap.querySelector(`.add-to-cart[data-student="${studentId}"]`);
+      
+      if (e.target.value) {
+        addBtn.style.display = 'block';
+        addBtn.disabled = false;
+        addBtn.onclick = async () => {
           const { data: student } = await sb.from('students').select('*').eq('id', studentId).single();
           const allowed = allowedPeriodsForGrade(student.grade).map(p=>p.id);
           
-          if (!allowed.includes(period)) {
+          if (!allowed.includes(e.target.value)) {
             alert(`Selected class period isn't available for grade ${student.grade}.`);
             e.target.value = '';
+            addBtn.style.display = 'none';
             return;
           }
           
-          const result = await sbUpsertEnrollment(student, period);
+          addBtn.disabled = true;
+          addBtn.textContent = 'Adding...';
+          
+          const result = await sbUpsertEnrollment(student, e.target.value);
           if(result) {
             toast('Added to cart');
             await render();
+          } else {
+            addBtn.disabled = false;
+            addBtn.textContent = 'Add to Cart →';
           }
-        });
-      });
+        };
+      } else {
+        addBtn.style.display = 'none';
+        addBtn.disabled = true;
+      }
+    });
+  });
 
-      wrap.querySelectorAll('.btn-edit').forEach(btn=>{
-        btn.addEventListener('click', () => openModal(btn.dataset.id));
-      });
-      
-      wrap.querySelectorAll('.btn-remove').forEach(btn=>{
-        btn.addEventListener('click', async () => {
-          if(!confirm('Remove this student?')) return;
-          const deleted = await sbDeleteStudent(btn.dataset.id);
-          if(deleted) {
-            await render();
-          }
-        });
-      });
-    }
+  // Wire up edit and remove buttons
+  wrap.querySelectorAll('.btn-edit').forEach(btn=>{
+    btn.addEventListener('click', () => openModal(btn.dataset.id));
+  });
+  
+  wrap.querySelectorAll('.btn-remove').forEach(btn=>{
+    btn.addEventListener('click', async () => {
+      if(!confirm('Remove this student?')) return;
+      const deleted = await sbDeleteStudent(btn.dataset.id);
+      if(deleted) {
+        await render();
+      }
+    });
+  });
+}
 
     function renderCart(cart, students){
       const wrap=document.getElementById('cartList');
