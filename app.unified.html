@@ -1,0 +1,776 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>3D Jumpstart - Parent Portal</title>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.39.3/dist/umd/supabase.min.js"></script>
+    <script src="https://js.stripe.com/v3/"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
+            line-height: 1.6;
+            color: #111827;
+            background: #f9fafb;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 1rem;
+        }
+
+        /* Header */
+        .app-header {
+            background: white;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+            position: sticky;
+            top: 0;
+            z-index: 50;
+        }
+
+        .header-content {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 1rem 0;
+        }
+
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            text-decoration: none;
+            color: inherit;
+        }
+
+        .logo-image {
+            height: 7rem;
+            width: auto;
+        }
+
+        .nav-links {
+            display: flex;
+            align-items: center;
+            gap: 1.5rem;
+            list-style: none;
+        }
+
+        .nav-link {
+            color: #6b7280;
+            text-decoration: none;
+            font-weight: 500;
+            padding: 0.5rem 1rem;
+            border-radius: 0.5rem;
+            transition: all 0.2s;
+            cursor: pointer;
+        }
+
+        .nav-link.active, .nav-link:hover {
+            color: #ea580c;
+            background: #fed7aa;
+        }
+
+        /* Buttons */
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
+            padding: 0.75rem 1.5rem;
+            border-radius: 0.5rem;
+            font-weight: 600;
+            text-decoration: none;
+            border: none;
+            cursor: pointer;
+            transition: all 0.2s;
+            font-size: 0.875rem;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #ea580c 0%, #dc2626 100%);
+            color: white;
+            box-shadow: 0 4px 6px -1px rgba(234, 88, 12, 0.25);
+        }
+
+        .btn-primary:hover:not(:disabled) {
+            transform: translateY(-1px);
+            box-shadow: 0 10px 15px -3px rgba(234, 88, 12, 0.25);
+        }
+
+        .btn-primary:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .btn-outline {
+            background: transparent;
+            color: #ea580c;
+            border: 2px solid #ea580c;
+        }
+
+        .btn-outline:hover {
+            background: #fed7aa;
+        }
+
+        .btn-secondary {
+            background: #6b7280;
+            color: white;
+        }
+
+        .btn-success {
+            background: #16a34a;
+            color: white;
+        }
+
+        .btn-danger {
+            background: #dc2626;
+            color: white;
+            padding: 0.5rem 1rem;
+            font-size: 0.75rem;
+        }
+
+        /* Loading states */
+        .btn.loading {
+            position: relative;
+            color: transparent;
+            pointer-events: none;
+        }
+
+        .btn.loading::after {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 20px;
+            height: 20px;
+            margin-left: -10px;
+            margin-top: -10px;
+            border: 2px solid rgba(255, 255, 255, 0.3);
+            border-top: 2px solid white;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        /* App Sections */
+        .app-section {
+            display: none;
+            min-height: calc(100vh - 100px);
+            padding: 2rem 0;
+        }
+
+        .app-section.active {
+            display: block;
+        }
+
+        .section-header {
+            background: white;
+            padding: 2rem;
+            border-radius: 1rem;
+            box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1);
+            margin-bottom: 2rem;
+        }
+
+        .section-title {
+            font-size: 2rem;
+            font-weight: 700;
+            color: #111827;
+            margin-bottom: 0.5rem;
+        }
+
+        .section-subtitle {
+            color: #6b7280;
+        }
+
+        /* Cards */
+        .card {
+            background: white;
+            border: 2px solid #e5e7eb;
+            border-radius: 1rem;
+            padding: 2rem;
+            box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1);
+            margin-bottom: 2rem;
+        }
+
+        .card-title {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: #111827;
+            margin-bottom: 1rem;
+        }
+
+        /* Forms */
+        .form-group {
+            margin-bottom: 1.5rem;
+        }
+
+        .form-label {
+            display: block;
+            margin-bottom: 0.5rem;
+            font-weight: 600;
+            color: #111827;
+        }
+
+        .form-input, .form-select {
+            width: 100%;
+            padding: 0.875rem;
+            border: 2px solid #e5e7eb;
+            border-radius: 0.5rem;
+            font-size: 1rem;
+            transition: all 0.2s ease;
+            background: white;
+        }
+
+        .form-input:focus, .form-select:focus {
+            outline: none;
+            border-color: #ea580c;
+            box-shadow: 0 0 0 3px rgba(234, 88, 12, 0.1);
+        }
+
+        .form-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1rem;
+        }
+
+        /* Students Grid */
+        .students-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 1.5rem;
+            margin-bottom: 2rem;
+        }
+
+        .student-card {
+            background: white;
+            border: 2px solid #e5e7eb;
+            border-radius: 1rem;
+            padding: 1.5rem;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1);
+            position: relative;
+        }
+
+        .student-card:hover {
+            border-color: #fed7aa;
+            transform: translateY(-2px);
+        }
+
+        .student-card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: start;
+            margin-bottom: 1rem;
+        }
+
+        .remove-student-btn {
+            background: none;
+            border: none;
+            color: #dc2626;
+            cursor: pointer;
+            font-size: 1.5rem;
+            padding: 0;
+            width: 24px;
+            height: 24px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 0.25rem;
+            transition: background 0.2s;
+        }
+
+        .remove-student-btn:hover {
+            background: #fef2f2;
+        }
+
+        .add-student-card {
+            background: linear-gradient(135deg, #fed7aa 0%, #fb923c 100%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            cursor: pointer;
+            border: 2px dashed #ea580c;
+            min-height: 200px;
+        }
+
+        .add-student-card:hover {
+            transform: translateY(-4px);
+            background: linear-gradient(135deg, #fb923c 0%, #ea580c 100%);
+        }
+
+        /* Cart */
+        .cart-item {
+            background: #f9fafb;
+            border: 1px solid #e5e7eb;
+            border-radius: 0.5rem;
+            padding: 1rem;
+            margin-bottom: 0.5rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .cart-summary {
+            background: white;
+            border: 2px solid #ea580c;
+            border-radius: 1rem;
+            padding: 2rem;
+            margin-top: 2rem;
+        }
+
+        .price-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0.5rem 0;
+            border-bottom: 1px solid #f3f4f6;
+        }
+
+        .price-row:last-child {
+            border-bottom: none;
+            font-weight: 700;
+            font-size: 1.125rem;
+            color: #ea580c;
+        }
+
+        /* Messages */
+        .message {
+            padding: 1rem;
+            border-radius: 0.5rem;
+            margin-bottom: 1rem;
+            font-weight: 600;
+            animation: slideIn 0.3s ease;
+        }
+
+        @keyframes slideIn {
+            from {
+                transform: translateY(-10px);
+                opacity: 0;
+            }
+            to {
+                transform: translateY(0);
+                opacity: 1;
+            }
+        }
+
+        .message.success {
+            background: #dcfce7;
+            color: #15803d;
+            border: 1px solid #86efac;
+        }
+
+        .message.error {
+            background: #fef2f2;
+            color: #dc2626;
+            border: 1px solid #fca5a5;
+        }
+
+        .message.info {
+            background: #eff6ff;
+            color: #1d4ed8;
+            border: 1px solid #93c5fd;
+        }
+
+        /* Progress Steps */
+        .progress-steps {
+            display: flex;
+            justify-content: center;
+            margin-bottom: 2rem;
+            flex-wrap: wrap;
+            gap: 0.5rem;
+        }
+
+        .progress-step {
+            display: flex;
+            align-items: center;
+            color: #9ca3af;
+            font-weight: 500;
+        }
+
+        .progress-step.active {
+            color: #ea580c;
+            font-weight: 600;
+        }
+
+        .progress-step.completed {
+            color: #16a34a;
+        }
+
+        .step-divider {
+            width: 2rem;
+            height: 2px;
+            background: #e5e7eb;
+            margin: 0 1rem;
+        }
+
+        .step-divider.completed {
+            background: #16a34a;
+        }
+
+        /* Payment Options */
+        .payment-options {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1rem;
+            margin: 1.5rem 0;
+        }
+
+        .payment-option {
+            border: 2px solid #e5e7eb;
+            border-radius: 0.5rem;
+            padding: 1.5rem;
+            cursor: pointer;
+            transition: all 0.2s;
+            text-align: center;
+        }
+
+        .payment-option:hover {
+            border-color: #ea580c;
+            transform: translateY(-2px);
+        }
+
+        .payment-option.selected {
+            border-color: #ea580c;
+            background: #fed7aa;
+        }
+
+        .payment-title {
+            font-weight: 700;
+            margin-bottom: 0.5rem;
+        }
+
+        .payment-amount {
+            font-size: 1.5rem;
+            font-weight: 800;
+            color: #ea580c;
+            margin-bottom: 0.5rem;
+        }
+
+        .payment-description {
+            font-size: 0.875rem;
+            color: #6b7280;
+        }
+
+        /* Modal */
+        .modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0,0,0,0.7);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+        }
+
+        .modal-content {
+            background: white;
+            border-radius: 1rem;
+            padding: 2rem;
+            max-width: 600px;
+            width: 90%;
+            max-height: 80vh;
+            overflow-y: auto;
+        }
+
+        /* Grade validation warning */
+        .grade-warning {
+            background: #fef3c7;
+            border: 1px solid #f59e0b;
+            border-radius: 0.5rem;
+            padding: 1rem;
+            margin: 1rem 0;
+            color: #92400e;
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .form-row {
+                grid-template-columns: 1fr;
+            }
+            
+            .students-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .payment-options {
+                grid-template-columns: 1fr;
+            }
+
+            .nav-links {
+                gap: 0.5rem;
+            }
+
+            .nav-link {
+                padding: 0.5rem;
+                font-size: 0.875rem;
+            }
+
+            .step-divider {
+                width: 1rem;
+                margin: 0 0.5rem;
+            }
+
+            .cart-item {
+                flex-direction: column;
+                align-items: stretch;
+                gap: 1rem;
+            }
+
+            .cart-item > div:last-child {
+                display: flex;
+                gap: 0.5rem;
+            }
+
+            .cart-item .btn {
+                padding: 0.5rem 1rem;
+                font-size: 0.75rem;
+                flex: 1;
+            }
+        }
+
+        .hidden {
+            display: none !important;
+        }
+    
+/* Ensure unified header across app and portal */
+.app-header {
+  background: #ffffff;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+  position: sticky;
+  top: 0;
+  z-index: 50;
+}
+.logo-image { height: 40px; }
+</style>
+</head>
+
+    <div class="container" style="margin-top: 1rem; margin-bottom: -1rem;">
+    <div style="display: flex; align-items: center; gap: 0.5rem; color: #6b7280; font-size: 0.875rem;">
+        <a href="portal.html" style="color: #ea580c; text-decoration: none; font-weight: 500;">Dashboard</a>
+        <span>→</span>
+        <span>Student Enrollment</span>
+    </div>
+</div>
+
+    
+<body>
+    <div id="auth-check" style="display: flex; align-items: center; justify-content: center; min-height: 100vh; background: #f9fafb;">
+        <div style="text-align: center;">
+            <div style="width: 40px; height: 40px; border: 4px solid #ea580c; border-top: 4px solid transparent; border-radius: 50%; animation: spin 1s linear infinite; margin: 0 auto 1rem;"></div>
+            <p style="color: #6b7280;">Loading enrollment system...</p>
+        </div>
+    </div>
+
+    <div id="main-app" class="hidden">
+        <!-- App Header -->
+        <header class="app-header">
+            <div class="container">
+                <div class="header-content">
+                    <a href="index.html" class="logo">
+                        <img src="https://raw.githubusercontent.com/JDaws-Dev/3DJumpstart/main/3d-jumpstart-logo.png" alt="3D Jumpstart" class="logo-image">
+                    </a>
+                    <nav>
+                     <ul class="nav-links">
+    <li><a class="nav-link" href="portal.html">← Back to Dashboard</a></li>
+    <li><a class="nav-link active">Enrollment</a></li>
+    <li><a class="nav-link" onclick="showSection('cart', event)">Cart <span id="cart-count" class="hidden">(0)</span></a></li>
+    <li><a class="btn btn-secondary" onclick="logout()">Logout</a></li>
+</ul>
+                    </nav>
+                </div>
+            </div>
+        </header>
+
+        <!-- Progress Steps -->
+        <div class="container">
+            <div class="progress-steps">
+                <div id="step-students" class="progress-step active">1. Add Students</div>
+                <div class="step-divider"></div>
+                <div id="step-cart" class="progress-step">2. Select Classes</div>
+                <div class="step-divider"></div>
+                <div id="step-payment" class="progress-step">3. Payment</div>
+                <div class="step-divider"></div>
+                <div id="step-complete" class="progress-step">4. Complete</div>
+            </div>
+        </div>
+
+        <!-- Students Section -->
+        <section id="students-section" class="app-section active">
+            <div class="container">
+                <div class="section-header">
+                    <h1 class="section-title">Your Students</h1>
+                    <p class="section-subtitle">Add your children who will be attending 3D Jumpstart classes</p>
+                </div>
+
+                <div id="message-area"></div>
+
+                <div class="students-grid" id="students-grid">
+                    <div class="student-card add-student-card" onclick="showAddStudentForm()">
+                        <div>
+                            <div style="font-size: 3rem; margin-bottom: 1rem;">+</div>
+                            <h3 style="font-weight: 700; margin-bottom: 0.5rem; color: #7c2d12;">Add Student</h3>
+                            <p style="color: #9a3412;">Click to add your child</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div style="text-align: center; margin-top: 2rem;">
+                    <button onclick="proceedToCart()" class="btn btn-primary" id="proceed-to-cart-btn" disabled>
+                        Continue to Class Selection
+                    </button>
+                </div>
+            </div>
+        </section>
+
+        <!-- Cart Section -->
+        <section id="cart-section" class="app-section">
+            <div class="container">
+                <div class="section-header">
+                    <h1 class="section-title">Select Classes</h1>
+                    <p class="section-subtitle">Choose class times for each student</p>
+                </div>
+
+                <div id="cart-message-area"></div>
+
+                <div class="card" id="course-info-card">
+                    <h2 class="card-title">Level 1 Course Information</h2>
+                    <div style="background: #fef3c7; padding: 1.5rem; border-radius: 0.5rem; border-left: 4px solid #f59e0b; margin-bottom: 1.5rem;">
+                        <h3 style="color: #92400e; margin-bottom: 0.5rem;">Professional 3D Design Fundamentals - 12 Week Program</h3>
+                        <p style="color: #92400e; margin: 0;">Students will learn professional Fusion360 CAD software and create their first 3D printed projects. This comprehensive 12-week Level 1 course starts September 9th at Shadowbrook Church, Suwanee.</p>
+                    </div>
+                    
+                    <div id="time-slot-availability" style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+                        <!-- This will be populated dynamically -->
+                    </div>
+                </div>
+
+                <div class="card">
+                    <h2 class="card-title">Your Cart</h2>
+                    <div id="cart-items">
+                        <p style="color: #6b7280; font-style: italic;">No students in cart yet. Add students from the previous step.</p>
+                    </div>
+                </div>
+
+                <div id="cart-summary" class="hidden">
+                    <div class="cart-summary">
+                        <h3 style="margin-bottom: 1rem;">Order Summary</h3>
+                        <div id="pricing-breakdown"></div>
+                        
+                        <div class="payment-options">
+                            <div class="payment-option" onclick="selectPaymentOption('full')" id="payment-full">
+                                <div class="payment-title">Pay in Full</div>
+                                <div class="payment-amount" id="full-amount">$700</div>
+                                <div class="payment-description">Complete payment today<br><span style="color: #16a34a; font-weight: 600;">Save $20!</span></div>
+                            </div>
+                            <div class="payment-option" onclick="selectPaymentOption('split')" id="payment-split">
+                                <div class="payment-title">Payment Plan</div>
+                                <div class="payment-amount" id="split-amount">$360</div>
+                                <div class="payment-description">$360 today<br>$360 due Oct 15th</div>
+                            </div>
+                        </div>
+
+                        <button onclick="proceedToPayment()" class="btn btn-primary" id="proceed-to-payment-btn" style="width: 100%; margin-top: 1rem;" disabled>
+                            Proceed to Payment
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Orders Section -->
+
+    </div>
+
+    <!-- Add Student Modal -->
+    <div id="add-student-modal" class="modal hidden">
+        <div class="modal-content">
+            <h3 style="margin-bottom: 1.5rem; font-size: 1.5rem; font-weight: 700;">Add Student</h3>
+            <form id="add-student-form">
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="student-first-name" class="form-label">First Name</label>
+                        <input type="text" id="student-first-name" name="firstName" class="form-input" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="student-last-name" class="form-label">Last Name</label>
+                        <input type="text" id="student-last-name" name="lastName" class="form-input" required>
+                    </div>
+                </div>
+
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="student-age" class="form-label">Age</label>
+                        <input type="number" id="student-age" name="age" class="form-input" min="9" max="18" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="student-grade" class="form-label">Grade</label>
+                        <select id="student-grade" name="grade" class="form-select" required>
+                            <option value="">Select Grade</option>
+                            <option value="4th">4th Grade</option>
+                            <option value="5th">5th Grade</option>
+                            <option value="6th">6th Grade</option>
+                            <option value="7th">7th Grade</option>
+                            <option value="8th">8th Grade</option>
+                            <option value="9th">9th Grade</option>
+                            <option value="10th">10th Grade</option>
+                            <option value="11th">11th Grade</option>
+                            <option value="12th">12th Grade</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label for="experience-level" class="form-label">3D Design Experience</label>
+                    <select id="experience-level" name="experienceLevel" class="form-select" required>
+                        <option value="">Select Experience Level</option>
+                        <option value="None">No prior experience</option>
+                        <option value="Beginner">Some basic experience (TinkerCAD, etc.)</option>
+                        <option value="Intermediate">Comfortable with design software</option>
+                        <option value="Advanced">Experienced with CAD/3D modeling</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label for="special-considerations" class="form-label">Special Considerations (Optional)</label>
+                    <textarea id="special-considerations" name="specialConsiderations" rows="3" class="form-input" placeholder="Any learning differences, medical needs, or other information we should know about?"></textarea>
+                </div>
+
+                <div style="display: flex; gap: 1rem; margin-top: 2rem; justify-content: flex-end;">
+                    <button type="button" onclick="hideAddStudentForm()" class="btn btn-secondary">Cancel</button>
+                    <button type="submit" class="btn btn-primary">Add Student</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Grade Validation Modal -->
+    <div id="grade-validation-modal" class="modal hidden">
+        <div class="modal-content">
+            <h3 style="margin-bottom: 1.5rem; font-size: 1.5rem; font-weight: 700;">Confirm Class Assignment</h3>
+            <div id="grade-validation-content"></div>
+            <div style="display: flex; gap: 1rem; margin-top: 2rem; justify-content: flex-end;">
+                <button type="button" onclick="cancelGradeAssignment()" class="btn btn-secondary">Cancel</button>
+                <button type="button" onclick="confirmGradeAssignment()" class="btn btn-primary">Continue Anyway</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="app.js"></script>
+</body>
+</html>

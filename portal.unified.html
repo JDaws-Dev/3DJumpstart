@@ -1,0 +1,889 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Parent Portal - 3D Jumpstart</title>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.39.3/dist/umd/supabase.min.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
+            line-height: 1.6;
+            color: #111827;
+            background: #f9fafb;
+            min-height: 100vh;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 1rem;
+        }
+
+        /* Header */
+        .portal-header {
+            background: white;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+            position: sticky;
+            top: 0;
+            z-index: 50;
+        }
+
+        .header-content {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 1rem 0;
+        }
+
+        .logo-image {
+            height: 5rem;
+            width: auto;
+        }
+
+        .user-info {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            color: #6b7280;
+        }
+
+        /* Tabs */
+        .tab-navigation {
+            background: white;
+            border-bottom: 2px solid #e5e7eb;
+            margin-bottom: 2rem;
+        }
+
+        .tab-list {
+            display: flex;
+            gap: 0;
+            list-style: none;
+            overflow-x: auto;
+        }
+
+        .tab-button {
+            padding: 1rem 1.5rem;
+            background: none;
+            border: none;
+            border-bottom: 3px solid transparent;
+            color: #6b7280;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s;
+            white-space: nowrap;
+        }
+
+        .tab-button:hover {
+            color: #ea580c;
+            background: #fef3c7;
+        }
+
+        .tab-button.active {
+            color: #ea580c;
+            border-bottom-color: #ea580c;
+            background: #fef3c7;
+        }
+
+        /* Tab Content */
+        .tab-content {
+            display: none;
+            animation: fadeIn 0.3s ease;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        /* Cards */
+        .card {
+            background: white;
+            border-radius: 1rem;
+            padding: 2rem;
+            box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1);
+            margin-bottom: 2rem;
+        }
+
+        .card-title {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: #111827;
+            margin-bottom: 1rem;
+        }
+
+        /* Student Cards */
+        .student-card {
+            background: linear-gradient(135deg, #fed7aa 0%, #ffffff 100%);
+            border: 2px solid #ea580c;
+            border-radius: 1rem;
+            padding: 1.5rem;
+            margin-bottom: 1.5rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .student-info h3 {
+            font-size: 1.25rem;
+            color: #111827;
+            margin-bottom: 0.5rem;
+        }
+
+        .student-details {
+            color: #6b7280;
+            line-height: 1.8;
+        }
+
+        /* Schedule */
+        .schedule-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 1rem;
+            margin-top: 1.5rem;
+        }
+
+        .week-item {
+            padding: 1rem;
+            background: #f9fafb;
+            border-left: 4px solid #ea580c;
+            border-radius: 0.5rem;
+        }
+
+        .week-item.break {
+            background: #fef3c7;
+            border-left-color: #f59e0b;
+        }
+
+        /* Buttons */
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
+            padding: 0.75rem 1.5rem;
+            border-radius: 0.5rem;
+            font-weight: 600;
+            text-decoration: none;
+            border: none;
+            cursor: pointer;
+            transition: all 0.2s;
+            font-size: 0.875rem;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #ea580c 0%, #dc2626 100%);
+            color: white;
+            box-shadow: 0 4px 6px -1px rgba(234, 88, 12, 0.25);
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 10px 15px -3px rgba(234, 88, 12, 0.25);
+        }
+
+        .btn-secondary {
+            background: #6b7280;
+            color: white;
+        }
+
+        .btn-secondary:hover {
+            background: #4b5563;
+        }
+
+        .btn-disabled {
+            background: #e5e7eb;
+            color: #9ca3af;
+            cursor: not-allowed;
+            opacity: 0.6;
+        }
+
+        /* Info Boxes */
+        .info-box {
+            background: #f0f9ff;
+            border: 2px solid #0ea5e9;
+            border-radius: 0.5rem;
+            padding: 1.5rem;
+            margin: 1.5rem 0;
+        }
+
+        .warning-box {
+            background: #fef3c7;
+            border: 2px solid #f59e0b;
+            border-radius: 0.5rem;
+            padding: 1.5rem;
+            margin: 1.5rem 0;
+        }
+
+        /* Service Cards */
+        .service-card {
+            background: white;
+            border: 2px solid #e5e7eb;
+            border-radius: 1rem;
+            padding: 2rem;
+            margin-bottom: 1.5rem;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1);
+        }
+
+        .service-card:hover {
+            border-color: #ea580c;
+            transform: translateY(-2px);
+            box-shadow: 0 10px 15px -3px rgba(0,0,0,0.1);
+        }
+
+        .service-icon {
+            font-size: 3rem;
+            margin-bottom: 1rem;
+        }
+
+        .service-title {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: #111827;
+            margin-bottom: 0.5rem;
+        }
+
+        .service-price {
+            font-size: 1.25rem;
+            font-weight: 600;
+            color: #ea580c;
+            margin-bottom: 1rem;
+        }
+
+        .service-features {
+            list-style: none;
+            padding: 0;
+            margin: 1rem 0;
+        }
+
+        .service-features li {
+            padding: 0.5rem 0;
+            color: #6b7280;
+            display: flex;
+            align-items: start;
+            gap: 0.5rem;
+        }
+
+        .service-features li::before {
+            content: '✓';
+            color: #16a34a;
+            font-weight: 700;
+            flex-shrink: 0;
+        }
+
+        /* Contact Info */
+        .contact-card {
+            background: linear-gradient(135deg, #fed7aa 0%, #fb923c 100%);
+            border-radius: 1rem;
+            padding: 2rem;
+            text-align: center;
+            color: white;
+        }
+
+        .contact-card h3 {
+            font-size: 1.5rem;
+            margin-bottom: 1rem;
+        }
+
+        .contact-card a {
+            color: white;
+            font-weight: 600;
+            font-size: 1.125rem;
+        }
+
+        /* Billing Table */
+        .billing-table {
+            width: 100%;
+            margin-top: 1rem;
+        }
+
+        .billing-table th,
+        .billing-table td {
+            padding: 1rem;
+            text-align: left;
+            border-bottom: 1px solid #e5e7eb;
+        }
+
+        .billing-table th {
+            background: #f9fafb;
+            font-weight: 600;
+            color: #374151;
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .student-card {
+                flex-direction: column;
+                gap: 1rem;
+            }
+
+            .tab-list {
+                flex-direction: column;
+            }
+
+            .schedule-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .hidden {
+            display: none !important;
+        }
+    
+/* Unified header look */
+.app-header, .portal-header {
+  background: #ffffff;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+  position: sticky;
+  top: 0;
+  z-index: 50;
+}
+.header-content {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 0.75rem 0;
+}
+.logo-image { height: 40px; }
+
+/* Status badges */
+.badge { display: inline-block; padding: 0.125rem 0.5rem; border-radius: 9999px; font-size: 0.75rem; font-weight: 600; }
+.badge-enrolled { background: #dcfce7; color: #166534; border: 1px solid #16a34a; }
+.badge-pending { background: #fef3c7; color: #92400e; border: 1px solid #f59e0b; }
+.badge-canceled { background: #fee2e2; color: #991b1b; border: 1px solid #ef4444; }
+
+.card-student { border: 1px solid #e5e7eb; border-radius: 0.75rem; padding: 1rem; margin-bottom: 0.75rem; background: #fff; }
+.card-student h3 { margin: 0 0 0.5rem 0; font-size: 1rem; }
+.card-student .muted { color: #6b7280; font-size: 0.875rem; }
+</style>
+</head>
+<body>
+    <!-- Header -->
+    <header class="portal-header">
+        <div class="container">
+            <div class="header-content">
+                <img src="https://raw.githubusercontent.com/JDaws-Dev/3DJumpstart/main/3d-jumpstart-logo.png" alt="3D Jumpstart" class="logo-image">
+            
+                <div class="user-info">
+    <span id="parent-name">Loading...</span>
+    <a href="app.html" class="btn btn-primary" style="background: white; color: #ea580c; border: 2px solid #ea580c;">
+        Manage Students
+    </a>
+    <button onclick="logout()" class="btn btn-secondary">Logout</button>
+</div>
+
+                
+            </div>
+        </div>
+    </header>
+
+    <!-- Welcome Section -->
+    <div class="container" style="margin-top: 2rem;">
+        <h1 style="font-size: 2rem; margin-bottom: 2rem;">Welcome to Your Parent Portal</h1>
+    </div>
+
+
+
+
+
+
+    
+    <!-- Tab Navigation -->
+    <div class="container">
+        <nav class="tab-navigation">
+            <ul class="tab-list">
+                <li><button class="tab-button active" onclick="showTab('students')">My Students</button></li>
+                <li><button class="tab-button" onclick="showTab('class-info')">Class Information</button></li>
+                <li><button class="tab-button" onclick="showTab('support')">Support Services</button></li>
+                <li><button class="tab-button" onclick="showTab('billing')">Billing</button></li>
+                <li><button class="tab-button" onclick="showTab('contact')">Contact</button></li>
+            </ul>
+        </nav>
+    </div>
+
+    <!-- Tab Contents -->
+    <div class="container">
+        <!-- My Students Tab -->
+        <div id="students-tab" class="tab-content active">
+            <div class="card">
+                <h2 class="card-title">Your Enrolled Students</h2>
+                <div id="students-list">
+                    <!-- Students will be populated here -->
+                </div>
+            </div>
+        </div>
+
+        <!-- Class Information Tab -->
+        <div id="class-info-tab" class="tab-content">
+            <div class="card">
+                <h2 class="card-title">Location</h2>
+                <div style="font-size: 1.125rem; margin-bottom: 1rem;">
+                    <strong>Shadowbrook Church</strong><br>
+                    4187 Suwanee Dam Rd NW<br>
+                    Suwanee, GA 30024
+                </div>
+            </div>
+
+            <div class="card">
+                <h2 class="card-title">What Your Student Needs</h2>
+                <div class="info-box">
+                    <p style="font-size: 1.125rem; margin-bottom: 1rem;">
+                        <strong>Computers are provided!</strong> Your student doesn't need to bring a laptop.
+                    </p>
+                    <p style="margin-bottom: 1rem;">
+                        <strong>Required Supply:</strong> Imperial (Inch) Digital or Dial Calipers for precision measuring
+                    </p>
+                    <a href="https://a.co/d/7BT1kL0" target="_blank" class="btn btn-primary">
+                        View Recommended Calipers on Amazon →
+                    </a>
+                </div>
+            </div>
+
+            <div class="card">
+                <h2 class="card-title">Level 1 Schedule - 12 Weeks</h2>
+                <div class="schedule-grid">
+                    <div class="week-item">
+                        <strong>Week 1</strong><br>
+                        September 9
+                    </div>
+                    <div class="week-item">
+                        <strong>Week 2</strong><br>
+                        September 16
+                    </div>
+                    <div class="week-item">
+                        <strong>Week 3</strong><br>
+                        September 23
+                    </div>
+                    <div class="week-item">
+                        <strong>Week 4</strong><br>
+                        September 30
+                    </div>
+                    <div class="week-item">
+                        <strong>Week 5</strong><br>
+                        October 7
+                    </div>
+                    <div class="week-item">
+                        <strong>Week 6</strong><br>
+                        October 14
+                    </div>
+                    <div class="week-item">
+                        <strong>Week 7</strong><br>
+                        October 21
+                    </div>
+                    <div class="week-item">
+                        <strong>Week 8</strong><br>
+                        October 28
+                    </div>
+                    <div class="week-item">
+                        <strong>Week 9</strong><br>
+                        November 4
+                    </div>
+                    <div class="week-item">
+                        <strong>Week 10</strong><br>
+                        November 11
+                    </div>
+                    <div class="week-item">
+                        <strong>Week 11</strong><br>
+                        November 18
+                    </div>
+                    <div class="week-item break">
+                        <strong>Thanksgiving Break</strong><br>
+                        November 25 - No Class
+                    </div>
+                    <div class="week-item">
+                        <strong>Week 12</strong><br>
+                        December 2
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Support Services Tab -->
+        <div id="support-tab" class="tab-content">
+            <div class="card">
+                <h2 class="card-title">Professional 3D Printer Support</h2>
+                <p style="color: #6b7280; margin-bottom: 2rem;">Expert help for your home 3D printing journey - Coming Fall 2025</p>
+                
+                <div class="service-card">
+                    <div class="service-icon">🏠</div>
+                    <h3 class="service-title">Printer Setup Service</h3>
+                    <div class="service-price">$150</div>
+                    <p style="color: #6b7280; margin-bottom: 1rem;">Professional Bambu Lab printer installation at your home</p>
+                    <ul class="service-features">
+                        <li>Complete printer assembly and calibration</li>
+                        <li>Software installation and configuration</li>
+                        <li>First successful print guaranteed</li>
+                        <li>90-minute in-home visit</li>
+                        <li>Training on basic operations</li>
+                    </ul>
+                </div>
+
+                <div class="service-card">
+                    <div class="service-icon">🔧</div>
+                    <h3 class="service-title">Troubleshooting Visit</h3>
+                    <div class="service-price">$100</div>
+                    <p style="color: #6b7280; margin-bottom: 1rem;">Fix your printing issues with expert assistance</p>
+                    <ul class="service-features">
+                        <li>Diagnose and fix printing problems</li>
+                        <li>Maintenance and optimization</li>
+                        <li>Training on advanced features</li>
+                        <li>60-minute in-home visit</li>
+                        <li>Recommendations for upgrades or improvements</li>
+                    </ul>
+                </div>
+
+                <div class="warning-box" style="text-align: center;">
+                    <p>
+                        <strong>Note:</strong> Support services are exclusively for Bambu Lab printers<br>
+                        Service area: Within 30 minutes of Sugar Hill, GA
+                    </p>
+                </div>
+
+                <div style="text-align: center; margin-top: 2rem;">
+                    <a href="mailto:jeremiah@3djumpstart.com" class="btn btn-primary" style="font-size: 1.125rem; padding: 1rem 2rem;">
+                        Contact Us About Support Services
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <!-- Billing Tab -->
+        <div id="billing-tab" class="tab-content">
+            <div class="card">
+                <h2 class="card-title">Billing & Payments</h2>
+                <table class="billing-table">
+                    <thead>
+                        <tr>
+                            <th>Date</th>
+                            <th>Description</th>
+                            <th>Amount</th>
+                            <th>Status</th>
+                        </tr>
+                    </thead>
+                    <tbody id="billing-history">
+                        <!-- Billing history will be populated here -->
+                    </tbody>
+                </table>
+            </div>
+            
+            <div id="balance-due-card" class="card hidden">
+                <h2 class="card-title">Balance Due</h2>
+                <div id="balance-info"></div>
+            </div>
+        </div>
+
+        <!-- Contact Tab -->
+        <div id="contact-tab" class="tab-content">
+            <div class="contact-card">
+                <h3>Questions? Reach out anytime!</h3>
+                <div style="margin: 2rem 0;">
+                    <p style="font-size: 1.25rem; margin-bottom: 1rem;">
+                        <strong>Jeremiah Daws</strong><br>
+                        3D Jumpstart Instructor
+                    </p>
+                    <p style="font-size: 1.125rem; margin-bottom: 0.5rem;">
+                        📧 <a href="mailto:jeremiah@3djumpstart.com">jeremiah@3djumpstart.com</a>
+                    </p>
+                    <p style="font-size: 1.125rem;">
+                        📱 <a href="tel:310-845-5702">310-845-5702</a>
+                    </p>
+                </div>
+                <p style="font-size: 0.875rem; opacity: 0.9;">
+                    Call or text anytime
+                </p>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Configuration
+        const SUPABASE_URL = 'https://hucjmggkasahwpjgnwia.supabase.co';
+        const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imh1Y2ptZ2drYXNhaHdwamdud2lhIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTQ2MTI2MDIsImV4cCI6MjA3MDE4ODYwMn0.hxFmoZexaKverih9crJfP9fjWItOTfC_6D_CM7hr_Rg';
+        
+        const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+        let currentUser = null;
+        let enrollments = [];
+
+        // Initialize
+        document.addEventListener('DOMContentLoaded', async () => {
+            await checkAuth();
+            await loadParentData();
+        });
+
+        async function checkAuth() {
+            const { data: { session } } = await supabase.auth.getSession();
+            if (!session) {
+                window.location.href = 'login.html';
+                return;
+            }
+            currentUser = session.user;
+            
+            // Get parent name
+            const { data: parent } = await supabase
+                .from('parents')
+                .select('name')
+                .eq('id', currentUser.id)
+                .single();
+                
+            if (parent) {
+                document.getElementById('parent-name').textContent = parent.name;
+            }
+        }
+
+        async function loadParentData() {
+            // Load enrolled students with their class times.  Use the enrollments table to
+            // determine which class slot a student is in, rather than relying on order_items.
+            const { data: students } = await supabase
+                .from('students')
+                .select(
+                    `*,
+                    enrollments!inner(
+                        status,
+                        payment_status,
+                        class_slots(
+                            day_of_week,
+                            start_time,
+                            end_time
+                        )
+                    )`
+                )
+                .eq('parent_id', currentUser.id);
+
+            if (students && students.length > 0) {
+                displayStudents(students);
+                enrollments = students;
+            }
+
+              
+function displayStudents(students) {
+    const container = document.getElementById('students-list');
+    if (!container) return;
+
+    if (!students || students.length === 0) {
+        // Keep existing welcome state (already set elsewhere if needed)
+        container.innerHTML = `<p class="muted">No students yet.</p>`;
+        return;
+    }
+
+    const toTime = (t) => t ? t.slice(0,5) : "";
+    const badge = (status) => {
+        const s = (status || '').toLowerCase();
+        if (s === 'enrolled') return '<span class="badge badge-enrolled">Enrolled</span>';
+        if (s === 'pending') return '<span class="badge badge-pending">Pending</span>';
+        if (s === 'canceled' || s === 'cancelled') return '<span class="badge badge-canceled">Canceled</span>';
+        return '';
+    };
+
+    const html = students.map(s => {
+        const enroll = Array.isArray(s.enrollments) && s.enrollments.length ? s.enrollments[0] : null;
+        const slot = enroll && enroll.class_slots ? enroll.class_slots : null;
+        const line = slot ? `${slot.day_of_week} • ${toTime(slot.start_time)}–${toTime(slot.end_time)}` : 'No class assigned';
+        const b = enroll ? badge(enroll.status) : '';
+        return `
+          <div class="card-student">
+            <div style="display:flex; align-items:center; justify-content:space-between; gap:0.75rem;">
+              <div>
+                <h3>${s.name}</h3>
+                <div class="muted">${line}</div>
+              </div>
+              <div>${b}</div>
+            </div>
+          </div>
+        `;
+    }).join('');
+
+    container.innerHTML = html;
+}
+// Load billing history
+            const { data: orders } = await supabase
+                .from('orders')
+                .select('*')
+                .eq('parent_id', currentUser.id)
+                .order('created_at', { ascending: false });
+
+            if (orders) {
+                displayBilling(orders);
+            }
+        }
+
+        
+function displayStudents(students) {
+    const container = document.getElementById('students-list');
+    if (!container) return;
+
+    if (!students || students.length === 0) {
+        // Keep existing welcome state (already set elsewhere if needed)
+        container.innerHTML = `<p class="muted">No students yet.</p>`;
+        return;
+    }
+
+    const toTime = (t) => t ? t.slice(0,5) : "";
+    const badge = (status) => {
+        const s = (status || '').toLowerCase();
+        if (s === 'enrolled') return '<span class="badge badge-enrolled">Enrolled</span>';
+        if (s === 'pending') return '<span class="badge badge-pending">Pending</span>';
+        if (s === 'canceled' || s === 'cancelled') return '<span class="badge badge-canceled">Canceled</span>';
+        return '';
+    };
+
+    const html = students.map(s => {
+        const enroll = Array.isArray(s.enrollments) && s.enrollments.length ? s.enrollments[0] : null;
+        const slot = enroll && enroll.class_slots ? enroll.class_slots : null;
+        const line = slot ? `${slot.day_of_week} • ${toTime(slot.start_time)}–${toTime(slot.end_time)}` : 'No class assigned';
+        const b = enroll ? badge(enroll.status) : '';
+        return `
+          <div class="card-student">
+            <div style="display:flex; align-items:center; justify-content:space-between; gap:0.75rem;">
+              <div>
+                <h3>${s.name}</h3>
+                <div class="muted">${line}</div>
+              </div>
+              <div>${b}</div>
+            </div>
+          </div>
+        `;
+    }).join('');
+
+    container.innerHTML = html;
+}
+:${String(mm).padStart(2, '0')}${suffix}`;
+                };
+                return `${to12(start)}-${to12(end)}`;
+            }
+
+
+            
+            container.innerHTML = students
+                .map((student) => {
+                    // Determine the time slot from the student's enrollments.
+                    let timeSlotLabel = 'Not scheduled';
+                    if (Array.isArray(student.enrollments) && student.enrollments.length > 0) {
+                        const enrollment = student.enrollments[0];
+                        const slot = enrollment.class_slots;
+                        if (slot && slot.day_of_week) {
+                            const start = String(slot.start_time).substring(0, 5);
+                            const end = String(slot.end_time).substring(0, 5);
+                            timeSlotLabel = formatTimeLabel(start, end);
+                        }
+                    }
+                    // Compose the class time line. If scheduled, prefix with the day.
+                    const classTimeLine = timeSlotLabel !== 'Not scheduled'
+                        ? `Tuesday ${timeSlotLabel}`
+                        : 'Not scheduled';
+                    return `
+                    <div class="student-card">
+                        <div class="student-info">
+                            <h3>${student.first_name} ${student.last_name}</h3>
+                            <div class="student-details">
+                                <strong>Grade:</strong> ${student.grade}<br>
+                                <strong>Class Time:</strong> ${classTimeLine}<br>
+                                <strong>Level:</strong> Level 1 - Starting Sept 9, 2025
+                            </div>
+                        </div>
+                        <div>
+                            <a href="student-portal.html?id=${student.id}" class="btn btn-primary">
+                                View Student Portal →
+                            </a>
+                        </div>
+                    </div>
+                `;
+                })
+       }).join('') + `
+        <div style="text-align: center; margin-top: 2rem;">
+            <a href="app.html" class="btn btn-outline" style="border: 2px solid #ea580c; color: #ea580c; padding: 0.75rem 1.5rem;">
+                + Enroll Another Student
+            </a>
+        </div>
+    `;
+
+        
+
+
+
+
+                
+        function displayBilling(orders) {
+            const tbody = document.getElementById('billing-history');
+            const balanceCard = document.getElementById('balance-due-card');
+            const balanceInfo = document.getElementById('balance-info');
+            
+            let totalBalance = 0;
+            
+            tbody.innerHTML = orders.map(order => {
+                const date = new Date(order.created_at).toLocaleDateString();
+                totalBalance += (order.balance_due || 0);
+                
+                return `
+                    <tr>
+                        <td>${date}</td>
+                        <td>Level 1 Enrollment - ${order.payment_method === 'full' ? 'Full Payment' : 'Split Payment'}</td>
+                        <td>$${order.amount_paid}</td>
+                        <td><span style="color: #16a34a;">✓ Paid</span></td>
+                    </tr>
+                `;
+            }).join('');
+            
+            if (totalBalance > 0) {
+                balanceCard.classList.remove('hidden');
+                balanceInfo.innerHTML = `
+                    <div style="font-size: 1.5rem; font-weight: 700; color: #ea580c; margin-bottom: 1rem;">
+                        $${totalBalance} Due
+                    </div>
+                    <p style="color: #6b7280;">Second payment due October 15, 2025</p>
+                `;
+            }
+        }
+
+        function showTab(tabName) {
+            // Hide all tabs
+            document.querySelectorAll('.tab-content').forEach(tab => {
+                tab.classList.remove('active');
+            });
+            
+            // Remove active from all buttons
+            document.querySelectorAll('.tab-button').forEach(btn => {
+                btn.classList.remove('active');
+            });
+            
+            // Show selected tab
+            document.getElementById(`${tabName}-tab`).classList.add('active');
+            
+            // Set active button
+            event.target.classList.add('active');
+        }
+
+        async 
+// Tab controller for header buttons
+window.showTab = function(name) {
+    document.querySelectorAll('.tab-content').forEach(p => {
+        p.classList.toggle('active', p.id === `${name}-tab`);
+    });
+    document.querySelectorAll('.tab-button').forEach(btn => {
+        btn.classList.toggle(
+            'active',
+            btn.textContent.toLowerCase().includes(name.replace('-', ' '))
+        );
+    });
+};
+async function logout() {
+            await supabase.auth.signOut();
+            window.location.href = 'index.html';
+        }
+        window.logout = logout;
+    </script>
+</body>
+</html>
