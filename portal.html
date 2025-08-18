@@ -363,6 +363,12 @@
         <h1 style="font-size: 2rem; margin-bottom: 2rem;">Welcome to Your Parent Portal</h1>
     </div>
 
+
+
+
+
+
+    
     <!-- Tab Navigation -->
     <div class="container">
         <nav class="tab-navigation">
@@ -629,17 +635,33 @@
                 displayStudents(students);
                 enrollments = students;
             } else {
-                // Show empty state
-                document.getElementById('students-list').innerHTML = `
-                    <div style="text-align: center; padding: 3rem; background: #f9fafb; border-radius: 1rem;">
-                        <h3 style="color: #6b7280; margin-bottom: 1rem;">No Students Found</h3>
-                        <p style="color: #9ca3af; margin-bottom: 2rem;">
-                            You haven't added any students to your account yet.
-                        </p>
-                        <a href="app.html" class="btn btn-primary">Add Your First Student</a>
-                    </div>
-                `;
-            }
+              function displayStudents(students) {
+    const container = document.getElementById('students-list');
+
+    if (!students || students.length === 0) {
+        // Show welcome state for new parents
+        container.innerHTML = `
+            <div style="text-align: center; padding: 3rem; background: linear-gradient(135deg, #fed7aa 0%, #ffffff 100%); border-radius: 1rem; border: 2px solid #ea580c;">
+                <div style="font-size: 4rem; margin-bottom: 1rem;">🚀</div>
+                <h2 style="color: #ea580c; margin-bottom: 1rem; font-size: 2rem;">Welcome to 3D Jumpstart!</h2>
+                <p style="color: #6b7280; margin-bottom: 2rem; font-size: 1.125rem;">
+                    Let's get started by enrolling your first student in our Level 1 program.
+                </p>
+                <p style="color: #6b7280; margin-bottom: 2rem;">
+                    Classes start September 9, 2025 • Professional Fusion360 Training • Ages 4th Grade+
+                </p>
+                <a href="app.html" class="btn btn-primary" style="font-size: 1.125rem; padding: 1rem 2rem; display: inline-block;">
+                    Start Enrollment →
+                </a>
+                <p style="color: #9ca3af; font-size: 0.875rem; margin-top: 2rem;">
+                    Takes just 5 minutes to add students and select class times
+                </p>
+            </div>
+        `;
+        return;
+    }
+
+                  
 
             // Load billing history
             const { data: orders } = await supabase
@@ -667,6 +689,8 @@
                 return `${to12(start)}-${to12(end)}`;
             }
 
+
+            
             container.innerHTML = students
                 .map((student) => {
                     // Determine the time slot from the student's enrollments.
@@ -702,9 +726,20 @@
                     </div>
                 `;
                 })
-                .join('');
-        }
+       }).join('') + `
+        <div style="text-align: center; margin-top: 2rem;">
+            <a href="app.html" class="btn btn-outline" style="border: 2px solid #ea580c; color: #ea580c; padding: 0.75rem 1.5rem;">
+                + Enroll Another Student
+            </a>
+        </div>
+    `;
+}
+        
 
+
+
+
+                
         function displayBilling(orders) {
             const tbody = document.getElementById('billing-history');
             const balanceCard = document.getElementById('balance-due-card');
