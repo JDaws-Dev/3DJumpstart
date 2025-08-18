@@ -21,7 +21,7 @@
     /* Header */
     .portal-header { background:#fff; box-shadow:0 1px 3px rgba(0,0,0,.08); position:sticky; top:0; z-index:10; }
     .header-content { display:flex; align-items:center; justify-content:space-between; gap:1rem; padding:.9rem 0; }
-    .logo-image { height:72px; width:auto; }
+    .logo-image { height:72px; width:auto; } /* bigger logo */
     .user-info { display:flex; align-items:center; gap:.6rem; color:var(--muted); }
 
     /* Buttons */
@@ -82,6 +82,11 @@
 
     /* Cart pill */
     .pill { display:inline-flex; align-items:center; gap:.5rem; padding:.35rem .6rem; background:#f3f4f6; border-radius:999px; font-weight:700; }
+
+    /* Totals */
+    .totals { display:grid; gap:.35rem; margin:.5rem 0 0; }
+    .totals .row { display:flex; justify-content:space-between; }
+    .totals .em { font-weight:800; }
   </style>
 </head>
 <body>
@@ -129,7 +134,12 @@
         <div class="grid grid-2" style="align-items:center;">
           <div>
             <h3 class="card-title" style="margin-bottom:.25rem;">Payment</h3>
-            <p class="muted" style="margin:0;">Add students to the cart to continue.</p>
+            <p class="muted" style="margin:0;">
+              Pick a class period per student, then add to cart.<br>
+              <strong>Pay in Full:</strong> <strong>$670</strong> per student <em>(you save $50 vs $720)</em>.<br>
+              <strong>Pay Half Now:</strong> $360 per student now, remainder due <strong>Oct 15</strong>.<br>
+              <strong>Sibling discount:</strong> $50 off the second child (applies once).
+            </p>
           </div>
           <div style="text-align:right;">
             <span class="pill">Cart: <span id="cartCount">0</span></span>
@@ -138,9 +148,11 @@
 
         <div id="cartList" class="grid" style="margin:.75rem 0;"></div>
 
-        <div class="student-actions" style="gap:.75rem;">
-          <button id="payFullBtn" class="btn btn-primary" type="button" disabled>Pay In Full – $700</button>
-          <button id="payHalfBtn" class="btn btn-secondary" type="button" disabled>Pay Half Now – $360 (Balance due Oct 15)</button>
+        <div class="totals" id="totalsBox"></div>
+
+        <div class="student-actions" style="gap:.75rem; margin-top:.75rem;">
+          <button id="payFullBtn" class="btn btn-primary" type="button" disabled>Pay In Full</button>
+          <button id="payHalfBtn" class="btn btn-secondary" type="button" disabled>Pay Half Now</button>
         </div>
       </div>
     </section>
@@ -157,9 +169,17 @@
       </div>
 
       <div class="card">
+        <h2 class="card-title">Current Class Periods</h2>
+        <ul class="muted" style="line-height:1.9;">
+          <li>Tuesday 4:30–5:30</li>
+          <li>Tuesday 5:30–6:30</li>
+        </ul>
+      </div>
+
+      <div class="card">
         <h2 class="card-title">What Your Student Needs</h2>
         <div class="grid grid-2">
-          <div class="info">
+          <div>
             <p class="muted" style="font-size:1.05rem;">
               <strong>Computers are provided.</strong> Your student does not need to bring a laptop.
             </p>
@@ -296,23 +316,24 @@
   <script>
     // ---------- CONFIG ----------
     const SUPABASE_URL = 'https://hucjmggkasahwpjgnwia.supabase.co';
-    const SUPABASE_ANON_KEY = 'REPLACE_WITH_YOUR_PUBLIC_ANON_KEY'; // Auth-only; no DB writes
+    const SUPABASE_ANON_KEY = 'REPLACE_WITH_YOUR_PUBLIC_ANON_KEY'; // Auth-only; no DB writes yet
     const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
     // Class periods
     const CLASS_PERIODS = [
       'Tuesday 4:30–5:30',
-      'Tuesday 5:45–6:45',
-      'Tuesday 7:00–8:00'
+      'Tuesday 5:30–6:30'
     ];
 
     // Dropdown options
     const AGE_OPTIONS = Array.from({length: 11}, (_,i)=> (8+i));          // 8..18
     const GRADE_OPTIONS = ['3rd','4th','5th','6th','7th','8th','9th','10th','11th','12th'];
 
-    // Pricing
-    const PRICE_FULL = 700;
-    const PRICE_HALF_NOW = 360;
+    // Pricing (list vs discounts)
+    const PRICE_LIST_PER = 720;     // list price per student (for comparison)
+    const PRICE_FULL_PER = 670;     // pay-in-full per student (saves $50 vs 720)
+    const PRICE_HALF_NOW = 360;     // due now per student (half plan)
+    const SIBLING_DISCOUNT = 50;    // off the second child (applies once)
 
     // ---------- STATE ----------
     let currentUser = null;
@@ -339,6 +360,7 @@
         renderStudents();
         renderCart();
         renderBilling();
+        updateTotals();
       })().catch(console.error);
     });
 
@@ -403,7 +425,8 @@
             <p class="muted" style="margin:.25rem 0 1rem;">No students yet.</p>
             <button class="btn btn-primary" type="button" onclick="openModal()">+ Add Your First Student</button>
           </div>`;
-        renderCart(); // keep cart in sync
+        renderCart(); 
+        updateTotals();
         return;
       }
 
@@ -451,7 +474,8 @@
         `;
       }).join('');
 
-      renderCart(); // keep cart consistent with any new period selections
+      renderCart();
+      updateTotals();
     }
 
     // ---------- MODAL ----------
@@ -532,7 +556,7 @@
       const cart = loadCart();
       if (!cart.includes(id)){ cart.push(id); saveCart(cart); }
       renderCart();
-      renderStudents(); // refresh buttons
+      renderStudents();
     }
 
     function requireClassThenAdd(id){
@@ -548,7 +572,7 @@
     function removeFromCart(id){
       saveCart(loadCart().filter(x => x !== id));
       renderCart();
-      renderStudents(); // refresh buttons
+      renderStudents();
     }
 
     function renderCart(){
@@ -559,6 +583,7 @@
       if (!cart.length){
         cartWrap.innerHTML = `<div class="muted">Your cart is empty.</div>`;
         updatePayButtons(false);
+        updateTotals();
         return;
       }
 
@@ -585,12 +610,60 @@
 
       cartWrap.innerHTML = rows;
 
-      updatePayButtons(allHavePeriod && items.length>0);
+      updatePayButtons(allHavePeriod && items.length > 0);
+      updateTotals();
     }
 
     function updatePayButtons(enable){
       document.getElementById('payFullBtn').disabled = !enable;
       document.getElementById('payHalfBtn').disabled = !enable;
+    }
+
+    // ---------- LIVE TOTALS ----------
+    function updateTotals() {
+      const totalsBox = document.getElementById('totalsBox');
+      const cartIds = loadCart();
+      const students = loadStudents().filter(s => cartIds.includes(s.id));
+
+      const count = students.length;
+      const allHavePeriod = students.every(s => !!s.classPeriod);
+
+      // sibling discount applies once if 2+ students
+      const siblingDiscount = count >= 2 ? SIBLING_DISCOUNT : 0;
+
+      // Pay in Full totals (670 ea) – $50 off second child one time
+      const fullSubtotal = count * PRICE_FULL_PER;
+      const fullTotal = Math.max(0, fullSubtotal - siblingDiscount);
+
+      // Half Now totals (list 720 ea, $50 off second child one time)
+      const halfTotal = count * PRICE_LIST_PER - siblingDiscount;
+      const halfNow = count * PRICE_HALF_NOW;
+      const halfLater = Math.max(0, halfTotal - halfNow);
+
+      // Enable/disable buttons
+      const canPay = count > 0 && allHavePeriod;
+      updatePayButtons(canPay);
+
+      if (count === 0) {
+        totalsBox.innerHTML = '';
+        return;
+      }
+
+      totalsBox.innerHTML = `
+        <div class="row"><div><strong>Students in cart</strong></div><div>${count}</div></div>
+
+        <div class="row"><div><strong>Pay in Full</strong> ($${PRICE_FULL_PER} ea)</div><div>$${fullSubtotal}</div></div>
+        ${siblingDiscount ? `<div class="row"><div>Sibling discount (one time)</div><div>−$${SIBLING_DISCOUNT}</div></div>` : ``}
+        <div class="row em"><div>Pay in Full – Final Total</div><div>$${fullTotal}</div></div>
+        <div class="row"><div class="muted">You save $50 vs $${PRICE_LIST_PER} list, plus $50 off the second child.</div><div></div></div>
+
+        <div style="height:10px;"></div>
+
+        <div class="row"><div><strong>Pay Half Now</strong> ($${PRICE_HALF_NOW} now ea)</div><div>$${halfNow}</div></div>
+        ${siblingDiscount ? `<div class="row"><div>Sibling discount (applied to final total)</div><div>−$${SIBLING_DISCOUNT}</div></div>` : ``}
+        <div class="row"><div>Final Total (list $${PRICE_LIST_PER} ea)</div><div>$${halfTotal}</div></div>
+        <div class="row em"><div>Due Oct 15</div><div>$${halfLater}</div></div>
+      `;
     }
 
     // ---------- PAYMENT (front-end preview) ----------
@@ -600,6 +673,17 @@
 
       const students = loadStudents().filter(s => cartIds.includes(s.id));
       if (students.some(s => !s.classPeriod)){ alert('Please select a class period for each student in the cart.'); return; }
+
+      // Recompute totals for payload (same math as updateTotals)
+      const count = students.length;
+      const siblingDiscount = count >= 2 ? SIBLING_DISCOUNT : 0;
+
+      const fullSubtotal = count * PRICE_FULL_PER;
+      const fullTotal = Math.max(0, fullSubtotal - siblingDiscount);
+
+      const halfTotal = count * PRICE_LIST_PER - siblingDiscount;
+      const halfNow = count * PRICE_HALF_NOW;
+      const halfLater = Math.max(0, halfTotal - halfNow);
 
       const payload = {
         parent_email: currentUser?.email || '',
@@ -614,18 +698,20 @@
           class_period: s.classPeriod
         })),
         totals: {
-          count: students.length,
-          full_total: students.length * PRICE_FULL,
-          half_now_total: students.length * PRICE_HALF_NOW
+          count,
+          full_total: fullTotal,
+          half_total: halfTotal,
+          half_due_now: halfNow,
+          half_due_oct15: halfLater
         }
       };
 
       console.log('CHECKOUT PAYLOAD (preview):', payload);
-      alert(`Cart: ${payload.totals.count} student(s)\n` +
-            (method==='full'
-             ? `Total due now: $${payload.totals.full_total}`
-             : `Due now: $${payload.totals.half_now_total} (Balance due Oct 15)`) +
-            `\n\nNext step: I'll wire this to Stripe + Google Sheets.`);
+      alert(
+        method === 'full'
+          ? `Pay in Full – Final Total: $${fullTotal}`
+          : `Half Now – Due Now: $${halfNow}\nFinal Total: $${halfTotal}\nDue Oct 15: $${halfLater}\n\n(Next step: connect to Stripe + Google Sheets.)`
+      );
     }
 
     // ---------- BILLING (placeholder) ----------
@@ -649,7 +735,7 @@
       return (s||'').replace(/[&<>"']/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));
     }
 
-    // Expose for inline handlers used in generated HTML
+    // Expose for inline handlers generated in HTML
     window.openModal = openModal;
     window.removeStudent = removeStudent;
     window.setClassPeriod = setClassPeriod;
