@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width,initial-scale=1" />
   <title>Parent Portal – 3D Jumpstart</title>
 
-  <!-- Fonts & Base -->
+  <!-- Fonts & Scripts -->
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet" />
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.39.3/dist/umd/supabase.min.js"></script>
   <script src="https://js.stripe.com/v3/"></script>
@@ -21,7 +21,7 @@
     /* Header */
     .portal-header { background:#fff; box-shadow:0 1px 3px rgba(0,0,0,.08); position:sticky; top:0; z-index:10; }
     .header-content { display:flex; align-items:center; justify-content:space-between; gap:1rem; padding:.9rem 0; }
- .logo-image { height:72px; width:auto; }
+    .logo-image { height:72px; width:auto; } /* bigger logo */
     .user-info { display:flex; align-items:center; gap:.6rem; color:var(--muted); }
 
     /* Buttons */
@@ -30,7 +30,6 @@
     .btn-primary:hover { transform:translateY(-1px); box-shadow:0 12px 18px -6px rgba(234,88,12,.32); }
     .btn-secondary { color:#fff; background:#6b7280; }
     .btn-secondary:hover { background:#4b5563; }
-    .btn-outline { background:#fff; color:var(--brand); border:2px solid var(--brand); }
     .btn-muted { background:#e5e7eb; color:#374151; }
     .btn-danger { background:#ef4444; color:#fff; }
 
@@ -66,34 +65,31 @@
     }
     .textarea { min-height:96px; }
 
-    /* Badges */
-    .badge { display:inline-block; padding:.15rem .55rem; border-radius:999px; font-size:.78rem; font-weight:800; }
-    .badge-enrolled { background:#dcfce7; color:#166534; border:1px solid #16a34a; }
-    .badge-pending { background:#fef3c7; color:#92400e; border:1px solid #f59e0b; }
-
     /* Modal */
-    .modal-backdrop { position:fixed; inset:0; background:rgba(0,0,0,.35); display:none; align-items:center; justify-content:center; padding:1rem; }
+    .modal-backdrop { position:fixed; inset:0; background:rgba(0,0,0,.35); display:none; align-items:center; justify-content:center; padding:1rem; z-index:50; }
+    .modal-backdrop.show { display:flex; } /* FIX: show on backdrop, not .modal */
     .modal { width:100%; max-width:640px; background:#fff; border-radius:1rem; padding:1rem; box-shadow:0 16px 40px rgba(0,0,0,.25); }
-    .modal.show { display:flex; }
+
+    /* Billing Table */
+    table { width:100%; border-collapse:collapse; }
+    th, td { text-align:left; padding:.75rem; border-bottom:1px solid #eee; }
+    thead tr { background:#f3f4f6; }
   </style>
 </head>
 <body>
   <!-- Header -->
-<!-- Header -->
-<header class="portal-header">
-  <div class="container">
-    <div class="header-content">
-      <img src="https://raw.githubusercontent.com/JDaws-Dev/3DJumpstart/main/3d-jumpstart-logo.png" 
-           alt="3D Jumpstart" 
-           class="logo-image" 
-           style="height:72px; width:auto;" />
-      <div class="user-info">
-        <span id="parent-name" class="muted">Loading…</span>
-        <button class="btn btn-secondary" id="logoutBtn">Logout</button>
+  <header class="portal-header">
+    <div class="container">
+      <div class="header-content">
+        <img src="https://raw.githubusercontent.com/JDaws-Dev/3DJumpstart/main/3d-jumpstart-logo.png"
+             alt="3D Jumpstart" class="logo-image" />
+        <div class="user-info">
+          <span id="parent-name" class="muted">Loading…</span>
+          <button class="btn btn-secondary" id="logoutBtn" type="button">Logout</button>
+        </div>
       </div>
     </div>
-  </div>
-</header>
+  </header>
 
   <main class="container" style="margin-top:1rem;">
     <h1 style="font-size:2rem; font-weight:800; margin:1rem 0 1.25rem;">Welcome to Your Parent Portal</h1>
@@ -101,11 +97,11 @@
     <!-- Tabs -->
     <nav class="tabs">
       <ul class="tab-list">
-        <li><button class="tab-button active" data-tab="students">My Students</button></li>
-        <li><button class="tab-button" data-tab="class-info">Class Information</button></li>
-        <li><button class="tab-button" data-tab="support">Support Services</button></li>
-        <li><button class="tab-button" data-tab="billing">Billing</button></li>
-        <li><button class="tab-button" data-tab="contact">Contact</button></li>
+        <li><button class="tab-button active" data-tab="students" type="button">My Students</button></li>
+        <li><button class="tab-button" data-tab="class-info" type="button">Class Information</button></li>
+        <li><button class="tab-button" data-tab="support" type="button">Support Services</button></li>
+        <li><button class="tab-button" data-tab="billing" type="button">Billing</button></li>
+        <li><button class="tab-button" data-tab="contact" type="button">Contact</button></li>
       </ul>
     </nav>
 
@@ -115,7 +111,7 @@
         <div class="grid grid-2" style="align-items:center;">
           <h2 class="card-title" style="margin:0;">Your Students</h2>
           <div style="text-align:right;">
-            <button class="btn btn-primary" id="addStudentBtn">+ Add Student</button>
+            <button class="btn btn-primary" id="addStudentBtn" type="button" onclick="openModal()">+ Add Student</button>
           </div>
         </div>
         <div id="studentsList" class="grid" style="margin-top:.75rem;"></div>
@@ -125,8 +121,8 @@
         <h3 class="card-title" style="margin-bottom:.25rem;">Payment</h3>
         <p class="muted" style="margin:0 0 .75rem;">Select a class period for each student first.</p>
         <div class="student-actions" style="gap:.75rem;">
-          <button id="payFullBtn" class="btn btn-primary" disabled>Pay In Full – $700</button>
-          <button id="payHalfBtn" class="btn btn-secondary" disabled>Pay Half Now – $360 (Balance due Oct 15)</button>
+          <button id="payFullBtn" class="btn btn-primary" type="button" disabled>Pay In Full – $700</button>
+          <button id="payHalfBtn" class="btn btn-secondary" type="button" disabled>Pay Half Now – $360 (Balance due Oct 15)</button>
         </div>
       </div>
     </section>
@@ -203,13 +199,13 @@
     <section id="tab-billing" class="tab-content">
       <div class="card">
         <h2 class="card-title">Billing & Payments</h2>
-        <table style="width:100%; border-collapse:collapse;">
+        <table>
           <thead>
-            <tr style="background:#f3f4f6;">
-              <th style="text-align:left; padding:.75rem;">Date</th>
-              <th style="text-align:left; padding:.75rem;">Description</th>
-              <th style="text-align:left; padding:.75rem;">Amount</th>
-              <th style="text-align:left; padding:.75rem;">Status</th>
+            <tr>
+              <th>Date</th>
+              <th>Description</th>
+              <th>Amount</th>
+              <th>Status</th>
             </tr>
           </thead>
           <tbody id="billingTable"></tbody>
@@ -230,32 +226,32 @@
 
   <!-- Add/Edit Student Modal -->
   <div id="studentModal" class="modal-backdrop">
-    <div class="modal">
+    <div class="modal" role="dialog" aria-modal="true" aria-labelledby="modalTitle">
       <div class="grid grid-2" style="align-items:center;">
         <h3 class="card-title" id="modalTitle" style="margin:0;">Add Student</h3>
         <div style="text-align:right;">
-          <button class="btn btn-muted" id="closeModalBtn">Close</button>
+          <button class="btn btn-muted" id="closeModalBtn" type="button">Close</button>
         </div>
       </div>
       <div class="grid grid-2" style="margin-top:.75rem;">
         <div class="field">
-          <label class="label">First Name</label>
+          <label class="label" for="firstName">First Name</label>
           <input id="firstName" class="input" />
         </div>
         <div class="field">
-          <label class="label">Last Name</label>
+          <label class="label" for="lastName">Last Name</label>
           <input id="lastName" class="input" />
         </div>
         <div class="field">
-          <label class="label">Age</label>
+          <label class="label" for="age">Age</label>
           <input id="age" class="input" type="number" min="8" max="18" />
         </div>
         <div class="field">
-          <label class="label">Grade</label>
+          <label class="label" for="grade">Grade</label>
           <input id="grade" class="input" placeholder="e.g., 5th" />
         </div>
         <div class="field">
-          <label class="label">Prior Experience</label>
+          <label class="label" for="experience">Prior Experience</label>
           <select id="experience" class="select">
             <option value="Beginner">Beginner</option>
             <option value="Some Experience">Some Experience</option>
@@ -263,13 +259,13 @@
           </select>
         </div>
         <div class="field" style="grid-column:1/-1;">
-          <label class="label">Special Considerations</label>
+          <label class="label" for="special">Special Considerations</label>
           <textarea id="special" class="textarea" placeholder="Allergies, learning accommodations, etc."></textarea>
         </div>
       </div>
       <div style="margin-top:1rem; display:flex; gap:.6rem; justify-content:flex-end;">
-        <button class="btn btn-muted" id="cancelBtn">Cancel</button>
-        <button class="btn btn-primary" id="saveStudentBtn">Save Student</button>
+        <button class="btn btn-muted" id="cancelBtn" type="button">Cancel</button>
+        <button class="btn btn-primary" id="saveStudentBtn" type="button">Save Student</button>
       </div>
     </div>
   </div>
@@ -277,19 +273,20 @@
   <script>
     // ---------- CONFIG ----------
     const SUPABASE_URL = 'https://hucjmggkasahwpjgnwia.supabase.co';
-    const SUPABASE_ANON_KEY = 'REPLACE_WITH_YOUR_PUBLIC_ANON_KEY'; // Auth-only; no DB access
+    const SUPABASE_ANON_KEY = 'REPLACE_WITH_YOUR_PUBLIC_ANON_KEY'; // Auth-only; no DB writes
     const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
-    // Class periods (you can edit labels freely)
+    // Class periods
     const CLASS_PERIODS = [
       'Tuesday 4:30–5:30',
-      'Tuesday 5:30–6:30',
+      'Tuesday 5:45–6:45',
+      'Tuesday 7:00–8:00'
     ];
 
     // ---------- STATE ----------
     let currentUser = null;
     let editingId = null;
-    const studentsKey = 'portal.students.v1'; // local only for now
+    const studentsKey = 'portal.students.v1';
     const loadStudents = () => JSON.parse(localStorage.getItem(studentsKey) || '[]');
     const saveStudents = (arr) => localStorage.setItem(studentsKey, JSON.stringify(arr));
 
@@ -303,7 +300,7 @@
 
         bindUI();
         renderStudents();
-        renderBilling(); // placeholder table
+        renderBilling();
       })().catch(console.error);
     });
 
@@ -324,11 +321,25 @@
         });
       });
 
+      // Modal controls
       document.getElementById('addStudentBtn').addEventListener('click', () => openModal());
       document.getElementById('closeModalBtn').addEventListener('click', closeModal);
       document.getElementById('cancelBtn').addEventListener('click', closeModal);
       document.getElementById('saveStudentBtn').addEventListener('click', saveStudentFromModal);
 
+      // Close modal when clicking backdrop (not the modal content)
+      document.getElementById('studentModal').addEventListener('click', (e) => {
+        if (e.target.id === 'studentModal') closeModal();
+      });
+
+      // Enter key saves
+      ['firstName','lastName','age','grade','special'].forEach(id=>{
+        document.getElementById(id).addEventListener('keydown', (e)=>{
+          if (e.key === 'Enter') saveStudentFromModal();
+        });
+      });
+
+      // Payment
       document.getElementById('payFullBtn').addEventListener('click', () => startCheckout('full'));
       document.getElementById('payHalfBtn').addEventListener('click', () => startCheckout('half'));
     }
@@ -342,7 +353,7 @@
         wrap.innerHTML = `
           <div class="card" style="text-align:center; background:#f3f4f6;">
             <p class="muted" style="margin:.25rem 0 1rem;">No students yet.</p>
-            <button class="btn btn-primary" onclick="openModal()">+ Add Your First Student</button>
+            <button class="btn btn-primary" type="button" onclick="openModal()">+ Add Your First Student</button>
           </div>`;
         disablePay();
         return;
@@ -367,8 +378,8 @@
               </div>
             </div>
             <div class="student-actions">
-              <button class="btn btn-muted" onclick="openModal('${s.id}')">Edit</button>
-              <button class="btn btn-danger" onclick="removeStudent('${s.id}')">Remove</button>
+              <button class="btn btn-muted" type="button" onclick="openModal('${s.id}')">Edit</button>
+              <button class="btn btn-danger" type="button" onclick="removeStudent('${s.id}')">Remove</button>
             </div>
           </div>
         `;
@@ -391,22 +402,27 @@
     }
 
     // ---------- MODAL ----------
-    function openModal(id=null){
+    function openModal(id = null){
       editingId = id;
       const m = document.getElementById('studentModal');
       document.getElementById('modalTitle').textContent = id ? 'Edit Student' : 'Add Student';
 
-      const s = id ? loadStudents().find(x=>x.id===id) : { firstName:'', lastName:'', age:'', grade:'', experience:'Beginner', special:'' };
-      document.getElementById('firstName').value = s.firstName || '';
-      document.getElementById('lastName').value  = s.lastName || '';
-      document.getElementById('age').value       = s.age || '';
-      document.getElementById('grade').value     = s.grade || '';
-      document.getElementById('experience').value = s.experience || 'Beginner';
-      document.getElementById('special').value   = s.special || '';
+      const s = id ? loadStudents().find(x => x.id === id)
+                   : { firstName:'', lastName:'', age:'', grade:'', experience:'Beginner', special:'' };
 
-      m.classList.add('show');
+      document.getElementById('firstName').value = s.firstName || '';
+      document.getElementById('lastName').value  = s.lastName  || '';
+      document.getElementById('age').value       = s.age       || '';
+      document.getElementById('grade').value     = s.grade     || '';
+      document.getElementById('experience').value= s.experience|| 'Beginner';
+      document.getElementById('special').value   = s.special   || '';
+
+      m.classList.add('show'); // FIX works with .modal-backdrop.show CSS
     }
-    function closeModal(){ document.getElementById('studentModal').classList.remove('show'); }
+    function closeModal(){
+      document.getElementById('studentModal').classList.remove('show');
+      editingId = null;
+    }
 
     function saveStudentFromModal(){
       const firstName = document.getElementById('firstName').value.trim();
@@ -415,19 +431,29 @@
       const grade     = document.getElementById('grade').value.trim();
       const experience= document.getElementById('experience').value;
       const special   = document.getElementById('special').value.trim();
+
       if (!firstName || !lastName || !age || !grade){
-        alert('Please complete First/Last, Age, and Grade.'); return;
+        alert('Please complete First/Last, Age, and Grade.');
+        return;
       }
+
       const list = loadStudents();
       if (editingId){
-        const i = list.findIndex(x=>x.id===editingId);
-        if (i>-1){ list[i] = { ...list[i], firstName, lastName, age, grade, experience, special }; }
+        const i = list.findIndex(x => x.id === editingId);
+        if (i > -1){
+          list[i] = { ...list[i], firstName, lastName, age, grade, experience, special };
+        }
       } else {
-        list.push({ id: cryptoRandom(), firstName, lastName, age, grade, experience, special, classPeriod:'' });
+        list.push({
+          id: cryptoRandom(),
+          firstName, lastName, age, grade, experience, special,
+          classPeriod: ''
+        });
       }
+
       saveStudents(list);
-      closeModal();
       renderStudents();
+      closeModal();
     }
 
     function removeStudent(id){
@@ -444,13 +470,11 @@
       updatePayButtons();
     }
 
-    // ---------- PAYMENT (front-end only for now) ----------
+    // ---------- PAYMENT (front-end preview for now) ----------
     function startCheckout(method){
-      // For now, just show what we’ll send to Stripe + Apps Script
       const items = loadStudents().filter(s => !!s.classPeriod);
       if (!items.length){ alert('Select a class period for at least one student.'); return; }
 
-      // This is exactly what we’ll POST in the next step:
       const payload = {
         parent_email: currentUser?.email || '',
         parent_name: currentUser?.user_metadata?.name || '',
@@ -473,14 +497,24 @@
     function renderBilling(){
       const tbody = document.getElementById('billingTable');
       tbody.innerHTML = `
-        <tr><td style="padding:.7rem;">—</td><td style="padding:.7rem;">No payments yet</td><td style="padding:.7rem;">—</td><td style="padding:.7rem;">—</td></tr>
+        <tr><td>—</td><td>No payments yet</td><td>—</td><td>—</td></tr>
       `;
     }
 
     // ---------- UTIL ----------
-    function cryptoRandom(){ return Math.random().toString(36).slice(2) + Math.random().toString(36).slice(2); }
-    function escapeHtml(s){ return (s||'').replace(/[&<>"']/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m])); }
-    // Expose a couple for inline handlers used in generated HTML
+    function cryptoRandom(){
+      if (window.crypto?.getRandomValues) {
+        const a = new Uint32Array(2);
+        crypto.getRandomValues(a);
+        return a[0].toString(36) + a[1].toString(36);
+      }
+      return Math.random().toString(36).slice(2) + Math.random().toString(36).slice(2);
+    }
+    function escapeHtml(s){
+      return (s||'').replace(/[&<>"']/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));
+    }
+
+    // Expose for inline handlers used in generated HTML
     window.openModal = openModal;
     window.removeStudent = removeStudent;
     window.setClassPeriod = setClassPeriod;
