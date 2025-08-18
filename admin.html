@@ -8,10 +8,7 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet">
 <style>
-  :root{
-    --bg:#f6f7fb; --card:#fff; --ring:#e5e7eb; --ink:#0b1329; --muted:#6b7280;
-    --brand:#ff7a00; --good:#16a34a; --warn:#ca8a04; --bad:#ef4444; --shadow:0 8px 24px rgba(16,24,40,.06);
-  }
+  :root{--bg:#f6f7fb;--card:#fff;--ring:#e5e7eb;--ink:#0b1329;--muted:#6b7280;--brand:#ff7a00;--good:#16a34a;--warn:#ca8a04;--bad:#ef4444;--shadow:0 8px 24px rgba(16,24,40,.06)}
   *{box-sizing:border-box} body{margin:0;background:var(--bg);color:var(--ink);font-family:Inter,system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif}
   .wrap{max-width:1100px;margin:0 auto;padding:22px}
   header{display:flex;justify-content:space-between;align-items:center;margin-bottom:10px}
@@ -32,6 +29,7 @@
   th,td{padding:.7rem;border-bottom:1px solid var(--ring);text-align:left}
   th{font-size:.9rem;color:var(--muted)}
   .right{margin-left:auto}
+  .err{background:#fef2f2;border:1px solid #fecaca;color:#7f1d1d;padding:10px;border-radius:12px;margin-top:8px}
 </style>
 </head>
 <body>
@@ -53,16 +51,22 @@
     <div class="muted">Session:</div>
     <select id="sessionSelect" class="btn">
       <option value="fall_2025" selected>Fall 2025</option>
-      <!-- add more sessions here as you run them -->
     </select>
     <button class="btn" id="refreshBtn">Refresh</button>
     <button class="btn primary right" id="exportBtn">Export CSV</button>
   </div>
 
+  <div id="loginGate" class="card" style="display:none">
+    <div style="font-weight:800;margin-bottom:6px">Please Sign In</div>
+    <div class="muted">You need to be logged into this site first. Go to <a href="/login.html">Login</a>, then come back.</div>
+  </div>
+
   <div id="gate" class="card" style="display:none">
     <div style="font-weight:800;margin-bottom:6px">Access Restricted</div>
-    <div class="muted">Your account is not on the admin allowlist. Add your email to <code>ADMIN_EMAILS</code> in this file and/or add a proper RLS admin policy.</div>
+    <div class="muted">Your account is not on the admin allowlist/table. Add your email to <code>ADMIN_EMAILS</code> in this file and/or to the <code>admins</code> table in Supabase.</div>
   </div>
+
+  <div id="diag" class="card" style="display:none"></div>
 
   <!-- Class cards render here -->
   <div id="classes"></div>
@@ -81,48 +85,46 @@
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script>
-/**
- * CONFIG — replace with your project values
- */
+/** ───────────────── CONFIG (fill these) ───────────────── */
 const SUPABASE_URL = "https://hucjmggkasahwpjgnwia.supabase.co";
 const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imh1Y2ptZ2drYXNhaHdwamdud2lhIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTQ2MTI2MDIsImV4cCI6MjA3MDE4ODYwMn0.hxFmoZexaKverih9crJfP9fjWItOTfC_6D_CM7hr_Rg";
 
-/**
- * Very light client-side gate. Add your admin emails here.
- * For real protection, add an RLS policy that grants SELECT to admins.
- */
+/** Allow either client allowlist OR admins table */
 const ADMIN_EMAILS = [
-  "jedaws@gmail.com", "jdaws@artiosacademies.com", "jeremiah@3djumpstart.com",
-  // "other-admin@example.com"
+  "jedaws@gmail.com"
 ];
 
+/** If your enrollments table has no `session` column, set to false. */
+let USE_SESSION_FILTER = true;
+
+/** Column in enrollments that references students */
+const ENROLL_STUDENT_ID_COL = "student_id";
+
+/** Class labels */
 const CLASS_MAP = {
   "tue_430": "Tuesday 4:30–5:30 (Grades 4–7)",
   "tue_530": "Tuesday 5:30–6:30 (Grades 8–12)"
 };
 
 const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-
-let currentUser = null;
 let rowsForCsv = [];
 
-/** Auth bootstrap */
+/** Auth + gate */
 (async function init(){
   const { data: { session } } = await supabase.auth.getSession();
   if(!session){
-    // redirect to your login page if you have one
-    // location.href = "/index.html";
+    document.getElementById('loginGate').style.display = 'block';
+    return;
   }
-  currentUser = session?.user || null;
-  document.getElementById('adminEmail').textContent = currentUser?.email || '—';
+  const user = session.user;
+  document.getElementById('adminEmail').textContent = user.email || '—';
 
-  const allowed = currentUser && ADMIN_EMAILS.map(s=>s.toLowerCase().trim()).includes((currentUser.email||"").toLowerCase());
+  const allowed = await isAdmin(user.email);
   if(!allowed){
     document.getElementById('gate').style.display = 'block';
     return;
   }
 
-  // Load initial
   await renderAdmin();
 })();
 
@@ -131,156 +133,242 @@ document.getElementById('logoutBtn').addEventListener('click', async ()=>{
   location.reload();
 });
 document.getElementById('refreshBtn').addEventListener('click', ()=>renderAdmin());
-document.getElementById('sessionSelect').addEventListener('change', ()=>renderAdmin());
 document.getElementById('exportBtn').addEventListener('click', exportCsv);
+
+async function isAdmin(email){
+  if(!email) return false;
+  const inFile = ADMIN_EMAILS.map(s=>s.toLowerCase().trim()).includes(email.toLowerCase());
+  if(inFile) return true;
+
+  const { data, error } = await supabase
+    .from('admins')
+    .select('email')
+    .eq('email', email.toLowerCase())
+    .maybeSingle();
+
+  return !!data && !error;
+}
+
+/** Robust enrollment loader with sensible fallbacks */
+async function loadEnrollments(sessionKey){
+  // Try joined select first (requires FK enrollments.student_id -> students.id)
+  try {
+    let q = supabase.from('enrollments')
+      .select(`id, class_period, status, ${ENROLL_STUDENT_ID_COL}, students:students(*)`)
+      .order('class_period', { ascending: true });
+
+    if (USE_SESSION_FILTER) q = q.eq('session', sessionKey);
+
+    const { data, error } = await q;
+    if (error) throw error;
+
+    // If joined rows came back but student is null for all, treat as no FK and fallback
+    const hasAnyStudent = (data||[]).some(r => r.students);
+    if (hasAnyStudent) return data.map(r => ({
+      id: r.id,
+      class_period: r.class_period,
+      status: r.status || 'unpaid',
+      student_id: r[ENROLL_STUDENT_ID_COL],
+      student: r.students
+    }));
+
+    // else fallback
+    throw new Error("FK join missing; falling back to two-step");
+  } catch (err) {
+    // Two-step: enrollments → student IDs → students
+    // (Also handle case where `session` column doesn’t exist)
+    if (/column .*session.* does not exist/i.test(String(err.message))) {
+      USE_SESSION_FILTER = false; // permanently disable for this session
+    }
+
+    let q2 = supabase.from('enrollments')
+      .select(`id, class_period, status, ${ENROLL_STUDENT_ID_COL}`)
+      .order('class_period', { ascending: true });
+
+    if (USE_SESSION_FILTER) q2 = q2.eq('session', sessionKey);
+
+    const e2 = await q2;
+    if (e2.error) throw e2.error;
+
+    const enrolls = e2.data || [];
+    const ids = [...new Set(enrolls.map(x => x[ENROLL_STUDENT_ID_COL]).filter(Boolean))];
+    if (!ids.length) return [];
+
+    const sres = await supabase.from('students')
+      .select('id, first_name, last_name, grade, age, experience, parent_id')
+      .in('id', ids);
+
+    if (sres.error) throw sres.error;
+
+    const byId = Object.fromEntries((sres.data||[]).map(s => [s.id, s]));
+    return enrolls.map(r => ({
+      id: r.id,
+      class_period: r.class_period,
+      status: r.status || 'unpaid',
+      student_id: r[ENROLL_STUDENT_ID_COL],
+      student: byId[r[ENROLL_STUDENT_ID_COL]] || null
+    }));
+  }
+}
+
+async function loadPayments(){
+  const { data, error } = await supabase.from('payments').select('parent_id, amount, status');
+  if (error) throw error;
+  return data || [];
+}
 
 /** Main renderer */
 async function renderAdmin(){
+  rowsForCsv = [];
+  const diag = document.getElementById('diag');
+  diag.style.display = 'none'; diag.innerHTML = '';
+
   const sessionKey = document.getElementById('sessionSelect').value;
   const classesBox = document.getElementById('classes');
   classesBox.innerHTML = '<div class="card muted">Loading…</div>';
-  rowsForCsv = [];
 
-  // 1) Fetch enrollments + student info for this session
-  const { data: enrolls, error: e1 } = await supabase
-    .from('enrollments')
-    .select('id, class_period, status, students ( first_name, last_name, grade, age, parent_id )')
-    .eq('session', sessionKey)
-    .order('class_period', { ascending: true });
+  try {
+    const [enrolls, pays] = await Promise.all([
+      loadEnrollments(sessionKey),
+      loadPayments()
+    ]);
 
-  if(e1){ classesBox.innerHTML = `<div class="card">Error loading enrollments.</div>`; console.error(e1); return; }
+    const paidByParent = {};
+    let totalCollected = 0;
+    (pays||[]).filter(p => (p.status||'paid') === 'paid').forEach(p=>{
+      const cents = Number(p.amount||0);
+      paidByParent[p.parent_id] = (paidByParent[p.parent_id]||0) + cents;
+      totalCollected += cents;
+    });
 
-  // 2) Fetch payments and aggregate amount by parent_id (paid only)
-  const { data: pays, error: e2 } = await supabase
-    .from('payments')
-    .select('parent_id, amount, status');
+    // group by class_period
+    const groups = {};
+    (enrolls||[]).forEach(e=>{
+      groups[e.class_period] = groups[e.class_period] || [];
+      groups[e.class_period].push(e);
+    });
 
-  if(e2){ console.error(e2); }
+    classesBox.innerHTML = '';
+    let tEnrolled=0, tPaid=0, tPending=0, tUnpaid=0;
 
-  const paidByParent = {};
-  let totalCollected = 0;
-  (pays||[]).filter(p => (p.status||'paid') === 'paid').forEach(p=>{
-    const cents = Number(p.amount||0);
-    paidByParent[p.parent_id] = (paidByParent[p.parent_id]||0) + cents;
-    totalCollected += cents;
-  });
+    const periods = Object.keys(CLASS_MAP);
+    for (const key of periods) {
+      const list = groups[key] || [];
+      tEnrolled += list.length;
 
-  // Group enrollments by class_period
-  const groups = {};
-  (enrolls||[]).forEach(e=>{
-    groups[e.class_period] = groups[e.class_period] || [];
-    groups[e.class_period].push(e);
-  });
+      const paidCount = list.filter(x => x.status === 'paid').length;
+      const pendCount = list.filter(x => x.status === 'pending').length;
+      const unpaidCount = list.filter(x => !x.status || x.status === 'cart' || x.status === 'unpaid').length;
+      tPaid += paidCount; tPending += pendCount; tUnpaid += unpaidCount;
 
-  // Render
-  classesBox.innerHTML = '';
-  let tEnrolled=0, tPaid=0, tPending=0, tUnpaid=0;
-
-  const periods = Object.keys(CLASS_MAP);
-  for(const key of periods){
-    const list = groups[key] || [];
-    tEnrolled += list.length;
-
-    // header
-    const card = document.createElement('div');
-    card.className = 'card';
-    const paidCount = list.filter(x => x.status === 'paid').length;
-    const pendCount = list.filter(x => x.status === 'pending').length;
-    const unpaidCount = list.filter(x => !x.status || x.status === 'cart' || x.status === 'unpaid').length;
-    tPaid += paidCount; tPending += pendCount; tUnpaid += unpaidCount;
-
-    card.innerHTML = `
-      <div class="row" style="margin-bottom:8px">
-        <div style="font-weight:800">${CLASS_MAP[key] || key}</div>
-        <div class="right">
-          <span class="chip">Enrolled: <strong style="margin-left:6px">${list.length}</strong></span>
-          <span class="chip">Paid: <strong style="margin-left:6px;color:var(--good)">${paidCount}</strong></span>
-          <span class="chip">Pending: <strong style="margin-left:6px;color:var(--warn)">${pendCount}</strong></span>
-          <span class="chip">Unpaid: <strong style="margin-left:6px;color:var(--bad)">${unpaidCount}</strong></span>
+      const card = document.createElement('div');
+      card.className = 'card';
+      card.innerHTML = `
+        <div class="row" style="margin-bottom:8px">
+          <div style="font-weight:800">${CLASS_MAP[key] || key}</div>
+          <div class="right">
+            <span class="chip">Enrolled: <strong style="margin-left:6px">${list.length}</strong></span>
+            <span class="chip">Paid: <strong style="margin-left:6px;color:var(--good)">${paidCount}</strong></span>
+            <span class="chip">Pending: <strong style="margin-left:6px;color:var(--warn)">${pendCount}</strong></span>
+            <span class="chip">Unpaid: <strong style="margin-left:6px;color:var(--bad)">${unpaidCount}</strong></span>
+          </div>
         </div>
-      </div>
-      <div class="tableWrap">
-        <table>
-          <thead>
-            <tr>
-              <th style="width:34%">Student</th>
-              <th style="width:10%">Grade</th>
-              <th style="width:14%">Status</th>
-              <th style="width:14%">Parent Paid</th>
-              <th>Notes</th>
-            </tr>
-          </thead>
-          <tbody></tbody>
-        </table>
-      </div>
-    `;
-    classesBox.appendChild(card);
-    const tbody = card.querySelector('tbody');
+        <div class="tableWrap">
+          <table>
+            <thead>
+              <tr>
+                <th style="width:34%">Student</th>
+                <th style="width:10%">Grade</th>
+                <th style="width:14%">Status</th>
+                <th style="width:14%">Parent Paid</th>
+                <th>Notes</th>
+              </tr>
+            </thead>
+            <tbody></tbody>
+          </table>
+        </div>
+      `;
+      classesBox.appendChild(card);
+      const tbody = card.querySelector('tbody');
 
-    if(!list.length){
-      tbody.innerHTML = `<tr><td colspan="5" class="muted">— No enrollments yet —</td></tr>`;
-      continue;
+      if(!list.length){
+        tbody.innerHTML = `<tr><td colspan="5" class="muted">— No enrollments yet —</td></tr>`;
+        continue;
+      }
+
+      list.forEach(e=>{
+        const s = e.student || {};
+        const parentPaidCents = s.parent_id ? (paidByParent[s.parent_id] || 0) : 0;
+        const parentPaid = `$${(parentPaidCents/100).toFixed(0)}`;
+        const st = (e.status||'unpaid');
+        const pillClass = st==='paid' ? 'ok' : (st==='pending' ? 'pending' : 'no');
+        const notes = s.experience ? `${s.experience}` : '';
+
+        tbody.insertAdjacentHTML('beforeend', `
+          <tr>
+            <td><strong>${s.first_name||''} ${s.last_name||''}</strong></td>
+            <td>${s.grade||''}</td>
+            <td><span class="pill ${pillClass}">${st[0].toUpperCase()+st.slice(1)}</span></td>
+            <td>${parentPaid}</td>
+            <td class="muted">${notes}</td>
+          </tr>
+        `);
+
+        rowsForCsv.push({
+          session: sessionKey,
+          class_period: CLASS_MAP[e.class_period] || e.class_period,
+          student_first: s.first_name || '',
+          student_last: s.last_name || '',
+          grade: s.grade || '',
+          status: st,
+          parent_paid_usd: (parentPaidCents/100).toFixed(0),
+        });
+      });
     }
 
-    list.forEach(e=>{
-      const s = e.students || {};
-      const parentPaidCents = paidByParent[s.parent_id] || 0;
-      const parentPaid = `$${(parentPaidCents/100).toFixed(0)}`;
-      const st = (e.status||'unpaid');
-      const pillClass = st==='paid' ? 'ok' : (st==='pending' ? 'pending' : 'no');
-      const notes = s.experience ? `${s.experience}` : '';
+    document.getElementById('totalsCard').style.display = 'block';
+    document.getElementById('tEnrolled').textContent = tEnrolled;
+    document.getElementById('tPaid').textContent = tPaid;
+    document.getElementById('tPending').textContent = tPending;
+    document.getElementById('tUnpaid').textContent = tUnpaid;
+    document.getElementById('tCollected').textContent = `$${(totalCollected/100).toFixed(0)}`;
 
-      tbody.insertAdjacentHTML('beforeend', `
-        <tr>
-          <td><strong>${s.first_name||''} ${s.last_name||''}</strong></td>
-          <td>${s.grade||''}</td>
-          <td><span class="pill ${pillClass}">${st[0].toUpperCase()+st.slice(1)}</span></td>
-          <td>${parentPaid}</td>
-          <td class="muted">${notes}</td>
-        </tr>
-      `);
+  } catch (err) {
+    const msg = (err?.message || String(err) || 'Unknown error');
+    const classesBox = document.getElementById('classes');
+    classesBox.innerHTML = `<div class="card err"><div style="font-weight:800;margin-bottom:6px">Error loading enrollments</div><div class="muted">${msg}</div></div>`;
 
-      // Collect for CSV
-      rowsForCsv.push({
-        session: document.getElementById('sessionSelect').value,
-        class_period: CLASS_MAP[e.class_period] || e.class_period,
-        student_first: s.first_name || '',
-        student_last: s.last_name || '',
-        grade: s.grade || '',
-        status: st,
-        parent_paid_usd: (parentPaidCents/100).toFixed(0),
-      });
-    });
+    const diag = document.getElementById('diag');
+    diag.style.display = 'block';
+    diag.innerHTML = `
+      <div style="font-weight:800;margin-bottom:6px">Diagnostics</div>
+      <div class="muted"><code>${msg}</code></div>
+      <div class="muted" style="margin-top:8px">Check that:
+        <ul>
+          <li><code>enrollments.${ENROLL_STUDENT_ID_COL}</code> exists (FK to <code>students.id</code>)</li>
+          <li>Your <code>enrollments</code> table ${
+            USE_SESSION_FILTER ? 'has a <code>session</code> column or disable USE_SESSION_FILTER' : 'does not require a <code>session</code> column'
+          }</li>
+          <li>Admins RLS policy allows SELECT on <code>students</code>, <code>enrollments</code>, and <code>payments</code></li>
+        </ul>
+      </div>
+    `;
+    console.error(err);
   }
-
-  // Totals footer
-  document.getElementById('totalsCard').style.display = 'block';
-  document.getElementById('tEnrolled').textContent = tEnrolled;
-  document.getElementById('tPaid').textContent = tPaid;
-  document.getElementById('tPending').textContent = tPending;
-  document.getElementById('tUnpaid').textContent = tUnpaid;
-  document.getElementById('tCollected').textContent = `$${(totalCollected/100).toFixed(0)}`;
 }
 
-/** Simple CSV export of the rendered view */
+/** CSV export */
 function exportCsv(){
   if(!rowsForCsv.length){ alert('No data to export yet.'); return; }
   const headers = Object.keys(rowsForCsv[0]);
-  const lines = [
-    headers.join(','),
-    ...rowsForCsv.map(r=>headers.map(h=>csvSafe(r[h])).join(','))
-  ];
-  const blob = new Blob([lines.join('\n')], { type: 'text/csv;charset=utf-8;' });
+  const lines = [ headers.join(','), ...rowsForCsv.map(r=>headers.map(h=>csvSafe(r[h])).join(',')) ];
+  const blob = new Blob([lines.join('\n')], { type:'text/csv;charset=utf-8;' });
   const a = document.createElement('a');
   a.href = URL.createObjectURL(blob);
   a.download = `class-roster-${new Date().toISOString().slice(0,10)}.csv`;
   a.click();
 }
-function csvSafe(v){
-  const s = (v==null?'':String(v));
-  if (/[",\n]/.test(s)) return `"${s.replace(/"/g,'""')}"`;
-  return s;
-}
+function csvSafe(v){ const s=(v==null?'':String(v)); return /[",\n]/.test(s)?`"${s.replace(/"/g,'""')}"`:s; }
 </script>
 </body>
 </html>
