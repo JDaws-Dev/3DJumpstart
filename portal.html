@@ -235,7 +235,7 @@
       <!-- Success Message Card -->
       <div id="allEnrolledMessage" class="success-card" style="display:none">
         <h3 style="color:#166534;margin-bottom:0.5rem;">✅ All Students Enrolled!</h3>
-        <p style="color:#166534;">Want to enroll another child? Click "Add Student" above.</p>
+     <p style="color:#166534;">Want to enroll another child? Click "Add Student".</p>
       </div>
 
       <div class="card">
@@ -804,22 +804,22 @@
             </div>
           `;
         } else {
-          let options = `<option value="">➕ Select Class Time to Add to Cart</option>`;
-          options += allowed.map(p=>`<option value="${p.id}">${p.label}</option>`).join('');
-          
-          enrollmentContent = `
-            <div class="field" style="margin-top:.4rem;max-width:420px">
-              <label class="label" style="color:#ea580c;font-weight:700;">Select Class Time (adds to cart automatically)</label>
-              <select class="select classSelect highlight" data-student="${s.id}">
-                ${options}
-              </select>
-              <div class="muted" style="margin-top:0.5rem;font-size:0.875rem;">
-                Select a time slot above to add this student to your cart
-              </div>
-              ${!allowed.length ? `<div class="muted" style="margin-top:.35rem;">No class available for grade <strong>${s.grade}</strong>.</div>` : ''}
-              <div id="added-${s.id}" style="display:none;" class="added-indicator">✓ Added to cart!</div>
-            </div>
-          `;
+        let options = `<option value="">➕ Select a Time Slot</option>`;
+options += allowed.map(p=>`<option value="${p.id}">${p.label}</option>`).join('');
+
+enrollmentContent = `
+  <div class="field" style="margin-top:.4rem;max-width:420px">
+    <label class="label" style="color:#ea580c;font-weight:700;">Choose a Class Time</label>
+    <select class="select classSelect highlight" data-student="${s.id}">
+      ${options}
+    </select>
+    <div class="muted" style="margin-top:0.5rem;font-size:0.875rem;">
+      Your choice will be added to the cart.
+    </div>
+    ${!allowed.length ? `<div class="muted" style="margin-top:.35rem;">No class available for grade <strong>${s.grade}</strong>.</div>` : ''}
+    <div id="added-${s.id}" style="display:none;" class="added-indicator">✓ Added to cart!</div>
+  </div>
+`;
         }
 
         const removeButton = isEnrolled ? 
