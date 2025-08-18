@@ -607,22 +607,16 @@
         }
 
         async function loadParentData() {
-            // Load enrolled students with their class times.  Use the enrollments table to
-            // determine which class slot a student is in, rather than relying on order_items.
+            // Load enrolled students with their class times
             const { data: students } = await supabase
                 .from('students')
-                .select(
-                    `*,
-                    enrollments!inner(
-                        status,
-                        payment_status,
-                        class_slots(
-                            day_of_week,
-                            start_time,
-                            end_time
-                        )
-                    )`
-                )
+                .select(`
+                    *,
+                    order_items!inner(
+                        time_slot,
+                        order_id
+                    )
+                `)
                 .eq('parent_id', currentUser.id);
 
             if (students && students.length > 0) {
@@ -655,42 +649,16 @@
 
         function displayStudents(students) {
             const container = document.getElementById('students-list');
-
-            // Helper to convert 24h time to am/pm format
-            function formatTimeLabel(start, end) {
-                const to12 = (t) => {
-                    const [hh, mm] = t.split(':').map((v) => Number(v));
-                    const h12 = ((hh + 11) % 12) + 1;
-                    const suffix = hh >= 12 ? 'pm' : 'am';
-                    return `${h12}:${String(mm).padStart(2, '0')}${suffix}`;
-                };
-                return `${to12(start)}-${to12(end)}`;
-            }
-
-            container.innerHTML = students
-                .map((student) => {
-                    // Determine the time slot from the student's enrollments.
-                    let timeSlotLabel = 'Not scheduled';
-                    if (Array.isArray(student.enrollments) && student.enrollments.length > 0) {
-                        const enrollment = student.enrollments[0];
-                        const slot = enrollment.class_slots;
-                        if (slot && slot.day_of_week) {
-                            const start = String(slot.start_time).substring(0, 5);
-                            const end = String(slot.end_time).substring(0, 5);
-                            timeSlotLabel = formatTimeLabel(start, end);
-                        }
-                    }
-                    // Compose the class time line. If scheduled, prefix with the day.
-                    const classTimeLine = timeSlotLabel !== 'Not scheduled'
-                        ? `Tuesday ${timeSlotLabel}`
-                        : 'Not scheduled';
-                    return `
+            
+            container.innerHTML = students.map(student => {
+                const timeSlot = student.order_items?.[0]?.time_slot || 'Not scheduled';
+                return `
                     <div class="student-card">
                         <div class="student-info">
                             <h3>${student.first_name} ${student.last_name}</h3>
                             <div class="student-details">
                                 <strong>Grade:</strong> ${student.grade}<br>
-                                <strong>Class Time:</strong> ${classTimeLine}<br>
+                                <strong>Class Time:</strong> Tuesday ${timeSlot}<br>
                                 <strong>Level:</strong> Level 1 - Starting Sept 9, 2025
                             </div>
                         </div>
@@ -701,8 +669,7 @@
                         </div>
                     </div>
                 `;
-                })
-                .join('');
+            }).join('');
         }
 
         function displayBilling(orders) {
