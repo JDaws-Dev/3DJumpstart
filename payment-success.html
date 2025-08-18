@@ -4,8 +4,6 @@
   <meta charset="utf-8" />
   <title>Payment Successful • 3D Jumpstart</title>
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <!-- If you have a shared stylesheet, keep this; otherwise the inline styles below are enough -->
-  <!-- <link rel="stylesheet" href="portal.css" /> -->
   <style>
     :root{
       --bg:#f7f8fb; --card:#fff; --muted:#6b7280; --border:#e8ebf0;
@@ -28,7 +26,6 @@
     .list{margin-top:16px;border-top:1px dashed var(--border);padding-top:12px}
     .enroll{padding:.6rem 0;border-top:1px dashed #eef1f6}
     .small{font-size:.9rem}
-    .center{display:flex;align-items:center;justify-content:center}
     .hidden{display:none}
     .icon{width:26px;height:26px;margin-right:.5rem}
   </style>
@@ -45,10 +42,8 @@
         <h1 style="margin:0">Thank you! <span id="status-pill" class="pill pill-ok">Payment received</span></h1>
       </div>
 
-      <!-- Loading -->
       <p id="loading-state" class="muted">Finalizing your receipt…</p>
 
-      <!-- Success -->
       <div id="success-state" class="hidden">
         <div class="details">
           <div><strong>Receipt #</strong><br><span id="order-number" class="muted small">—</span></div>
@@ -56,8 +51,7 @@
         </div>
         <div class="list">
           <div class="muted small" style="margin-bottom:.5rem">
-            Below is the enrollment status for each student. If you selected <strong>Pay Half Now</strong>,
-            the status will show <em>Pending</em> until the final invoice posts (due Oct 15).
+            If you selected <strong>Pay Half Now</strong>, status shows <em>Pending</em> until your final payment posts (due Oct 15).
           </div>
           <div id="enroll-list"></div>
         </div>
@@ -67,7 +61,6 @@
         </div>
       </div>
 
-      <!-- Error -->
       <div id="error-state" class="hidden">
         <p class="pill pill-warn">We hit a snag</p>
         <p id="error-message" class="muted">Something went wrong. Please try again.</p>
@@ -77,18 +70,18 @@
   </div>
 
 <script>
-/* ================== CONFIG ================== */
-const SUPABASE_URL = 'https://hucjmggkasahwpjgnwia.supabase.co'; // TODO: set yours
-const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imh1Y2ptZ2drYXNhaHdwamdud2lhIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTQ2MTI2MDIsImV4cCI6MjA3MDE4ODYwMn0.hxFmoZexaKverih9crJfP9fjWItOTfC_6D_CM7hr_Rg';                    // TODO: set yours
+/* ====== CONFIG ====== */
+const SUPABASE_URL = 'https://hucjmggkasahwpjgnwia.supabase.co';   // <- change if yours differs
+const SUPABASE_ANON_KEY = 'REPLACE_WITH_YOUR_PUBLIC_ANON_KEY';      // <- paste anon key
 const sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
-/* ================== HELPERS ================== */
+/* ====== HELPERS ====== */
 const $ = (id) => document.getElementById(id);
 function show(id){ $(id).classList.remove('hidden'); }
 function hide(id){ $(id).classList.add('hidden'); }
 function qp(name){ return new URL(location.href).searchParams.get(name); }
 
-/* ================== MAIN ================== */
+/* ====== MAIN ====== */
 (async function init(){
   try {
     const sessionId = qp('session_id');
@@ -100,7 +93,6 @@ function qp(name){ return new URL(location.href).searchParams.get(name); }
       return;
     }
 
-    // If Stripe didn't include a session id (rare), still show success shell
     if (!sessionId) {
       hide('loading-state'); show('success-state');
       $('order-number').textContent = '—';
@@ -109,77 +101,54 @@ function qp(name){ return new URL(location.href).searchParams.get(name); }
       return;
     }
 
-    // Fetch enrollments tied to this checkout session
-    let { data: rows, error } = await sb
-      .from('enrollments')
-      .select('id, student_id, class_time, status, paid_at, amount_final, payment_plan')
-      .eq('parent_id', user.id)
-      .eq('stripe_session_id', sessionId);
-
-    if (error) throw error;
-
-    // Poll briefly (up to ~6s) for webhook to flip pending→paid (full payments)
+    // Poll payments and enrollments for up to ~8s
+    let payments, enrolls;
     const start = Date.now();
-    while (rows && rows.length && rows.some(r => r.status !== 'paid') && Date.now() - start < 6000) {
-      await new Promise(r => setTimeout(r, 800));
-      const res = await sb
-        .from('enrollments')
-        .select('id, student_id, class_time, status, paid_at, amount_final, payment_plan')
+    while (Date.now() - start < 8000) {
+      const pRes = await sb.from('payments')
+        .select('amount,status,created_at,parent_email,stripe_session_id')
+        .eq('stripe_session_id', sessionId).maybeSingle();
+      payments = pRes.data || null;
+
+      const eRes = await sb.from('enrollments')
+        .select('id,student_id,class_time,status,paid_at')
         .eq('parent_id', user.id)
         .eq('stripe_session_id', sessionId);
-      rows = res.data || rows;
+      enrolls = eRes.data || [];
+
+      if (payments || (enrolls && enrolls.some(r=>r.status==='paid'))) break;
+      await new Promise(r => setTimeout(r, 700));
     }
 
-    // Load student names for display
-    const ids = [...new Set((rows||[]).map(r => r.student_id))];
+    // Get student names
+    const ids = [...new Set((enrolls||[]).map(r => r.student_id))];
     const { data: students } = ids.length
       ? await sb.from('students').select('id, first_name, last_name').in('id', ids)
       : { data: [] };
 
-    hide('loading-state');
+    hide('loading-state'); show('success-state');
 
-    // If no rows matched yet, still show a receipt shell so this page feels successful
-    if (!rows || !rows.length) {
-      show('success-state');
-      $('order-number').textContent = sessionId.slice(0, 12) + '…';
-      $('amount-paid').textContent = '$—';
-      $('status-pill').textContent = 'Recorded';
-      $('status-pill').className = 'pill pill-warn';
-      $('enroll-list').innerHTML =
-        `<div class="enroll muted">We’re finalizing your receipt. If it doesn’t appear in a minute, return to the Parent Portal.</div>`;
-      return;
-    }
-
-    // Compute what was paid (for full payments); half-plan shows deposit paid on Stripe but stays pending here
-    const paidRows = rows.filter(r => r.status === 'paid');
-    const totalPaid = paidRows.length
-      ? paidRows.reduce((sum, r) => sum + (r.amount_final ?? (r.payment_plan === 'full' ? 670 : 360)), 0)
-      : 0;
-
-    show('success-state');
     $('order-number').textContent = sessionId.slice(0, 12) + '…';
-    $('amount-paid').textContent = paidRows.length ? `$${totalPaid.toLocaleString()}` : '$—';
+    if (payments?.amount) $('amount-paid').textContent = `$${(payments.amount/100).toLocaleString()}`;
 
-    // If everything is paid, keep green pill, else warn/pending
-    if (rows.every(r => r.status === 'paid')) {
-      $('status-pill').textContent = 'Payment received';
-      $('status-pill').className = 'pill pill-ok';
+    // Status pill
+    if (enrolls && enrolls.length && enrolls.every(r => r.status === 'paid')) {
+      $('status-pill').textContent = 'Payment received'; $('status-pill').className = 'pill pill-ok';
     } else {
-      $('status-pill').textContent = 'Pending';
-      $('status-pill').className = 'pill pill-warn';
+      $('status-pill').textContent = 'Pending'; $('status-pill').className = 'pill pill-warn';
     }
 
-    // Render each enrollment line
-    $('enroll-list').innerHTML = rows.map(r => {
-      const s = students?.find(x => x.id === r.student_id);
+    // Lines
+    $('enroll-list').innerHTML = (enrolls || []).map(r=>{
+      const s = students?.find(x=>x.id===r.student_id);
       const name = s ? `${s.first_name} ${s.last_name}` : 'Student';
       const st = r.status === 'paid' ? 'Paid' : 'Pending';
       const when = r.paid_at ? ` • ${new Date(r.paid_at).toLocaleString()}` : '';
       return `<div class="enroll">
         <div><strong>${name}</strong> — ${r.class_time}</div>
-        <div class="muted small">${st}${when}${r.payment_plan==='half' && st==='Pending' ? ' • Deposit received; final due Oct 15' : ''}</div>
+        <div class="muted small">${st}${when}${st==='Pending' ? ' • Deposit received; final due Oct 15' : ''}</div>
       </div>`;
-    }).join('');
+    }).join('') || '<div class="muted small">No enrollments found for this receipt yet.</div>';
 
   } catch (err) {
     console.error(err);
