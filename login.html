@@ -451,7 +451,7 @@
         document.addEventListener('DOMContentLoaded', async () => {
             const { data: { session } } = await supabase.auth.getSession();
             if (session) {
-                window.location.href = 'app.html';
+                window.location.href = 'portal.html';
             }
         });
 
@@ -505,7 +505,7 @@
                 if (students && students.length > 0) {
                     window.location.href = 'portal.html';
                 } else {
-                    window.location.href = 'app.html';
+                    window.location.href = 'portal.html';
                 }
 
             } catch (error) {
@@ -600,7 +600,7 @@
                     if (students && students.length > 0) {
                         window.location.href = 'portal.html';
                     } else {
-                        window.location.href = 'app.html';
+                        window.location.href = 'portal.html';
                     }
                 }
 
@@ -625,7 +625,7 @@
                 submitBtn.disabled = true;
 
                 const { error } = await supabase.auth.resetPasswordForEmail(email, {
-                    redirectTo: `${window.location.origin}/app.html`
+                    redirectTo: `${window.location.origin}/portal.html`
                 });
 
                 if (error) throw error;
