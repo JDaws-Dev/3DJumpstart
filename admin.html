@@ -610,7 +610,13 @@
 
             tbody.innerHTML = activeEnrollments.map(e => {
                 const student = e.students || {};
-                const parent = e.parents || {};
+                
+                // Try to get parent info from the enrollment first, then fallback to finding in parents array
+                let parent = e.parents || {};
+                if (!parent.email && e.parent_id) {
+                    parent = allData.parents.find(p => p.id === e.parent_id) || {};
+                }
+                
                 const statusBadge = e.status === 'enrolled' ? 
                     '<span class="badge badge-enrolled">Enrolled</span>' : 
                     '<span class="badge badge-pending">Pending</span>';
@@ -621,8 +627,8 @@
                         <td>${student.grade || '-'}</td>
                         <td>${student.age || '-'}</td>
                         <td>${e.class_time || 'TBD'}</td>
-                        <td>${parent.name || 'N/A'}</td>
-                        <td>${parent.email || 'N/A'}<br>${parent.phone || ''}</td>
+                        <td>${parent.name || 'Unknown'}</td>
+                        <td>${parent.email || 'No email'}<br>${parent.phone || 'No phone'}</td>
                         <td>${statusBadge}</td>
                         <td>${student.special || '-'}</td>
                     </tr>
@@ -669,9 +675,22 @@
 
             tbody.innerHTML = filtered.map(p => {
                 const date = new Date(p.created_at).toLocaleDateString();
-                const enrollment = allData.enrollments.find(e => e.id === p.enrollment_id);
-                const student = enrollment?.students || {};
-                const parent = enrollment?.parents || {};
+                
+                // Try to find related enrollment and parent info
+                let enrollment = allData.enrollments.find(e => e.id === p.enrollment_id);
+                let student = enrollment?.students || {};
+                let parent = enrollment?.parents || {};
+                
+                // If no parent from enrollment, try to find from parents array
+                if (!parent.name && enrollment?.parent_id) {
+                    parent = allData.parents.find(pr => pr.id === enrollment.parent_id) || {};
+                }
+                
+                // Fallback to getting parent directly from payment parent_id
+                if (!parent.name && p.parent_id) {
+                    parent = allData.parents.find(pr => pr.id === p.parent_id) || {};
+                }
+                
                 const balanceDue = p.event_type === 'Pay Half Now' ? 360 : 0;
 
                 return `
@@ -680,8 +699,8 @@
                         <td>${parent.name || 'Unknown'}</td>
                         <td>${student.first_name || ''} ${student.last_name || ''}</td>
                         <td>${p.event_type || 'Payment'}</td>
-                        <td class="money success">$${p.amount || 0}</td>
-                        <td class="money ${balanceDue > 0 ? 'warning' : ''}">$${balanceDue}</td>
+                        <td class="money success">${p.amount || 0}</td>
+                        <td class="money ${balanceDue > 0 ? 'warning' : ''}">${balanceDue}</td>
                         <td style="font-size: 0.75rem;">${p.stripe_object_id?.substring(0, 20) || ''}...</td>
                     </tr>
                 `;
