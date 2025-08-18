@@ -549,6 +549,16 @@
         }
     </style>
 </head>
+
+    <div class="container" style="margin-top: 1rem; margin-bottom: -1rem;">
+    <div style="display: flex; align-items: center; gap: 0.5rem; color: #6b7280; font-size: 0.875rem;">
+        <a href="portal.html" style="color: #ea580c; text-decoration: none; font-weight: 500;">Dashboard</a>
+        <span>→</span>
+        <span>Student Enrollment</span>
+    </div>
+</div>
+
+    
 <body>
     <div id="auth-check" style="display: flex; align-items: center; justify-content: center; min-height: 100vh; background: #f9fafb;">
         <div style="text-align: center;">
@@ -566,10 +576,10 @@
                         <img src="https://raw.githubusercontent.com/JDaws-Dev/3DJumpstart/main/3d-jumpstart-logo.png" alt="3D Jumpstart" class="logo-image">
                     </a>
                     <nav>
-                      <ul class="nav-links">
-    <li><a class="nav-link active" onclick="showSection('students', event)">Students</a></li>
+                     <ul class="nav-links">
+    <li><a class="nav-link" href="portal.html">← Back to Dashboard</a></li>
+    <li><a class="nav-link active">Enrollment</a></li>
     <li><a class="nav-link" onclick="showSection('cart', event)">Cart <span id="cart-count" class="hidden">(0)</span></a></li>
-    <li><a class="nav-link" onclick="window.location.href='portal.html'">Parent Portal</a></li>
     <li><a class="btn btn-secondary" onclick="logout()">Logout</a></li>
 </ul>
                     </nav>
