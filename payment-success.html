@@ -8,29 +8,31 @@
     :root{--ring:#e5e7eb;--ink:#0b1329;--muted:#6b7280;--brand:#ff7a00;--card:#fff;--bg:#f6f7fb;--shadow:0 8px 24px rgba(16,24,40,.06)}
     body{margin:0;font-family:Inter,system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif;color:var(--ink);background:var(--bg)}
     .wrap{max-width:980px;margin:32px auto;padding:0 20px}
-    .card{background:var(--card);border:1px solid var(--ring);box-shadow:var(--shadow);border-radius:16px;padding:18px}
-    .title{font-weight:800;font-size:36px;display:flex;align-items:center;gap:12px}
+    .card{background:var(--card);border:1px solid var(--ring);box-shadow:var(--shadow);border-radius:16px;padding:24px}
+    .title{font-weight:800;font-size:36px;display:flex;align-items:center;gap:12px;margin-bottom:8px}
     .pill{display:inline-flex;align-items:center;padding:6px 10px;border-radius:999px;border:1px solid #fde7d1;background:#fff7ed;color:#8a3c00;font-weight:700}
-    .grid{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+    .grid{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-top:20px}
     .box{border:1px dashed var(--ring);border-radius:12px;padding:12px;min-height:72px}
     .muted{color:var(--muted)}
-    .btn{border:1px solid var(--ring);background:#fff;border-radius:12px;padding:10px 14px;font-weight:700;cursor:pointer}
+    .btn{border:1px solid var(--ring);background:#fff;border-radius:12px;padding:10px 14px;font-weight:700;cursor:pointer;text-decoration:none;display:inline-block}
     .btn.primary{background:var(--brand);color:#fff;border-color:var(--brand)}
+    .enrollment-item{padding:12px;background:#f9fafb;border-radius:8px;margin-bottom:8px}
+    .loading{color:var(--muted);font-style:italic}
   </style>
 </head>
 <body>
   <div class="wrap">
     <div class="card">
       <div class="title">
-        <span style="color:#22c55e">✔</span>
+        <span style="color:#22c55e">✓</span>
         <span>Thank you!</span>
-        <span class="pill" id="statusBadge">Pending</span>
+        <span class="pill" id="statusBadge">Loading...</span>
       </div>
 
-      <div class="grid" style="margin-top:14px">
+      <div class="grid">
         <div class="box">
           <div class="muted" style="font-size:.9rem;margin-bottom:.35rem">Receipt #</div>
-          <div id="receiptNum" style="font-weight:800">—</div>
+          <div id="receiptNum" style="font-weight:800">Loading...</div>
         </div>
         <div class="box">
           <div class="muted" style="font-size:.9rem;margin-bottom:.35rem">Total Paid</div>
@@ -44,53 +46,138 @@
         </div>
       </div>
 
-      <div id="enrollmentsBox" class="muted" style="margin-top:12px">No enrollments found for this receipt yet.</div>
+      <div id="enrollmentsBox" style="margin-top:20px">
+        <h3 style="margin-bottom:12px">Enrolled Students:</h3>
+        <div id="enrollmentsList" class="loading">Loading enrollments...</div>
+      </div>
 
       <div class="grid" style="margin-top:16px">
-        <button class="btn primary" onclick="goPortal()">Back to Parent Portal</button>
-        <button class="btn" onclick="refresh()">Refresh</button>
+        <a href="portal.html" class="btn primary">Back to Parent Portal</a>
+        <button class="btn" onclick="location.reload()">Refresh</button>
       </div>
     </div>
   </div>
 
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script>
-  const SUPABASE_URL = "https://hucjmggkasahwpjgnwia.supabase.coL";
+  const SUPABASE_URL = "https://hucjmggkasahwpjgnwia.supabase.co";
   const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imh1Y2ptZ2drYXNhaHdwamdud2lhIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTQ2MTI2MDIsImV4cCI6MjA3MDE4ODYwMn0.hxFmoZexaKverih9crJfP9fjWItOTfC_6D_CM7hr_Rg";
   const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
   const qs = new URLSearchParams(location.search);
   const sessionId = qs.get('session_id') || '';
-  document.getElementById('receiptNum').textContent = sessionId || '—';
+  
+  // Display session ID immediately
+  document.getElementById('receiptNum').textContent = sessionId || 'No receipt ID';
 
   async function loadReceipt(){
-    if(!sessionId) return;
-
-    // payments row inserted by webhook
-    const { data, error } = await supabase
-      .from('payments')
-      .select('amount, status')
-      .eq('stripe_session_id', sessionId)
-      .maybeSingle();
-
-    const badge = document.getElementById('statusBadge');
-    const totalEl = document.getElementById('totalPaid');
-
-    if(error){ console.error(error); badge.textContent='Pending'; return; }
-
-    if(!data){ // not yet written – poll a few times
-      badge.textContent='Pending';
-      setTimeout(loadReceipt, 2000);
+    if(!sessionId) {
+      document.getElementById('statusBadge').textContent = 'Error';
+      document.getElementById('enrollmentsList').innerHTML = '<div class="muted">No session ID provided</div>';
       return;
     }
 
-    badge.textContent = (data.status || 'paid').replace('_',' ');
-    totalEl.textContent = `$${(Number(data.amount||0)/100).toFixed(0)}`;
+    try {
+      // Get payment by stripe_object_id
+      const { data: payment, error: paymentError } = await supabase
+        .from('payments')
+        .select('*')
+        .eq('stripe_object_id', sessionId)
+        .maybeSingle();
+
+      if(paymentError) {
+        console.error('Payment fetch error:', paymentError);
+      }
+
+      if(payment) {
+        // Display payment info
+        const status = payment.event_type === 'Pay in Full' ? 'Paid' : 'Pending';
+        document.getElementById('statusBadge').textContent = status;
+        document.getElementById('totalPaid').textContent = `$${payment.amount}`;
+        
+        // Get enrollment info
+        if(payment.enrollment_id) {
+          const { data: enrollment, error: enrollError } = await supabase
+            .from('enrollments')
+            .select(`
+              *,
+              students:student_id (
+                first_name,
+                last_name,
+                grade
+              )
+            `)
+            .eq('id', payment.enrollment_id)
+            .single();
+
+          if(enrollment && enrollment.students) {
+            const student = enrollment.students;
+            document.getElementById('enrollmentsList').innerHTML = `
+              <div class="enrollment-item">
+                <strong>${student.first_name} ${student.last_name}</strong><br>
+                <span class="muted">Grade ${student.grade} • ${enrollment.class_time || 'Time TBD'}</span><br>
+                <span class="muted">Status: ${enrollment.status === 'enrolled' ? 'Enrolled' : enrollment.status === 'pending' ? 'Pending (balance due Oct 15)' : enrollment.status}</span>
+              </div>
+            `;
+          } else {
+            document.getElementById('enrollmentsList').innerHTML = '<div class="muted">Enrollment details loading...</div>';
+          }
+        } else {
+          // Try to find enrollments by session ID in metadata
+          const metadata = payment.payload?.metadata || {};
+          const enrollmentIds = metadata.enrollment_ids?.split(',') || [];
+          
+          if(enrollmentIds.length > 0) {
+            const { data: enrollments } = await supabase
+              .from('enrollments')
+              .select(`
+                *,
+                students:student_id (
+                  first_name,
+                  last_name,
+                  grade
+                )
+              `)
+              .in('id', enrollmentIds);
+
+            if(enrollments && enrollments.length > 0) {
+              const html = enrollments.map(e => {
+                const s = e.students;
+                return `
+                  <div class="enrollment-item">
+                    <strong>${s.first_name} ${s.last_name}</strong><br>
+                    <span class="muted">Grade ${s.grade} • ${e.class_time || 'Time TBD'}</span><br>
+                    <span class="muted">Status: ${e.status === 'enrolled' ? 'Enrolled' : e.status === 'pending' ? 'Pending (balance due Oct 15)' : e.status}</span>
+                  </div>
+                `;
+              }).join('');
+              document.getElementById('enrollmentsList').innerHTML = html;
+            } else {
+              document.getElementById('enrollmentsList').innerHTML = '<div class="muted">No enrollments found for this receipt yet.</div>';
+            }
+          } else {
+            document.getElementById('enrollmentsList').innerHTML = '<div class="muted">No enrollments found for this receipt yet.</div>';
+          }
+        }
+      } else {
+        // Payment not found yet - webhook may still be processing
+        document.getElementById('statusBadge').textContent = 'Processing';
+        document.getElementById('totalPaid').textContent = 'Processing...';
+        document.getElementById('enrollmentsList').innerHTML = '<div class="muted">Payment is being processed. Please refresh in a moment.</div>';
+        
+        // Auto-refresh after 3 seconds
+        setTimeout(() => {
+          location.reload();
+        }, 3000);
+      }
+    } catch(err) {
+      console.error('Error loading receipt:', err);
+      document.getElementById('statusBadge').textContent = 'Error';
+      document.getElementById('enrollmentsList').innerHTML = '<div class="muted">Error loading receipt details</div>';
+    }
   }
 
-  function goPortal(){ location.href = '/portal.html'; }
-  function refresh(){ loadReceipt(); }
-
+  // Load on page load
   loadReceipt();
   </script>
 </body>
