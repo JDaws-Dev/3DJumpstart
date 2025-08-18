@@ -235,7 +235,7 @@
       <!-- Success Message Card -->
       <div id="allEnrolledMessage" class="success-card" style="display:none">
         <h3 style="color:#166534;margin-bottom:0.5rem;">✅ All Students Enrolled!</h3>
-     <p style="color:#166534;">Want to enroll another child? Click "Add Student".</p>
+        <p style="color:#166534;">Want to enroll another child? Click "Add Student" above.</p>
       </div>
 
       <div class="card">
@@ -804,22 +804,22 @@
             </div>
           `;
         } else {
-        let options = `<option value="">➕ Select a Time Slot</option>`;
-options += allowed.map(p=>`<option value="${p.id}">${p.label}</option>`).join('');
-
-enrollmentContent = `
-  <div class="field" style="margin-top:.4rem;max-width:420px">
-    <label class="label" style="color:#ea580c;font-weight:700;">Choose a Class Time</label>
-    <select class="select classSelect highlight" data-student="${s.id}">
-      ${options}
-    </select>
-    <div class="muted" style="margin-top:0.5rem;font-size:0.875rem;">
-      Your choice will be added to the cart.
-    </div>
-    ${!allowed.length ? `<div class="muted" style="margin-top:.35rem;">No class available for grade <strong>${s.grade}</strong>.</div>` : ''}
-    <div id="added-${s.id}" style="display:none;" class="added-indicator">✓ Added to cart!</div>
-  </div>
-`;
+          let options = `<option value="">➕ Select Class Time to Add to Cart</option>`;
+          options += allowed.map(p=>`<option value="${p.id}">${p.label}</option>`).join('');
+          
+          enrollmentContent = `
+            <div class="field" style="margin-top:.4rem;max-width:420px">
+              <label class="label" style="color:#ea580c;font-weight:700;">Select Class Time (adds to cart automatically)</label>
+              <select class="select classSelect highlight" data-student="${s.id}">
+                ${options}
+              </select>
+              <div class="muted" style="margin-top:0.5rem;font-size:0.875rem;">
+                Select a time slot above to add this student to your cart
+              </div>
+              ${!allowed.length ? `<div class="muted" style="margin-top:.35rem;">No class available for grade <strong>${s.grade}</strong>.</div>` : ''}
+              <div id="added-${s.id}" style="display:none;" class="added-indicator">✓ Added to cart!</div>
+            </div>
+          `;
         }
 
         const removeButton = isEnrolled ? 
@@ -1058,48 +1058,64 @@ enrollmentContent = `
           return; 
         }
 
-        // Get student names
-        const ids = [...new Set(cart.map(e => e.student_id))];
-        const { data: students } = await sb.from('students')
-          .select('id,first_name,last_name')
-          .in('id', ids);
-
-        const enrollments = cart.map(e => {
-          const s = students?.find(st => st.id === e.student_id);
-          return {
-            enrollment_id: e.id,
-            student_id: e.student_id,
-            student_name: s ? `${s.first_name} ${s.last_name}` : '',
-            class_period_id: e.class_period_id,
-            class_time: e.class_time,
-            level: e.level || 'Level 1'
-          };
-        });
-
-        const res = await fetch(CREATE_CHECKOUT_URL, {
-          method: 'POST',
-          headers: { 'Content-Type':'application/json' },
-          body: JSON.stringify({
-            parent_id: currentUser.id,
-            parent_email: currentUser.email,
-            method,
-            enrollments,
-            return_base_url: window.location.origin
-          })
-        });
-
-        if (!res.ok) {
-          const msg = await res.text();
-          console.error('Checkout error:', msg);
-          alert('Checkout error: ' + msg);
+        // Get current session for auth token
+        const { data: { session } } = await sb.auth.getSession();
+        if (!session) {
+          alert('Please log in to continue.');
+          window.location.href = 'login.html';
           return;
         }
 
-        const { url } = await res.json();
-        window.location.href = url;
+        // Prepare enrollment IDs
+        const enrollmentIds = cart.map(e => e.id);
+        
+        // Build request body
+        const requestBody = {
+          parent_id: currentUser.id,
+          parent_email: currentUser.email,
+          payment_plan: method === 'half' ? 'pay_half' : 'pay_full',
+          enrollment_ids: enrollmentIds,
+          success_url: `${window.location.origin}/payment-success.html?session_id={CHECKOUT_SESSION_ID}`,
+          cancel_url: `${window.location.origin}/portal.html`
+        };
+
+        console.log('Sending checkout request:', requestBody);
+
+        // Call create-checkout function
+        const response = await fetch(CREATE_CHECKOUT_URL, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${session.access_token}`
+          },
+          body: JSON.stringify(requestBody)
+        });
+
+        const responseText = await response.text();
+        console.log('Checkout response:', responseText);
+
+        if (!response.ok) {
+          console.error('Checkout failed:', responseText);
+          alert('Checkout error. Please try again.');
+          return;
+        }
+
+        try {
+          const data = JSON.parse(responseText);
+          if (data.url) {
+            // Redirect to Stripe Checkout
+            window.location.href = data.url;
+          } else {
+            alert('No checkout URL received. Please try again.');
+          }
+        } catch (parseError) {
+          console.error('Failed to parse response:', parseError);
+          alert('Invalid response from server. Please try again.');
+        }
+
       } catch (err) {
-        console.error(err);
-        alert('Could not start checkout.');
+        console.error('Checkout error:', err);
+        alert('Could not start checkout. Please try again.');
       }
     }
 
