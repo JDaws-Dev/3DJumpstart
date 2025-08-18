@@ -21,7 +21,7 @@
     /* Header */
     .portal-header { background:#fff; box-shadow:0 1px 3px rgba(0,0,0,.08); position:sticky; top:0; z-index:10; }
     .header-content { display:flex; align-items:center; justify-content:space-between; gap:1rem; padding:.9rem 0; }
-    .logo-image { height:72px; width:auto; } /* bigger logo */
+    .logo-image { height:72px; width:auto; }
     .user-info { display:flex; align-items:center; gap:.6rem; color:var(--muted); }
 
     /* Buttons */
@@ -67,13 +67,21 @@
 
     /* Modal */
     .modal-backdrop { position:fixed; inset:0; background:rgba(0,0,0,.35); display:none; align-items:center; justify-content:center; padding:1rem; z-index:50; }
-    .modal-backdrop.show { display:flex; } /* FIX: show on backdrop, not .modal */
+    .modal-backdrop.show { display:flex; }
     .modal { width:100%; max-width:640px; background:#fff; border-radius:1rem; padding:1rem; box-shadow:0 16px 40px rgba(0,0,0,.25); }
+
+    /* Badges */
+    .badge { display:inline-block; padding:.15rem .55rem; border-radius:999px; font-size:.78rem; font-weight:800; }
+    .badge-good { background:#dcfce7; color:#166534; border:1px solid #16a34a; }
+    .badge-warn { background:#fee2e2; color:#991b1b; border:1px solid #ef4444; }
 
     /* Billing Table */
     table { width:100%; border-collapse:collapse; }
     th, td { text-align:left; padding:.75rem; border-bottom:1px solid #eee; }
     thead tr { background:#f3f4f6; }
+
+    /* Cart pill */
+    .pill { display:inline-flex; align-items:center; gap:.5rem; padding:.35rem .6rem; background:#f3f4f6; border-radius:999px; font-weight:700; }
   </style>
 </head>
 <body>
@@ -118,8 +126,18 @@
       </div>
 
       <div class="card">
-        <h3 class="card-title" style="margin-bottom:.25rem;">Payment</h3>
-        <p class="muted" style="margin:0 0 .75rem;">Select a class period for each student first.</p>
+        <div class="grid grid-2" style="align-items:center;">
+          <div>
+            <h3 class="card-title" style="margin-bottom:.25rem;">Payment</h3>
+            <p class="muted" style="margin:0;">Add students to the cart to continue.</p>
+          </div>
+          <div style="text-align:right;">
+            <span class="pill">Cart: <span id="cartCount">0</span></span>
+          </div>
+        </div>
+
+        <div id="cartList" class="grid" style="margin:.75rem 0;"></div>
+
         <div class="student-actions" style="gap:.75rem;">
           <button id="payFullBtn" class="btn btn-primary" type="button" disabled>Pay In Full – $700</button>
           <button id="payHalfBtn" class="btn btn-secondary" type="button" disabled>Pay Half Now – $360 (Balance due Oct 15)</button>
@@ -242,14 +260,19 @@
           <label class="label" for="lastName">Last Name</label>
           <input id="lastName" class="input" />
         </div>
+
+        <!-- Age dropdown -->
         <div class="field">
           <label class="label" for="age">Age</label>
-          <input id="age" class="input" type="number" min="8" max="18" />
+          <select id="age" class="select"></select>
         </div>
+
+        <!-- Grade dropdown -->
         <div class="field">
           <label class="label" for="grade">Grade</label>
-          <input id="grade" class="input" placeholder="e.g., 5th" />
+          <select id="grade" class="select"></select>
         </div>
+
         <div class="field">
           <label class="label" for="experience">Prior Experience</label>
           <select id="experience" class="select">
@@ -283,12 +306,25 @@
       'Tuesday 7:00–8:00'
     ];
 
+    // Dropdown options
+    const AGE_OPTIONS = Array.from({length: 11}, (_,i)=> (8+i));          // 8..18
+    const GRADE_OPTIONS = ['3rd','4th','5th','6th','7th','8th','9th','10th','11th','12th'];
+
+    // Pricing
+    const PRICE_FULL = 700;
+    const PRICE_HALF_NOW = 360;
+
     // ---------- STATE ----------
     let currentUser = null;
     let editingId = null;
     const studentsKey = 'portal.students.v1';
+    const cartKey = 'portal.cart.v1';
+
     const loadStudents = () => JSON.parse(localStorage.getItem(studentsKey) || '[]');
     const saveStudents = (arr) => localStorage.setItem(studentsKey, JSON.stringify(arr));
+
+    const loadCart = () => JSON.parse(localStorage.getItem(cartKey) || '[]');
+    const saveCart = (arr) => localStorage.setItem(cartKey, JSON.stringify(arr));
 
     // ---------- AUTH BOOT ----------
     document.addEventListener('DOMContentLoaded', () => {
@@ -299,7 +335,9 @@
         document.getElementById('parent-name').textContent = currentUser.email || 'Parent';
 
         bindUI();
+        populateDropdowns();
         renderStudents();
+        renderCart();
         renderBilling();
       })().catch(console.error);
     });
@@ -327,21 +365,31 @@
       document.getElementById('cancelBtn').addEventListener('click', closeModal);
       document.getElementById('saveStudentBtn').addEventListener('click', saveStudentFromModal);
 
-      // Close modal when clicking backdrop (not the modal content)
+      // Backdrop click closes
       document.getElementById('studentModal').addEventListener('click', (e) => {
         if (e.target.id === 'studentModal') closeModal();
-      });
-
-      // Enter key saves
-      ['firstName','lastName','age','grade','special'].forEach(id=>{
-        document.getElementById(id).addEventListener('keydown', (e)=>{
-          if (e.key === 'Enter') saveStudentFromModal();
-        });
       });
 
       // Payment
       document.getElementById('payFullBtn').addEventListener('click', () => startCheckout('full'));
       document.getElementById('payHalfBtn').addEventListener('click', () => startCheckout('half'));
+    }
+
+    function populateDropdowns(){
+      const ageSel = document.getElementById('age');
+      AGE_OPTIONS.forEach(a=>{
+        const opt = document.createElement('option');
+        opt.value = String(a);
+        opt.textContent = String(a);
+        ageSel.appendChild(opt);
+      });
+      const gradeSel = document.getElementById('grade');
+      GRADE_OPTIONS.forEach(g=>{
+        const opt = document.createElement('option');
+        opt.value = g;
+        opt.textContent = g;
+        gradeSel.appendChild(opt);
+      });
     }
 
     // ---------- STUDENTS UI ----------
@@ -355,19 +403,36 @@
             <p class="muted" style="margin:.25rem 0 1rem;">No students yet.</p>
             <button class="btn btn-primary" type="button" onclick="openModal()">+ Add Your First Student</button>
           </div>`;
-        disablePay();
+        renderCart(); // keep cart in sync
         return;
       }
 
       wrap.innerHTML = list.map(s => {
         const options = CLASS_PERIODS.map(p => `<option value="${p}" ${s.classPeriod===p?'selected':''}>${p}</option>`).join('');
+        const inClass = !!s.classPeriod;
+        const inCart = loadCart().includes(s.id);
+
+        const status = inClass
+          ? `<span class="badge badge-good">In Class</span>`
+          : `<span class="badge badge-warn">Not in Class</span>`;
+
+        const actionBtn = inClass
+          ? (inCart
+              ? `<button class="btn btn-muted" type="button" onclick="removeFromCart('${s.id}')">Remove from Cart</button>`
+              : `<button class="btn btn-primary" type="button" onclick="addToCart('${s.id}')">Add to Cart</button>`)
+          : `<button class="btn btn-primary" type="button" onclick="requireClassThenAdd('${s.id}')">Select Class & Add</button>`;
+
         return `
           <div class="student-row" data-id="${s.id}">
             <div>
-              <div style="font-weight:800; font-size:1.05rem;">${s.firstName} ${s.lastName}</div>
+              <div style="display:flex; align-items:center; gap:.5rem;">
+                <div style="font-weight:800; font-size:1.05rem;">${s.firstName} ${s.lastName}</div>
+                ${status}
+              </div>
               <div class="student-meta">
                 Age ${s.age} • Grade ${s.grade} • ${s.experience}
                 ${s.special ? `<br/><span class="muted">Notes:</span> ${escapeHtml(s.special)}` : ''}
+                ${s.classPeriod ? `<br/><span class="muted">Class:</span> ${s.classPeriod}` : ''}
               </div>
               <div class="field" style="margin-top:.4rem; max-width:320px;">
                 <label class="label">Class Period</label>
@@ -377,7 +442,8 @@
                 </select>
               </div>
             </div>
-            <div class="student-actions">
+            <div class="student-actions" style="flex-shrink:0;">
+              ${actionBtn}
               <button class="btn btn-muted" type="button" onclick="openModal('${s.id}')">Edit</button>
               <button class="btn btn-danger" type="button" onclick="removeStudent('${s.id}')">Remove</button>
             </div>
@@ -385,20 +451,7 @@
         `;
       }).join('');
 
-      updatePayButtons();
-    }
-
-    function disablePay(){
-      document.getElementById('payFullBtn').disabled = true;
-      document.getElementById('payHalfBtn').disabled = true;
-    }
-
-    function updatePayButtons(){
-      const list = loadStudents();
-      const readyCount = list.filter(s => !!s.classPeriod).length;
-      const enable = readyCount > 0;
-      document.getElementById('payFullBtn').disabled = !enable;
-      document.getElementById('payHalfBtn').disabled = !enable;
+      renderCart(); // keep cart consistent with any new period selections
     }
 
     // ---------- MODAL ----------
@@ -408,16 +461,16 @@
       document.getElementById('modalTitle').textContent = id ? 'Edit Student' : 'Add Student';
 
       const s = id ? loadStudents().find(x => x.id === id)
-                   : { firstName:'', lastName:'', age:'', grade:'', experience:'Beginner', special:'' };
+                   : { firstName:'', lastName:'', age: AGE_OPTIONS[0], grade: GRADE_OPTIONS[0], experience:'Beginner', special:'' };
 
       document.getElementById('firstName').value = s.firstName || '';
       document.getElementById('lastName').value  = s.lastName  || '';
-      document.getElementById('age').value       = s.age       || '';
-      document.getElementById('grade').value     = s.grade     || '';
+      document.getElementById('age').value       = s.age       || AGE_OPTIONS[0];
+      document.getElementById('grade').value     = s.grade     || GRADE_OPTIONS[0];
       document.getElementById('experience').value= s.experience|| 'Beginner';
       document.getElementById('special').value   = s.special   || '';
 
-      m.classList.add('show'); // FIX works with .modal-backdrop.show CSS
+      m.classList.add('show');
     }
     function closeModal(){
       document.getElementById('studentModal').classList.remove('show');
@@ -427,8 +480,8 @@
     function saveStudentFromModal(){
       const firstName = document.getElementById('firstName').value.trim();
       const lastName  = document.getElementById('lastName').value.trim();
-      const age       = document.getElementById('age').value.trim();
-      const grade     = document.getElementById('grade').value.trim();
+      const age       = document.getElementById('age').value;
+      const grade     = document.getElementById('grade').value;
       const experience= document.getElementById('experience').value;
       const special   = document.getElementById('special').value.trim();
 
@@ -460,6 +513,8 @@
       if (!confirm('Remove this student?')) return;
       const list = loadStudents().filter(s => s.id !== id);
       saveStudents(list);
+      // also remove from cart if present
+      saveCart(loadCart().filter(x => x !== id));
       renderStudents();
     }
 
@@ -467,30 +522,110 @@
       const list = loadStudents();
       const i = list.findIndex(s => s.id === id);
       if (i>-1){ list[i].classPeriod = period; saveStudents(list); }
-      updatePayButtons();
+      renderStudents();
     }
 
-    // ---------- PAYMENT (front-end preview for now) ----------
+    // ---------- CART ----------
+    function addToCart(id){
+      const s = loadStudents().find(x=>x.id===id);
+      if (!s || !s.classPeriod){ alert('Please select a class period first.'); return; }
+      const cart = loadCart();
+      if (!cart.includes(id)){ cart.push(id); saveCart(cart); }
+      renderCart();
+      renderStudents(); // refresh buttons
+    }
+
+    function requireClassThenAdd(id){
+      const s = loadStudents().find(x=>x.id===id);
+      if (!s) return;
+      if (!s.classPeriod){
+        alert('Select a class period first, then we can add them to the cart.');
+        return;
+      }
+      addToCart(id);
+    }
+
+    function removeFromCart(id){
+      saveCart(loadCart().filter(x => x !== id));
+      renderCart();
+      renderStudents(); // refresh buttons
+    }
+
+    function renderCart(){
+      const cartWrap = document.getElementById('cartList');
+      const cart = loadCart();
+      document.getElementById('cartCount').textContent = cart.length;
+
+      if (!cart.length){
+        cartWrap.innerHTML = `<div class="muted">Your cart is empty.</div>`;
+        updatePayButtons(false);
+        return;
+      }
+
+      const students = loadStudents();
+      const items = cart
+        .map(id => students.find(s => s.id === id))
+        .filter(Boolean);
+
+      // ensure all cart items have a class period selected
+      const allHavePeriod = items.every(s => !!s.classPeriod);
+
+      const rows = items.map(s => `
+        <div class="student-row">
+          <div>
+            <div style="font-weight:800">${s.firstName} ${s.lastName}</div>
+            <div class="muted">Class: ${s.classPeriod || '<em>Not selected</em>'}</div>
+          </div>
+          <div class="student-actions">
+            <button class="btn btn-muted" type="button" onclick="openModal('${s.id}')">Edit</button>
+            <button class="btn btn-danger" type="button" onclick="removeFromCart('${s.id}')">Remove</button>
+          </div>
+        </div>
+      `).join('');
+
+      cartWrap.innerHTML = rows;
+
+      updatePayButtons(allHavePeriod && items.length>0);
+    }
+
+    function updatePayButtons(enable){
+      document.getElementById('payFullBtn').disabled = !enable;
+      document.getElementById('payHalfBtn').disabled = !enable;
+    }
+
+    // ---------- PAYMENT (front-end preview) ----------
     function startCheckout(method){
-      const items = loadStudents().filter(s => !!s.classPeriod);
-      if (!items.length){ alert('Select a class period for at least one student.'); return; }
+      const cartIds = loadCart();
+      if (!cartIds.length){ alert('Add at least one student to the cart.'); return; }
+
+      const students = loadStudents().filter(s => cartIds.includes(s.id));
+      if (students.some(s => !s.classPeriod)){ alert('Please select a class period for each student in the cart.'); return; }
 
       const payload = {
         parent_email: currentUser?.email || '',
         parent_name: currentUser?.user_metadata?.name || '',
         method, // 'full' or 'half'
-        students: items.map(s => ({
+        students: students.map(s => ({
           student_name: `${s.firstName} ${s.lastName}`,
           age: s.age,
           grade: s.grade,
           experience: s.experience,
           special: s.special,
           class_period: s.classPeriod
-        }))
+        })),
+        totals: {
+          count: students.length,
+          full_total: students.length * PRICE_FULL,
+          half_now_total: students.length * PRICE_HALF_NOW
+        }
       };
 
       console.log('CHECKOUT PAYLOAD (preview):', payload);
-      alert(`Looks good!\n\nWhen we wire Stripe, we’ll create a Checkout Session with:\n• ${items.length} student(s)\n• Payment: ${method==='full' ? 'Pay in Full ($700)' : 'Half Now ($360)'}\n\n(For now, this is a front-end preview.)`);
+      alert(`Cart: ${payload.totals.count} student(s)\n` +
+            (method==='full'
+             ? `Total due now: $${payload.totals.full_total}`
+             : `Due now: $${payload.totals.half_now_total} (Balance due Oct 15)`) +
+            `\n\nNext step: I'll wire this to Stripe + Google Sheets.`);
     }
 
     // ---------- BILLING (placeholder) ----------
@@ -518,6 +653,9 @@
     window.openModal = openModal;
     window.removeStudent = removeStudent;
     window.setClassPeriod = setClassPeriod;
+    window.addToCart = addToCart;
+    window.removeFromCart = removeFromCart;
+    window.requireClassThenAdd = requireClassThenAdd;
   </script>
 </body>
 </html>
