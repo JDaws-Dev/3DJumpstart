@@ -1,484 +1,192 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Payment Successful - 3D Jumpstart</title>
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.39.3/dist/umd/supabase.min.js"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-    <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-
-        body {
-            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
-            line-height: 1.6;
-            color: #111827;
-            background: linear-gradient(135deg, #f0fdf4 0%, #dcfce7 100%);
-            min-height: 100vh;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            padding: 1rem;
-        }
-
-        .container {
-            max-width: 600px;
-            width: 100%;
-            background: white;
-            border-radius: 1.5rem;
-            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
-            padding: 3rem;
-            text-align: center;
-        }
-
-        .success-icon {
-            width: 80px;
-            height: 80px;
-            background: linear-gradient(135deg, #16a34a 0%, #15803d 100%);
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            margin: 0 auto 2rem;
-            font-size: 3rem;
-            color: white;
-        }
-
-        .title {
-            font-size: 2.5rem;
-            font-weight: 800;
-            color: #16a34a;
-            margin-bottom: 1rem;
-        }
-
-        .subtitle {
-            font-size: 1.25rem;
-            color: #6b7280;
-            margin-bottom: 2rem;
-        }
-
-        .details-box {
-            background: #f9fafb;
-            border-radius: 1rem;
-            padding: 2rem;
-            margin: 2rem 0;
-            text-align: left;
-        }
-
-        .detail-row {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding: 0.75rem 0;
-            border-bottom: 1px solid #e5e7eb;
-        }
-
-        .detail-row:last-child {
-            border-bottom: none;
-        }
-
-        .detail-label {
-            font-weight: 600;
-            color: #374151;
-        }
-
-        .detail-value {
-            color: #6b7280;
-        }
-
-        .next-steps {
-            background: #fef3c7;
-            border: 1px solid #f59e0b;
-            border-radius: 1rem;
-            padding: 1.5rem;
-            margin: 2rem 0;
-            text-align: left;
-        }
-
-        .next-steps h3 {
-            color: #92400e;
-            margin-bottom: 1rem;
-        }
-
-        .next-steps ul {
-            list-style: none;
-            padding: 0;
-        }
-
-        .next-steps li {
-            margin-bottom: 0.5rem;
-            padding-left: 1.5rem;
-            position: relative;
-        }
-
-        .next-steps li::before {
-            content: '📧';
-            position: absolute;
-            left: 0;
-        }
-
-        .btn {
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            gap: 0.5rem;
-            padding: 1rem 2rem;
-            border-radius: 0.5rem;
-            font-weight: 600;
-            text-decoration: none;
-            border: none;
-            cursor: pointer;
-            transition: all 0.2s;
-            font-size: 1rem;
-        }
-
-        .btn-primary {
-            background: linear-gradient(135deg, #ea580c 0%, #dc2626 100%);
-            color: white;
-            box-shadow: 0 4px 6px -1px rgba(234, 88, 12, 0.25);
-        }
-
-        .btn-primary:hover {
-            transform: translateY(-1px);
-            box-shadow: 0 10px 15px -3px rgba(234, 88, 12, 0.25);
-        }
-
-        .btn-outline {
-            background: transparent;
-            color: #6b7280;
-            border: 2px solid #e5e7eb;
-        }
-
-        .btn-outline:hover {
-            background: #f3f4f6;
-        }
-
-        .actions {
-            display: flex;
-            gap: 1rem;
-            justify-content: center;
-            margin-top: 2rem;
-        }
-
-        .loading {
-            text-align: center;
-            padding: 2rem;
-        }
-
-        .loading-spinner {
-            width: 40px;
-            height: 40px;
-            border: 4px solid #e5e7eb;
-            border-top: 4px solid #ea580c;
-            border-radius: 50%;
-            animation: spin 1s linear infinite;
-            margin: 0 auto 1rem;
-        }
-
-        @keyframes spin {
-            0% { transform: rotate(0deg); }
-            100% { transform: rotate(360deg); }
-        }
-
-        .error {
-            background: #fef2f2;
-            color: #dc2626;
-            padding: 1rem;
-            border-radius: 0.5rem;
-            margin-bottom: 1rem;
-        }
-
-        @media (max-width: 768px) {
-            .container {
-                padding: 2rem;
-            }
-            
-            .title {
-                font-size: 2rem;
-            }
-            
-            .actions {
-                flex-direction: column;
-            }
-        }
-    </style>
+  <meta charset="utf-8" />
+  <title>Payment Successful • 3D Jumpstart</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <!-- If you have a shared stylesheet, keep this; otherwise the inline styles below are enough -->
+  <!-- <link rel="stylesheet" href="portal.css" /> -->
+  <style>
+    :root{
+      --bg:#f7f8fb; --card:#fff; --muted:#6b7280; --border:#e8ebf0;
+      --brand:#ff7a1a; --ok:#12a150; --danger:#b42318;
+    }
+    *{box-sizing:border-box}
+    body{font-family:Inter,system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif;background:var(--bg);color:#111827;margin:0}
+    .wrap{max-width:860px;margin:40px auto;padding:16px}
+    .card{background:var(--card);border:1px solid var(--border);border-radius:16px;box-shadow:0 8px 16px rgba(38,43,55,.05);padding:20px}
+    h1{margin:0 0 .5rem 0;font-size:1.6rem}
+    .muted{color:var(--muted)}
+    .row{display:flex;gap:16px;flex-wrap:wrap}
+    .pill{display:inline-block;padding:.25rem .6rem;border-radius:999px;font-weight:700;font-size:.8rem}
+    .pill-ok{background:#e8f7ef;color:var(--ok);border:1px solid #c9eedc}
+    .pill-warn{background:#fff6e5;color:#9a5e00;border:1px solid #ffe3b1}
+    .btn{background:var(--brand);border:none;color:#fff;padding:.7rem 1rem;border-radius:10px;cursor:pointer;font-weight:700}
+    .btn.secondary{background:#1118270d;color:#111827;border:1px solid var(--border)}
+    .details{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:12px}
+    .details > div{background:#fafbfe;border:1px dashed var(--border);padding:.75rem;border-radius:10px}
+    .list{margin-top:16px;border-top:1px dashed var(--border);padding-top:12px}
+    .enroll{padding:.6rem 0;border-top:1px dashed #eef1f6}
+    .small{font-size:.9rem}
+    .center{display:flex;align-items:center;justify-content:center}
+    .hidden{display:none}
+    .icon{width:26px;height:26px;margin-right:.5rem}
+  </style>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 </head>
 <body>
-    <div class="container">
-        <div id="loading-state" class="loading">
-            <div class="loading-spinner"></div>
-            <p>Processing your enrollment...</p>
+  <div class="wrap">
+    <div class="card">
+      <div class="row" style="align-items:center">
+        <svg class="icon" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+          <path d="M12 22c5.523 0 10-4.477 10-10S17.523 2 12 2 2 6.477 2 12s4.477 10 10 10Z" fill="#E8F7EF"/>
+          <path d="m8.5 12.5 2.5 2.5 4.5-5" stroke="#12A150" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+        <h1 style="margin:0">Thank you! <span id="status-pill" class="pill pill-ok">Payment received</span></h1>
+      </div>
+
+      <!-- Loading -->
+      <p id="loading-state" class="muted">Finalizing your receipt…</p>
+
+      <!-- Success -->
+      <div id="success-state" class="hidden">
+        <div class="details">
+          <div><strong>Receipt #</strong><br><span id="order-number" class="muted small">—</span></div>
+          <div><strong>Total Paid</strong><br><span id="amount-paid" class="small">$—</span></div>
         </div>
-
-        <div id="success-state" style="display: none;">
-            <div class="success-icon">✓</div>
-            
-            <h1 class="title">Payment Successful!</h1>
-            <p class="subtitle">Your enrollment in 3D Jumpstart Level 1 is confirmed</p>
-            
-            <div class="details-box">
-                <div class="detail-row">
-                    <span class="detail-label">Order Number:</span>
-                    <span class="detail-value" id="order-number">Loading...</span>
-                </div>
-                <div class="detail-row">
-                    <span class="detail-label">Amount Paid:</span>
-                    <span class="detail-value" id="amount-paid">Loading...</span>
-                </div>
-                <div class="detail-row">
-                    <span class="detail-label">Course Start Date:</span>
-                    <span class="detail-value">September 9, 2025</span>
-                </div>
-                <div class="detail-row">
-                    <span class="detail-label">Location:</span>
-                    <span class="detail-value">Shadowbrook Church, Suwanee</span>
-                </div>
-            </div>
-
-            <div class="next-steps">
-                <h3>What Happens Next?</h3>
-                <ul>
-                    <li>Confirmation email sent to your inbox</li>
-                    <li>Class reminders will be sent before September 9th</li>
-                    <li>Instructions for Fusion360 software installation</li>
-                    <li>Welcome packet with what to bring to first class</li>
-                </ul>
-            </div>
-
-            <div class="actions">
-                <a href="portal.html" class="btn btn-primary">View Order in Parent Portal</a>
-                <a href="index.html" class="btn btn-outline">Return Home</a>
-            </div>
+        <div class="list">
+          <div class="muted small" style="margin-bottom:.5rem">
+            Below is the enrollment status for each student. If you selected <strong>Pay Half Now</strong>,
+            the status will show <em>Pending</em> until the final invoice posts (due Oct 15).
+          </div>
+          <div id="enroll-list"></div>
         </div>
-
-        <div id="error-state" style="display: none;">
-            <div class="error">
-                <h3>Oops! Something went wrong</h3>
-                <p id="error-message">We couldn't save your enrollment. Please contact support at jeremiah@3djumpstart.com with your session ID.</p>
-            </div>
-            <div class="actions">
-                <a href="app.html" class="btn btn-primary">Try Again</a>
-                <a href="mailto:jeremiah@3djumpstart.com" class="btn btn-outline">Contact Support</a>
-            </div>
+        <div style="margin-top:16px;display:flex;gap:10px">
+          <button class="btn" onclick="window.location.href='portal.html'">Back to Parent Portal</button>
+          <button class="btn secondary" onclick="window.location.reload()">Refresh</button>
         </div>
+      </div>
+
+      <!-- Error -->
+      <div id="error-state" class="hidden">
+        <p class="pill pill-warn">We hit a snag</p>
+        <p id="error-message" class="muted">Something went wrong. Please try again.</p>
+        <div style="margin-top:10px"><button class="btn secondary" onclick="window.location.href='portal.html'">Return to Portal</button></div>
+      </div>
     </div>
+  </div>
 
-    <script>
-        // Configuration
-        const SUPABASE_URL = 'https://hucjmggkasahwpjgnwia.supabase.co';
-        const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imh1Y2ptZ2drYXNhaHdwamdud2lhIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTQ2MTI2MDIsImV4cCI6MjA3MDE4ODYwMn0.hxFmoZexaKverih9crJfP9fjWItOTfC_6D_CM7hr_Rg';
-        
-        const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+<script>
+/* ================== CONFIG ================== */
+const SUPABASE_URL = 'https://hucjmggkasahwpjgnwia.supabase.co'; // TODO: set yours
+const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imh1Y2ptZ2drYXNhaHdwamdud2lhIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTQ2MTI2MDIsImV4cCI6MjA3MDE4ODYwMn0.hxFmoZexaKverih9crJfP9fjWItOTfC_6D_CM7hr_Rg';                    // TODO: set yours
+const sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
-        // Get session ID from URL
-        const urlParams = new URLSearchParams(window.location.search);
-        const sessionId = urlParams.get('session_id');
+/* ================== HELPERS ================== */
+const $ = (id) => document.getElementById(id);
+function show(id){ $(id).classList.remove('hidden'); }
+function hide(id){ $(id).classList.add('hidden'); }
+function qp(name){ return new URL(location.href).searchParams.get(name); }
 
-        // Email sending function
-        async function sendConfirmationEmail(type, recipientEmail, data) {
-            try {
-                const response = await fetch('/.netlify/functions/send-email', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                    },
-                    body: JSON.stringify({
-                        type: type,
-                        recipientEmail: recipientEmail,
-                        data: data
-                    })
-                });
+/* ================== MAIN ================== */
+(async function init(){
+  try {
+    const sessionId = qp('session_id');
+    const { data: { user } } = await sb.auth.getUser();
 
-                const result = await response.json();
-                
-                if (!response.ok) {
-                    console.error('Failed to send email:', result);
-                } else {
-                    console.log('Email sent successfully:', result.messageId);
-                }
-            } catch (error) {
-                console.error('Error sending email:', error);
-            }
-        }
+    if (!user) {
+      hide('loading-state'); hide('success-state'); show('error-state');
+      $('error-message').textContent = 'Please sign in again to view your receipt.';
+      return;
+    }
 
-        async function processEnrollment() {
-            try {
-                // Check if user is logged in
-                const { data: { session } } = await supabase.auth.getSession();
-                if (!session) {
-                    throw new Error('Not logged in');
-                }
+    // If Stripe didn't include a session id (rare), still show success shell
+    if (!sessionId) {
+      hide('loading-state'); show('success-state');
+      $('order-number').textContent = '—';
+      $('amount-paid').textContent = '$—';
+      $('status-pill').textContent = 'Recorded';
+      return;
+    }
 
-                // Get enrollment data from localStorage (saved before payment)
-                const enrollmentData = localStorage.getItem('pendingEnrollment');
-                if (!enrollmentData) {
-                    // If no data in localStorage, just show success
-                    // (This happens if they refresh the page)
-                    showSuccess();
-                    return;
-                }
+    // Fetch enrollments tied to this checkout session
+    let { data: rows, error } = await sb
+      .from('enrollments')
+      .select('id, student_id, class_time, status, paid_at, amount_final, payment_plan')
+      .eq('parent_id', user.id)
+      .eq('stripe_session_id', sessionId);
 
-                const enrollment = JSON.parse(enrollmentData);
-                
-                // Generate order number
-                const orderNumber = `ORD-${Date.now()}`;
-                
-                // Create order in database
-                const { data: order, error: orderError } = await supabase
-                    .from('orders')
-                    .insert([{
-                        parent_id: session.user.id,
-                        order_number: orderNumber,
-                        payment_method: enrollment.paymentType,
-                        total_amount: enrollment.amounts.total,
-                        amount_paid: enrollment.amounts.paid,
-                        balance_due: enrollment.amounts.balance || 0,
-                        second_payment_due: enrollment.paymentType === 'split' ? '2025-10-15' : null,
-                        status: 'confirmed'
-                    }])
-                    .select()
-                    .single();
-                    
-                if (orderError) throw orderError;
+    if (error) throw error;
 
-                // Create order items for each student
-                const orderItems = enrollment.students.map(item => ({
-                    order_id: order.id,
-                    student_id: item.student.id,
-                    time_slot: item.timeSlot,
-                    price: enrollment.paymentType === 'full' ? 700 : 720
-                }));
+    // Poll briefly (up to ~6s) for webhook to flip pending→paid (full payments)
+    const start = Date.now();
+    while (rows && rows.length && rows.some(r => r.status !== 'paid') && Date.now() - start < 6000) {
+      await new Promise(r => setTimeout(r, 800));
+      const res = await sb
+        .from('enrollments')
+        .select('id, student_id, class_time, status, paid_at, amount_final, payment_plan')
+        .eq('parent_id', user.id)
+        .eq('stripe_session_id', sessionId);
+      rows = res.data || rows;
+    }
 
-                const { error: itemsError } = await supabase
-                    .from('order_items')
-                    .insert(orderItems);
+    // Load student names for display
+    const ids = [...new Set((rows||[]).map(r => r.student_id))];
+    const { data: students } = ids.length
+      ? await sb.from('students').select('id, first_name, last_name').in('id', ids)
+      : { data: [] };
 
-                if (itemsError) {
-                    console.error('Order items error:', itemsError);
-                    // Continue anyway - order is saved
-                }
+    hide('loading-state');
 
-                // Get parent name for the email
-                const { data: parent } = await supabase
-                    .from('parents')
-                    .select('name')
-                    .eq('id', session.user.id)
-                    .single();
+    // If no rows matched yet, still show a receipt shell so this page feels successful
+    if (!rows || !rows.length) {
+      show('success-state');
+      $('order-number').textContent = sessionId.slice(0, 12) + '…';
+      $('amount-paid').textContent = '$—';
+      $('status-pill').textContent = 'Recorded';
+      $('status-pill').className = 'pill pill-warn';
+      $('enroll-list').innerHTML =
+        `<div class="enroll muted">We’re finalizing your receipt. If it doesn’t appear in a minute, return to the Parent Portal.</div>`;
+      return;
+    }
 
-                // Send enrollment confirmation email
-                if (parent) {
-                    await sendConfirmationEmail('enrollment', session.user.email, {
-                        parentName: parent.name,
-                        orderNumber: orderNumber,
-                        amountPaid: enrollment.amounts.paid,
-                        balanceDue: enrollment.amounts.balance || 0,
-                        students: enrollment.students.map(s => ({
-                            name: `${s.student.first_name} ${s.student.last_name}`,
-                            timeSlot: s.timeSlot
-                        }))
-                    });
-                }
+    // Compute what was paid (for full payments); half-plan shows deposit paid on Stripe but stays pending here
+    const paidRows = rows.filter(r => r.status === 'paid');
+    const totalPaid = paidRows.length
+      ? paidRows.reduce((sum, r) => sum + (r.amount_final ?? (r.payment_plan === 'full' ? 670 : 360)), 0)
+      : 0;
 
-                /*
-                 * Also create enrollment rows tying each student to a class slot.  We
-                 * derive the correct `class_slot_id` from the timeSlot label by
-                 * looking up the `class_slots` table.  Seats will only be
-                 * decremented when there is a corresponding row in the
-                 * `enrollments` table, so this insertion is critical for the
-                 * availability logic.
-                 */
-                try {
-                    const { data: slotsData, error: slotsErr } = await supabase
-                        .from('class_slots')
-                        .select('id, day_of_week, start_time, end_time');
-                    if (!slotsErr && Array.isArray(slotsData)) {
-                        const slotMap = {};
-                        slotsData.forEach((s) => {
-                            if (s.day_of_week === 'Tuesday') {
-                                // Map known Tuesday time ranges to their IDs.  Use
-                                // string startsWith comparisons to avoid minor
-                                // differences in seconds or formatting.
-                                if (
-                                    String(s.start_time).startsWith('16:30') &&
-                                    String(s.end_time).startsWith('17:30')
-                                ) {
-                                    slotMap['4:30-5:30pm'] = s.id;
-                                } else if (
-                                    String(s.start_time).startsWith('17:30') &&
-                                    String(s.end_time).startsWith('18:30')
-                                ) {
-                                    slotMap['5:30-6:30pm'] = s.id;
-                                }
-                            }
-                        });
-                        // Build enrollment rows for each student in this order
-                        const enrollmentRows = enrollment.students.map((item) => ({
-                            student_id: item.student.id,
-                            class_slot_id: slotMap[item.timeSlot] || null,
-                            order_id: order.id,
-                            enrolled_at: new Date().toISOString(),
-                            status: 'enrolled',
-                            payment_status:
-                                enrollment.paymentType === 'full' ? 'paid' : 'partial'
-                        }));
-                        const { error: enrollErr } = await supabase
-                            .from('enrollments')
-                            .insert(enrollmentRows);
-                        if (enrollErr) {
-                            console.error('Enrollments insert error:', enrollErr);
-                        }
-                    }
-                } catch (enrollCatchErr) {
-                    console.error('Error creating enrollments:', enrollCatchErr);
-                }
+    show('success-state');
+    $('order-number').textContent = sessionId.slice(0, 12) + '…';
+    $('amount-paid').textContent = paidRows.length ? `$${totalPaid.toLocaleString()}` : '$—';
 
-                // Clear the pending enrollment data
-                localStorage.removeItem('pendingEnrollment');
+    // If everything is paid, keep green pill, else warn/pending
+    if (rows.every(r => r.status === 'paid')) {
+      $('status-pill').textContent = 'Payment received';
+      $('status-pill').className = 'pill pill-ok';
+    } else {
+      $('status-pill').textContent = 'Pending';
+      $('status-pill').className = 'pill pill-warn';
+    }
 
-                // Show success with order details
-                document.getElementById('order-number').textContent = orderNumber;
-                document.getElementById('amount-paid').textContent = `$${enrollment.amounts.paid}`;
+    // Render each enrollment line
+    $('enroll-list').innerHTML = rows.map(r => {
+      const s = students?.find(x => x.id === r.student_id);
+      const name = s ? `${s.first_name} ${s.last_name}` : 'Student';
+      const st = r.status === 'paid' ? 'Paid' : 'Pending';
+      const when = r.paid_at ? ` • ${new Date(r.paid_at).toLocaleString()}` : '';
+      return `<div class="enroll">
+        <div><strong>${name}</strong> — ${r.class_time}</div>
+        <div class="muted small">${st}${when}${r.payment_plan==='half' && st==='Pending' ? ' • Deposit received; final due Oct 15' : ''}</div>
+      </div>`;
+    }).join('');
 
-                showSuccess();
-
-            } catch (error) {
-                console.error('Error processing enrollment:', error);
-                showError(error.message);
-            }
-        }
-
-        function showSuccess() {
-            document.getElementById('loading-state').style.display = 'none';
-            document.getElementById('success-state').style.display = 'block';
-            document.getElementById('error-state').style.display = 'none';
-            
-            // If we have a session ID, display it
-            if (sessionId) {
-                document.getElementById('order-number').textContent = sessionId.substring(0, 15) + '...';
-            }
-        }
-
-        function showError(message) {
-            document.getElementById('loading-state').style.display = 'none';
-            document.getElementById('success-state').style.display = 'none';
-            document.getElementById('error-state').style.display = 'block';
-            
-            if (message) {
-                document.getElementById('error-message').textContent = message;
-            }
-        }
-
-        // Process enrollment on page load
-        if (sessionId) {
-            processEnrollment();
-        } else {
-            // No session ID - probably direct navigation
-            showSuccess();
-        }
-    </script>
+  } catch (err) {
+    console.error(err);
+    hide('loading-state'); hide('success-state'); show('error-state');
+    $('error-message').textContent = err.message || 'Something went wrong.';
+  }
+})();
+</script>
 </body>
 </html>
