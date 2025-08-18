@@ -30,7 +30,7 @@
     }
     .container{max-width:1200px;margin:0 auto;padding:0 20px}
 
-    /* Simple grid utils (used in multiple places) */
+    /* Grid utils */
     .grid{display:grid; gap:12px}
     .grid-2{display:grid; gap:12px}
     @media (min-width: 860px){ .grid-2{grid-template-columns:repeat(2,minmax(0,1fr));} }
@@ -42,9 +42,19 @@
     .header-content{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:14px 0}
     .logo-wrap{display:flex;align-items:center;gap:14px}
     .logo-image{height:84px;width:auto;filter:drop-shadow(0 2px 2px rgba(0,0,0,.06))}
-    .brand-chip{font-weight:900; letter-spacing:.4px; color:#fff; padding:.35rem .7rem; border-radius:999px;
-      background:linear-gradient(135deg,var(--brand) 0%, var(--brand-3) 100%); box-shadow:0 8px 18px -8px rgba(234,88,12,.45)}
-    .user-info{display:flex;align-items:center;gap:.6rem;color:var(--muted)}
+    .user-cluster{display:flex;align-items:center;gap:12px}
+
+    /* Toggle: Parent | Student */
+    .portal-switch{display:flex;gap:6px}
+    .switch-btn{
+      text-decoration:none; text-align:center; padding:.65rem 1rem; border-radius:12px; font-weight:800; font-size:.95rem;
+      border:2px solid var(--line); background:#fff; color:var(--muted); transition:.2s; min-width:150px;
+    }
+    .switch-btn:hover{color:var(--ink)}
+    .switch-btn.active{
+      background:linear-gradient(135deg,var(--brand), var(--brand-3));
+      color:#fff; border-color:transparent; box-shadow:0 8px 20px -6px rgba(234,88,12,.5);
+    }
 
     /* Title */
     .page-title{margin:24px 0 18px; font-size:clamp(26px,3vw,34px); font-weight:900; letter-spacing:-.5px;
@@ -130,7 +140,7 @@
     .btn-pulse{animation:btn-pulse 1s ease 1}
     @keyframes btn-pulse{0%{box-shadow:0 0 0 0 rgba(234,88,12,.5)} 100%{box-shadow:0 0 0 18px rgba(234,88,12,0)}}
 
-    /* Modal — this was missing in your last copy (caused the issue) */
+    /* Modal */
     .modal-backdrop{
       position:fixed; inset:0; background:rgba(2,8,23,.45); display:none;
       align-items:center; justify-content:center; padding:18px; z-index:80;
@@ -155,12 +165,14 @@
       <div class="header-content">
         <div class="logo-wrap">
           <img src="https://raw.githubusercontent.com/JDaws-Dev/3DJumpstart/main/3d-jumpstart-logo.png" alt="3D Jumpstart" class="logo-image" />
-          <span class="brand-chip">Parent Portal</span>
         </div>
 
-        <div class="user-info">
-          <!-- NEW: Student Portal link -->
-          <a class="btn btn-muted" href="student-portal.html">Student Portal</a>
+        <div class="user-cluster">
+          <!-- Toggle -->
+          <div class="portal-switch">
+            <a href="portal.html" class="switch-btn active">Parent Portal</a>
+            <a href="student-portal.html" class="switch-btn">Student Portal</a>
+          </div>
           <span id="parent-name" class="muted">Loading…</span>
           <button class="btn btn-secondary" id="logoutBtn" type="button">Logout</button>
         </div>
@@ -270,11 +282,11 @@
                 <div class="btn-muted" style="padding:.5rem .6rem;border-radius:10px">Week 7 – Oct 21</div>
                 <div class="btn-muted" style="padding:.5rem .6rem;border-radius:10px">Week 8 – Oct 28</div>
                 <div class="btn-muted" style="padding:.5rem .6rem;border-radius:10px">Week 9 – Nov 4</div>
-                <div class="btn-muted" style="padding:.5rem .6rem;border-radius:10px">Week10 – Nov 11</div>
-                <div class="btn-muted" style="padding:.5rem .6rem;border-radius:10px">Week11 – Nov 18</div>
-                <div class="btn-muted" style="padding:.5rem .6rem;border-radius:10px;background:#fee2e2;color:#991b1b">Thanksgiving Break – Nov 25</div>
-                <div class="btn-muted" style="padding:.5rem .6rem;border-radius:10px">Week12 – Dec 2</div>
+                <div class="btn-muted" style="padding:.5rem .6rem;border-radius:10px">Week 10 – Nov 11</div>
+                <div class="btn-muted" style="padding:.5rem .6rem;border-radius:10px">Week 11 – Nov 18</div>
+                <div class="btn-muted" style="padding:.5rem .6rem;border-radius:10px">Week 12 – Dec 2</div>
               </div>
+              <div class="muted" style="margin-top:.5rem;"><strong>Note:</strong> No class on <strong>Nov 25</strong> (Thanksgiving Break).</div>
             </div>
           </div>
         </div>
