@@ -12,107 +12,73 @@
 
   <style>
     :root{
-      --brand:#f97316;        /* orange */
-      --brand-2:#fb923c;      /* light orange */
-      --brand-3:#ea580c;      /* deeper */
-      --ink:#0f172a;          /* slate-900 */
-      --muted:#64748b;        /* slate-500 */
-      --line:#e2e8f0;         /* slate-200 */
-      --bg:#f8fafc;           /* slate-50 */
-      --card:#ffffff;
-      --shadow:0 10px 30px rgba(2,8,23,.08);
-      --radius:18px;
+      --brand:#f97316; --brand-2:#fb923c; --brand-3:#ea580c;
+      --ink:#0f172a; --muted:#64748b; --line:#e2e8f0; --bg:#f8fafc; --card:#ffffff;
+      --shadow:0 10px 30px rgba(2,8,23,.08); --radius:18px;
+      --ok:#16a34a; --warn:#ef4444; --indigo:#3730a3;
     }
-
     *{box-sizing:border-box}
     html,body{height:100%}
     body{
       margin:0; font-family:Inter,system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif;
-      color:var(--ink); background:
+      color:var(--ink);
+      background:
         radial-gradient(1200px 500px at -10% -10%, #fff 0, #fff 30%, #fff0 31%) no-repeat,
         radial-gradient(1200px 500px at 110% -10%, #fff 0, #fff 30%, #fff0 31%) no-repeat,
         linear-gradient(180deg,#fff, var(--bg));
       background-attachment: fixed;
     }
-
     .container{max-width:1200px;margin:0 auto;padding:0 20px}
 
     /* Header */
-    .portal-header{
-      position:sticky; top:0; z-index:10; backdrop-filter:saturate(1.2) blur(6px);
+    .portal-header{position:sticky; top:0; z-index:10; backdrop-filter:saturate(1.2) blur(6px);
       background:linear-gradient(180deg, rgba(255,255,255,.85), rgba(255,255,255,.75));
-      border-bottom:1px solid var(--line);
-    }
+      border-bottom:1px solid var(--line);}
     .header-content{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:14px 0}
     .logo-wrap{display:flex;align-items:center;gap:14px}
     .logo-image{height:84px;width:auto;filter:drop-shadow(0 2px 2px rgba(0,0,0,.06))}
-    .brand-chip{
-      font-weight:900; letter-spacing:.4px; color:#fff; padding:.35rem .7rem; border-radius:999px;
-      background:linear-gradient(135deg,var(--brand) 0%, var(--brand-3) 100%);
-      box-shadow:0 8px 18px -8px rgba(234,88,12,.45);
-    }
+    .brand-chip{font-weight:900; letter-spacing:.4px; color:#fff; padding:.35rem .7rem; border-radius:999px;
+      background:linear-gradient(135deg,var(--brand) 0%, var(--brand-3) 100%); box-shadow:0 8px 18px -8px rgba(234,88,12,.45)}
     .user-info{display:flex;align-items:center;gap:.6rem;color:var(--muted)}
 
     /* Title */
-    .page-title{
-      margin:24px 0 18px; font-size:clamp(26px,3vw,34px); font-weight:900; letter-spacing:-.5px;
-      background:linear-gradient(135deg,var(--ink), #1f2937); -webkit-background-clip:text; color:transparent;
-    }
+    .page-title{margin:24px 0 18px; font-size:clamp(26px,3vw,34px); font-weight:900; letter-spacing:-.5px;
+      background:linear-gradient(135deg,var(--ink), #1f2937); -webkit-background-clip:text; color:transparent;}
 
     /* Tabs */
-    .tabs{background:transparent;margin:0 0 18px}
+    .tabs{margin:0 0 18px}
     .tab-list{list-style:none;display:flex;gap:6px;padding:0;margin:0;flex-wrap:wrap}
-    .tab-button{
-      border:1px solid var(--line); background:#fff; color:var(--muted);
+    .tab-button{border:1px solid var(--line); background:#fff; color:var(--muted);
       padding:.6rem .95rem; border-radius:12px; font-weight:800; cursor:pointer;
-      box-shadow:var(--shadow); transition:.18s transform ease, .18s background ease;
-    }
+      box-shadow:var(--shadow); transition:.18s transform ease, .18s background ease;}
     .tab-button:hover{transform:translateY(-1px); color:var(--ink)}
     .tab-button.active{
       background:linear-gradient(135deg,#fff, #fff) padding-box,
                  linear-gradient(135deg, var(--brand), var(--brand-2)) border-box;
-      border:2px solid transparent; color:var(--brand-3);
-    }
+      border:2px solid transparent; color:var(--brand-3);}
     .tab-content{display:none}
     .tab-content.active{display:block; animation:fade .2s ease}
     @keyframes fade{from{opacity:0; transform:translateY(4px)} to{opacity:1; transform:translateY(0)}}
 
     /* Cards */
-    .card{
-      background:var(--card); border:1px solid var(--line); border-radius:var(--radius);
-      padding:18px; box-shadow:var(--shadow);
-    }
+    .card{background:var(--card); border:1px solid var(--line); border-radius:var(--radius); padding:18px; box-shadow:var(--shadow)}
     .card + .card{margin-top:14px}
     .card-title{font-size:1.3rem;font-weight:900;margin:0 0 .6rem;letter-spacing:-.2px}
     .muted{color:var(--muted)}
 
     /* Banner */
-    .pay-banner{
-      display:flex;align-items:center;justify-content:space-between;gap:12px;
-      padding:14px 16px;border-radius:14px;color:#7c2d12;
-      background:linear-gradient(135deg,#fff7ed 0%, #ffedd5 100%);
-      border:1px solid #fed7aa; font-weight:900;
-    }
-
-    /* Lists */
-    .info-list{margin:.25rem 0 0; padding-left:1rem; line-height:1.75}
-    .info-list li{color:var(--muted)}
+    .pay-banner{display:flex;align-items:center;justify-content:space-between;gap:12px; padding:14px 16px;border-radius:14px;color:#7c2d12;
+      background:linear-gradient(135deg,#fff7ed 0%, #ffedd5 100%); border:1px solid #fed7aa; font-weight:900;}
 
     /* Student item */
-    .student-row{
-      display:flex;align-items:flex-start;justify-content:space-between;gap:14px;
-      border:1px solid var(--line); border-radius:14px; padding:14px; background:#fff;
-    }
+    .student-row{display:flex;align-items:flex-start;justify-content:space-between;gap:14px;border:1px solid var(--line); border-radius:14px; padding:14px; background:#fff;}
     .student-meta{color:var(--muted);line-height:1.7;font-size:.95rem}
     .student-actions{display:flex;align-items:center;gap:8px}
 
     /* Inputs */
     .field{display:flex;flex-direction:column;gap:.35rem}
     .label{font-weight:800;font-size:.9rem;color:#334155}
-    .input,.select,.textarea{
-      width:100%; border:1px solid var(--line); background:#fff; padding:.65rem .75rem;
-      border-radius:12px; font:inherit; outline:none; transition:border .12s;
-    }
+    .input,.select,.textarea{width:100%; border:1px solid var(--line); background:#fff; padding:.65rem .75rem; border-radius:12px; font:inherit; outline:none; transition:border .12s;}
     .input:focus,.select:focus,.textarea:focus{border-color:#cbd5e1; box-shadow:0 0 0 4px rgba(251,146,60,.18)}
 
     /* Buttons */
@@ -132,26 +98,43 @@
     /* Pill */
     .pill{display:inline-flex;align-items:center;gap:.55rem;padding:.35rem .6rem;background:#eef2ff;border-radius:999px;border:1px solid #c7d2fe;color:#3730a3;font-weight:900}
 
-    /* Totals */
-    .totals{display:grid;gap:.35rem;margin:.75rem 0 0}
-    .totals .row{display:flex;justify-content:space-between}
-    .totals .em{font-weight:900}
+    /* Totals (two cards) */
+    .totals-wrap{display:grid;grid-template-columns:repeat(1,minmax(0,1fr));gap:12px;margin-top:12px}
+    @media (min-width: 720px){ .totals-wrap{grid-template-columns:repeat(2,minmax(0,1fr));} }
+    .total-card{border:1px solid var(--line);border-radius:14px;padding:14px;background:#fff;display:grid;grid-template-columns:auto 1fr;gap:10px;align-items:start;box-shadow:var(--shadow)}
+    .total-ico{width:40px;height:40px;border-radius:10px;display:grid;place-items:center}
+    .ico-full{background:rgba(22,163,74,.12); color:var(--ok); border:1px solid rgba(22,163,74,.25)}
+    .ico-half{background:rgba(55,48,163,.12); color:var(--indigo); border:1px solid rgba(55,48,163,.25)}
+    .total-title{font-weight:900}
+    .total-rows{display:grid;gap:4px;font-size:.95rem}
+    .row{display:flex;justify-content:space-between}
+    .em{font-weight:900}
 
-    /* Tables */
-    table{width:100%;border-collapse:collapse}
-    th,td{text-align:left;padding:.75rem;border-bottom:1px solid var(--line)}
-    thead tr{background:#f1f5f9}
-
-    /* Modal */
-    .modal-backdrop{position:fixed;inset:0;background:rgba(2,8,23,.4);display:none;align-items:center;justify-content:center;padding:18px;z-index:50}
-    .modal-backdrop.show{display:flex}
-    .modal{
-      width:100%;max-width:680px;background:#fff;border-radius:20px;padding:18px;
-      box-shadow:0 30px 80px rgba(2,8,23,.35); border:1px solid var(--line)
+    /* Toast */
+    .toast{
+      position:fixed; right:18px; bottom:18px; z-index:60; min-width:220px;
+      background:#111827; color:#fff; padding:12px 14px; border-radius:12px; box-shadow:0 20px 40px rgba(2,8,23,.35);
+      display:none; align-items:center; gap:10px;
     }
+    .toast.show{display:flex; animation:toast-in .25s ease forwards}
+    .toast.hide{animation:toast-out .2s ease forwards}
+    @keyframes toast-in{from{opacity:0; transform:translateY(10px)} to{opacity:1; transform:translateY(0)}}
+    @keyframes toast-out{to{opacity:0; transform:translateY(10px)}}
+
+    /* Animations */
+    .pop-in{animation:pop-in .22s ease}
+    @keyframes pop-in{from{transform:scale(.98); opacity:0} to{transform:scale(1); opacity:1}}
+    .btn-pulse{animation:btn-pulse 1s ease 1}
+    @keyframes btn-pulse{0%{box-shadow:0 0 0 0 rgba(234,88,12,.5)} 100%{box-shadow:0 0 0 18px rgba(234,88,12,0)}}
   </style>
 </head>
 <body>
+  <!-- Toast -->
+  <div id="toast" class="toast" role="status" aria-live="polite">
+    <span id="toastIcon" style="font-size:18px">✅</span>
+    <span id="toastMsg">Added to cart</span>
+  </div>
+
   <!-- Header -->
   <header class="portal-header">
     <div class="container">
@@ -201,9 +184,9 @@
         <div style="display:flex;align-items:flex-start;gap:16px;justify-content:space-between;margin-top:14px;flex-wrap:wrap">
           <div style="min-width:280px;flex:1">
             <h3 class="card-title" style="margin:.1rem 0 .3rem">Payment Options</h3>
-            <ul class="info-list">
+            <ul class="muted" style="margin:.25rem 0 0; padding-left:1rem; line-height:1.75">
               <li>Pick a class period for each student, then add to cart.</li>
-              <li><strong>Pay in Full:</strong> <strong>$670</strong> per student <em>(save $50 vs $720 list)</em>.</li>
+              <li><strong>Pay in Full:</strong> <strong>$670</strong> per student (save $50 vs $720 list).</li>
               <li><strong>Pay Half Now:</strong> $360 per student now; remainder due <strong>Oct 15</strong>.</li>
               <li><strong>Sibling discount:</strong> $50 off the second child (applies once).</li>
             </ul>
@@ -215,7 +198,8 @@
 
         <div id="cartList" class="grid" style="margin:12px 0;"></div>
 
-        <div class="totals" id="totalsBox"></div>
+        <!-- Totals -->
+        <div class="totals-wrap" id="totalsWrap"></div>
 
         <div class="student-actions" style="gap:10px;margin-top:12px;flex-wrap:wrap">
           <button id="payFullBtn" class="btn btn-primary" type="button" disabled>Pay In Full</button>
@@ -224,7 +208,7 @@
       </div>
     </section>
 
-    <!-- Class Info -->
+    <!-- Class Information -->
     <section id="tab-class-info" class="tab-content">
       <div class="card">
         <h2 class="card-title">Location</h2>
@@ -233,9 +217,10 @@
         </div>
       </div>
 
+      <!-- NEW: Schedule as its own section -->
       <div class="card">
-        <h2 class="card-title">Current Class Periods (Level 1)</h2>
-        <ul class="info-list" style="padding-left:0;list-style:none">
+        <h2 class="card-title">Level 1 Schedule (12 Weeks)</h2>
+        <ul class="muted" style="line-height:1.9; margin:0;">
           <li>Tuesday 4:30–5:30</li>
           <li>Tuesday 5:30–6:30</li>
         </ul>
@@ -245,13 +230,20 @@
         <h2 class="card-title">What Your Student Needs</h2>
         <div class="grid grid-2">
           <div>
-            <p class="muted" style="font-size:1.05rem;"><strong>Computers are provided.</strong> Your student does not need to bring a laptop.</p>
-            <p class="muted"><strong>Required Supply:</strong> Imperial (Inch) Digital or Dial Calipers</p>
+            <p class="muted" style="font-size:1.05rem;">
+              <strong>Computers are provided</strong>—no laptop needed.
+            </p>
+            <p class="muted">
+              <strong>Software:</strong> We use Autodesk Fusion 360. It’s <strong>free for students</strong> through Autodesk’s education program.
+            </p>
+            <p class="muted">
+              <strong>Required Supply:</strong> Imperial (inch) Digital or Dial Calipers.
+            </p>
             <a href="https://a.co/d/7BT1kL0" target="_blank" class="btn btn-primary" style="width:max-content;">View Recommended Calipers →</a>
           </div>
           <div>
             <div class="card" style="margin:0;border:1px dashed var(--line);background:#fffbeb">
-              <h3 class="card-title" style="font-size:1.05rem;margin-bottom:.35rem;">Level 1 – 12-Week Schedule</h3>
+              <h3 class="card-title" style="font-size:1.05rem;margin-bottom:.35rem;">12-Week Dates</h3>
               <div class="grid" style="grid-template-columns:repeat(3,minmax(0,1fr));gap:8px">
                 <div class="btn-muted" style="padding:.5rem .6rem;border-radius:10px">Week 1 – Sep 9</div>
                 <div class="btn-muted" style="padding:.5rem .6rem;border-radius:10px">Week 2 – Sep 16</div>
@@ -273,26 +265,42 @@
       </div>
     </section>
 
-    <!-- Support -->
+    <!-- Support Services -->
     <section id="tab-support" class="tab-content">
       <div class="card">
-        <h2 class="card-title">Professional 3D Printer Support</h2>
-        <p class="muted" style="margin-bottom:10px;">Expert help for your home 3D printing journey — Coming Fall 2025</p>
+        <h2 class="card-title">Professional 3D Printer Support (Available Now)</h2>
+        <p class="muted" style="margin-bottom:10px;">
+          We offer **at-home** Bambu Lab printer services. <strong>Bambu printers only</strong> at this time.
+          Email us to schedule—slots are limited.
+        </p>
+
         <div class="grid grid-2">
           <div class="card" style="border:1px dashed var(--line);background:#fafafa">
             <h3 class="card-title">Printer Setup Service</h3>
-            <p class="muted">Bambu Lab setup at your home</p>
-            <ul class="info-list"><li>Assembly & calibration</li><li>Software install</li><li>First print guaranteed</li></ul>
-            <strong style="color:var(--brand-3);"> $150 </strong>
+            <p class="muted">We come to you and set up your Bambu printer.</p>
+            <ul class="muted" style="line-height:1.7;">
+              <li>Assembly & calibration</li>
+              <li>Software install (Bambu Studio)</li>
+              <li>First print guaranteed</li>
+            </ul>
+            <p class="muted" style="margin:.25rem 0 0;"><em>Note: $150 fee <strong>does not include the printer</strong>.</em></p>
+            <strong style="color:var(--brand-3); display:block; margin-top:.35rem;">$150</strong>
           </div>
+
           <div class="card" style="border:1px dashed var(--line);background:#fafafa">
-            <h3 class="card-title">Troubleshooting Visit</h3>
-            <p class="muted">Fix issues, maintenance & optimization</p>
-            <ul class="info-list"><li>Diagnose & fix problems</li><li>Advanced training</li></ul>
-            <strong style="color:var(--brand-3);"> $100 </strong>
+            <h3 class="card-title">Troubleshooting / Optimization Visit</h3>
+            <p class="muted">Fix issues, perform maintenance, and tune for better results.</p>
+            <ul class="muted" style="line-height:1.7;">
+              <li>Diagnose & resolve printing problems</li>
+              <li>Material profiles & tips</li>
+              <li>Advanced training as needed</li>
+            </ul>
+            <strong style="color:var(--brand-3); display:block; margin-top:.35rem;">$100</strong>
           </div>
         </div>
-        <a class="btn btn-primary" href="mailto:jeremiah@3djumpstart.com">Contact Us About Support Services</a>
+
+        <a class="btn btn-primary" href="mailto:jeremiah@3djumpstart.com" style="margin-top:12px">Email to Book a Visit</a>
+        <p class="muted" style="margin:.6rem 0 0;">Service area limited; email for availability.</p>
       </div>
     </section>
 
@@ -377,7 +385,7 @@
 
     // Dropdown options
     const AGE_OPTIONS = Array.from({length:11}, (_,i)=>8+i); // 8..18
-    const GRADE_OPTIONS = ['3rd','4th','5th','6th','7th','8th','9th','10th','11th','12th'];
+    const GRADE_OPTIONS = ['4th','5th','6th','7th','8th','9th','10th','11th','12th'];
 
     // Pricing
     const PRICE_LIST_PER = 720;   // 12 x $60
@@ -455,9 +463,9 @@
 
       if (!list.length){
         wrap.innerHTML = `
-          <div class="card" style="text-align:center;background:#f8fafc;border:1px dashed var(--line)">
+          <div class="card pop-in" style="text-align:center;background:#f8fafc;border:1px dashed var(--line)">
             <p class="muted" style="margin:.25rem 0 1rem;">No students yet.</p>
-            <button class="btn btn-primary" type="button" onclick="openModal()">+ Add Your First Student</button>
+            <button class="btn btn-primary btn-pulse" type="button" onclick="openModal()">+ Add Your First Student</button>
           </div>`;
         renderCart(); updateTotals(); return;
       }
@@ -473,7 +481,7 @@
           : `<button class="btn btn-primary" type="button" onclick="requireClassThenAdd('${s.id}')">Select Class & Add</button>`;
 
         return `
-          <div class="student-row" data-id="${s.id}">
+          <div class="student-row pop-in" data-id="${s.id}">
             <div>
               <div style="display:flex;align-items:center;gap:.5rem">
                 <div style="font-weight:900;font-size:1.05rem">${s.firstName} ${s.lastName}</div>
@@ -549,10 +557,18 @@
     }
 
     /* ====== CART ====== */
+    function toast(msg, ok=true){
+      const t=document.getElementById('toast');
+      document.getElementById('toastIcon').textContent = ok?'✅':'✖️';
+      document.getElementById('toastMsg').textContent = msg;
+      t.classList.remove('hide'); t.classList.add('show');
+      setTimeout(()=>{ t.classList.add('hide'); t.classList.remove('show'); }, 1600);
+    }
+
     function addToCart(id){
       const s=loadStudents().find(x=>x.id===id);
       if(!s || !s.classPeriod){ alert('Please select a class period first.'); return; }
-      const cart=loadCart(); if(!cart.includes(id)){ cart.push(id); saveCart(cart); }
+      const cart=loadCart(); if(!cart.includes(id)){ cart.push(id); saveCart(cart); toast('Added to cart'); }
       renderCart(); renderStudents();
     }
     function requireClassThenAdd(id){
@@ -560,7 +576,7 @@
       if(!s || !s.classPeriod){ alert('Select a class period first, then add to cart.'); return; }
       addToCart(id);
     }
-    function removeFromCart(id){ saveCart(loadCart().filter(x=>x!==id)); renderCart(); renderStudents(); }
+    function removeFromCart(id){ saveCart(loadCart().filter(x=>x!==id)); toast('Removed from cart'); renderCart(); renderStudents(); }
 
     function renderCart(){
       const wrap=document.getElementById('cartList');
@@ -573,7 +589,7 @@
       const allHavePeriod = items.every(s=>!!s.classPeriod);
 
       wrap.innerHTML = items.map(s=>`
-        <div class="student-row">
+        <div class="student-row pop-in">
           <div>
             <div style="font-weight:900">${s.firstName} ${s.lastName}</div>
             <div class="muted">Class (Level 1): ${s.classPeriod || '<em>Not selected</em>'}</div>
@@ -595,7 +611,7 @@
 
     /* ====== LIVE TOTALS ====== */
     function updateTotals(){
-      const box=document.getElementById('totalsBox');
+      const wrap=document.getElementById('totalsWrap');
       const ids=loadCart();
       const students=loadStudents().filter(s=>ids.includes(s.id));
       const count=students.length;
@@ -612,22 +628,33 @@
 
       updatePayButtons(count>0 && allHavePeriod);
 
-      if(count===0){ box.innerHTML=''; return; }
+      if(count===0){ wrap.innerHTML=''; return; }
 
-      box.innerHTML = `
-        <div class="row"><div><strong>Students in cart</strong></div><div>${count}</div></div>
+      wrap.innerHTML = `
+        <div class="total-card pop-in">
+          <div class="total-ico ico-full">💳</div>
+          <div>
+            <div class="total-title">Pay in Full</div>
+            <div class="total-rows">
+              <div class="row"><div>Students × $${PRICE_FULL_PER}</div><div>$${fullSubtotal}</div></div>
+              ${sibling ? `<div class="row"><div>Sibling discount (one time)</div><div>−$${SIBLING_DISCOUNT}</div></div>`:''}
+              <div class="row em"><div>Final Total</div><div>$${fullTotal}</div></div>
+            </div>
+          </div>
+        </div>
 
-        <div class="row"><div><strong>Pay in Full</strong> ($${PRICE_FULL_PER} ea)</div><div>$${fullSubtotal}</div></div>
-        ${sibling ? `<div class="row"><div>Sibling discount (one time)</div><div>−$${SIBLING_DISCOUNT}</div></div>`:''}
-        <div class="row em"><div>Pay in Full – Final Total</div><div>$${fullTotal}</div></div>
-
-        <div style="height:10px"></div>
-
-        <div class="row"><div><strong>Pay Half Now</strong> ($${PRICE_HALF_NOW} now ea)</div><div>$${halfNow}</div></div>
-        ${sibling ? `<div class="row"><div>Sibling discount (applied to final total)</div><div>−$${SIBLING_DISCOUNT}</div></div>`:''}
-        <div class="row"><div>Final Total (list $${PRICE_LIST_PER} ea)</div><div>$${halfTotal}</div></div>
-        <div class="row em"><div>Due Oct 15</div><div>$${halfLater}</div></div>
-      `;
+        <div class="total-card pop-in">
+          <div class="total-ico ico-half">🗓️</div>
+          <div>
+            <div class="total-title">Pay Half Now</div>
+            <div class="total-rows">
+              <div class="row"><div>Due Now ($${PRICE_HALF_NOW} ea)</div><div>$${halfNow}</div></div>
+              ${sibling ? `<div class="row"><div>Sibling discount (applied to final total)</div><div>−$${SIBLING_DISCOUNT}</div></div>`:''}
+              <div class="row"><div>Final Total (list $${PRICE_LIST_PER} ea)</div><div>$${halfTotal}</div></div>
+              <div class="row em"><div>Due Oct 15</div><div>$${halfLater}</div></div>
+            </div>
+          </div>
+        </div>`;
     }
 
     /* ====== PAYMENT (preview only) ====== */
