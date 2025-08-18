@@ -342,32 +342,11 @@
             display: none !important;
         }
     
-/* Unified header look */
-.app-header, .portal-header {
-  background: #ffffff;
-  box-shadow: 0 1px 3px rgba(0,0,0,0.1);
-  position: sticky;
-  top: 0;
-  z-index: 50;
-}
-.header-content {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 1rem;
-  padding: 0.75rem 0;
-}
-.logo-image { height: 40px; }
-
 /* Status badges */
-.badge { display: inline-block; padding: 0.125rem 0.5rem; border-radius: 9999px; font-size: 0.75rem; font-weight: 600; }
-.badge-enrolled { background: #dcfce7; color: #166534; border: 1px solid #16a34a; }
-.badge-pending { background: #fef3c7; color: #92400e; border: 1px solid #f59e0b; }
-.badge-canceled { background: #fee2e2; color: #991b1b; border: 1px solid #ef4444; }
-
-.card-student { border: 1px solid #e5e7eb; border-radius: 0.75rem; padding: 1rem; margin-bottom: 0.75rem; background: #fff; }
-.card-student h3 { margin: 0 0 0.5rem 0; font-size: 1rem; }
-.card-student .muted { color: #6b7280; font-size: 0.875rem; }
+.badge { display:inline-block; padding:0.125rem 0.5rem; border-radius:9999px; font-size:0.75rem; font-weight:600; vertical-align:middle; margin-left:0.5rem;}
+.badge-enrolled { background:#dcfce7; color:#166534; border:1px solid #16a34a;}
+.badge-pending { background:#fef3c7; color:#92400e; border:1px solid #f59e0b;}
+.badge-canceled { background:#fee2e2; color:#991b1b; border:1px solid #ef4444;}
 </style>
 </head>
 <body>
@@ -668,47 +647,35 @@
                 enrollments = students;
             }
 
-              
-function displayStudents(students) {
+              function displayStudents(students) {
     const container = document.getElementById('students-list');
-    if (!container) return;
 
     if (!students || students.length === 0) {
-        // Keep existing welcome state (already set elsewhere if needed)
-        container.innerHTML = `<p class="muted">No students yet.</p>`;
+        // Show welcome state for new parents
+        container.innerHTML = `
+            <div style="text-align: center; padding: 3rem; background: linear-gradient(135deg, #fed7aa 0%, #ffffff 100%); border-radius: 1rem; border: 2px solid #ea580c;">
+                <div style="font-size: 4rem; margin-bottom: 1rem;">🚀</div>
+                <h2 style="color: #ea580c; margin-bottom: 1rem; font-size: 2rem;">Welcome to 3D Jumpstart!</h2>
+                <p style="color: #6b7280; margin-bottom: 2rem; font-size: 1.125rem;">
+                    Let's get started by enrolling your first student in our Level 1 program.
+                </p>
+                <p style="color: #6b7280; margin-bottom: 2rem;">
+                    Classes start September 9, 2025 • Professional Fusion360 Training • Ages 4th Grade+
+                </p>
+                <a href="app.html" class="btn btn-primary" style="font-size: 1.125rem; padding: 1rem 2rem; display: inline-block;">
+                    Start Enrollment →
+                </a>
+                <p style="color: #9ca3af; font-size: 0.875rem; margin-top: 2rem;">
+                    Takes just 5 minutes to add students and select class times
+                </p>
+            </div>
+        `;
         return;
     }
 
-    const toTime = (t) => t ? t.slice(0,5) : "";
-    const badge = (status) => {
-        const s = (status || '').toLowerCase();
-        if (s === 'enrolled') return '<span class="badge badge-enrolled">Enrolled</span>';
-        if (s === 'pending') return '<span class="badge badge-pending">Pending</span>';
-        if (s === 'canceled' || s === 'cancelled') return '<span class="badge badge-canceled">Canceled</span>';
-        return '';
-    };
+                  
 
-    const html = students.map(s => {
-        const enroll = Array.isArray(s.enrollments) && s.enrollments.length ? s.enrollments[0] : null;
-        const slot = enroll && enroll.class_slots ? enroll.class_slots : null;
-        const line = slot ? `${slot.day_of_week} • ${toTime(slot.start_time)}–${toTime(slot.end_time)}` : 'No class assigned';
-        const b = enroll ? badge(enroll.status) : '';
-        return `
-          <div class="card-student">
-            <div style="display:flex; align-items:center; justify-content:space-between; gap:0.75rem;">
-              <div>
-                <h3>${s.name}</h3>
-                <div class="muted">${line}</div>
-              </div>
-              <div>${b}</div>
-            </div>
-          </div>
-        `;
-    }).join('');
-
-    container.innerHTML = html;
-}
-// Load billing history
+            // Load billing history
             const { data: orders } = await supabase
                 .from('orders')
                 .select('*')
@@ -720,47 +687,22 @@ function displayStudents(students) {
             }
         }
 
-        
-function displayStudents(students) {
-    const container = document.getElementById('students-list');
-    if (!container) return;
+        function displayStudents(students) {
+            const container = document.getElementById('students-list');
 
-    if (!students || students.length === 0) {
-        // Keep existing welcome state (already set elsewhere if needed)
-        container.innerHTML = `<p class="muted">No students yet.</p>`;
-        return;
-    }
-
-    const toTime = (t) => t ? t.slice(0,5) : "";
-    const badge = (status) => {
-        const s = (status || '').toLowerCase();
-        if (s === 'enrolled') return '<span class="badge badge-enrolled">Enrolled</span>';
-        if (s === 'pending') return '<span class="badge badge-pending">Pending</span>';
-        if (s === 'canceled' || s === 'cancelled') return '<span class="badge badge-canceled">Canceled</span>';
-        return '';
-    };
-
-    const html = students.map(s => {
-        const enroll = Array.isArray(s.enrollments) && s.enrollments.length ? s.enrollments[0] : null;
-        const slot = enroll && enroll.class_slots ? enroll.class_slots : null;
-        const line = slot ? `${slot.day_of_week} • ${toTime(slot.start_time)}–${toTime(slot.end_time)}` : 'No class assigned';
-        const b = enroll ? badge(enroll.status) : '';
-        return `
-          <div class="card-student">
-            <div style="display:flex; align-items:center; justify-content:space-between; gap:0.75rem;">
-              <div>
-                <h3>${s.name}</h3>
-                <div class="muted">${line}</div>
-              </div>
-              <div>${b}</div>
-            </div>
-          </div>
-        `;
-    }).join('');
-
-    container.innerHTML = html;
-}
-:${String(mm).padStart(2, '0')}${suffix}`;
+            // Helper to convert 24h time to am/pm format
+           
+                    const statusRaw = (Array.isArray(student.enrollments) && student.enrollments[0] && student.enrollments[0].status) || '';
+                    const status = String(statusRaw).toLowerCase();
+                    const badgeHtml = status === 'enrolled' ? '<span class="badge badge-enrolled">Enrolled</span>' :
+                                      status === 'pending'  ? '<span class="badge badge-pending">Pending</span>' :
+                                      (status === 'canceled' || status === 'cancelled') ? '<span class="badge badge-canceled">Canceled</span>' : '';
+ function formatTimeLabel(start, end) {
+                const to12 = (t) => {
+                    const [hh, mm] = t.split(':').map((v) => Number(v));
+                    const h12 = ((hh + 11) % 12) + 1;
+                    const suffix = hh >= 12 ? 'pm' : 'am';
+                    return `${h12}:${String(mm).padStart(2, '0')}${suffix}`;
                 };
                 return `${to12(start)}-${to12(end)}`;
             }
