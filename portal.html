@@ -910,55 +910,67 @@ async function sbListCart() {
     }
 
     /* ====== BILLING ====== */
-    async function loadBilling() {
-      try {
-        // Get payments with enrollment and student info
-        const { data: payments, error } = await sb
-          .from('payments')
-          .select(`
-            *,
-            enrollments!enrollment_id (
-              student_id,
-              class_time,
-              students:student_id (
-                first_name,
-                last_name
-              )
-            )
-          `)
-          .order('created_at', { ascending: false });
+async function loadBilling() {
+  try {
+    // Simpler query without the complex join
+    const { data: payments, error } = await sb
+      .from('payments')
+      .select('*')
+      .eq('parent_id', currentUser.id)
+      .order('created_at', { ascending: false });
 
-        if (error) {
-          console.error('Billing query error:', error);
-          renderBilling([]);
-          return;
-        }
-
-        // Filter to only show payments for this parent's students
-        const myStudentIds = (await sbListStudents()).map(s => s.id);
-        const myPayments = payments?.filter(p => 
-          p.enrollments && myStudentIds.includes(p.enrollments.student_id)
-        ) || [];
-
-        renderBilling(myPayments);
-      } catch(err) {
-        console.error('Billing load error:', err);
-        renderBilling([]);
-      }
+    if (error) {
+      console.error('Billing query error:', error);
+      renderBilling([]);
+      return;
     }
 
-    function renderBilling(payments) {
-      const tbody = document.getElementById('billingTable');
-      
-      if(!payments || payments.length === 0) {
-        tbody.innerHTML = `
-          <tr>
-            <td colspan="5" style="padding:.75rem;border-bottom:1px solid var(--line);text-align:center;color:var(--muted)">
-              No payments yet
-            </td>
-          </tr>`;
-        return;
-      }
+    // Get student names separately
+    const students = await sbListStudents();
+    const studentMap = {};
+    students.forEach(s => {
+      studentMap[s.id] = `${s.first_name} ${s.last_name}`;
+    });
+
+    // Map payments with student names
+    const enrichedPayments = payments?.map(p => ({
+      ...p,
+      studentName: p.enrollment_id ? (studentMap[p.enrollment_id] || 'Unknown') : 'Multiple Students'
+    })) || [];
+
+    renderBilling(enrichedPayments);
+  } catch(err) {
+    console.error('Billing load error:', err);
+    renderBilling([]);
+  }
+}
+
+function renderBilling(payments) {
+  const tbody = document.getElementById('billingTable');
+  
+  if(!payments || payments.length === 0) {
+    tbody.innerHTML = `<tr><td colspan="5" style="padding:.75rem;text-align:center;color:var(--muted)">No payments yet</td></tr>`;
+    return;
+  }
+
+  tbody.innerHTML = payments.map(p => {
+    const date = new Date(p.created_at).toLocaleDateString();
+    const amount = `$${p.amount}`;
+    const status = p.event_type === 'Pay in Full' ? 
+      '<span style="color:var(--ok)">Paid</span>' : 
+      '<span style="color:#f59e0b">Partial (Balance due Oct 15)</span>';
+    
+    return `
+      <tr>
+        <td style="padding:.75rem;border-bottom:1px solid var(--line)">${date}</td>
+        <td style="padding:.75rem;border-bottom:1px solid var(--line)">${p.studentName}</td>
+        <td style="padding:.75rem;border-bottom:1px solid var(--line)">${p.event_type}</td>
+        <td style="padding:.75rem;border-bottom:1px solid var(--line)">${amount}</td>
+        <td style="padding:.75rem;border-bottom:1px solid var(--line)">${status}</td>
+      </tr>`;
+  }).join('');
+}
+    
 
       tbody.innerHTML = payments.map(p => {
         const date = new Date(p.created_at).toLocaleDateString();
