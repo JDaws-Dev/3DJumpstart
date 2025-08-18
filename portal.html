@@ -21,7 +21,7 @@
     /* Header */
     .portal-header { background:#fff; box-shadow:0 1px 3px rgba(0,0,0,.08); position:sticky; top:0; z-index:10; }
     .header-content { display:flex; align-items:center; justify-content:space-between; gap:1rem; padding:.9rem 0; }
-    .logo-image { height:48px; width:auto; }
+ .logo-image { height:72px; width:auto; }
     .user-info { display:flex; align-items:center; gap:.6rem; color:var(--muted); }
 
     /* Buttons */
@@ -79,18 +79,21 @@
 </head>
 <body>
   <!-- Header -->
-  <header class="portal-header">
-    <div class="container">
-      <div class="header-content">
-        <img src="https://raw.githubusercontent.com/JDaws-Dev/3DJumpstart/main/3d-jumpstart-logo.png" alt="3D Jumpstart" class="logo-image" />
-        <div class="user-info">
-          <span id="parent-name" class="muted">Loading…</span>
-          <a href="app.html" class="btn btn-outline">Manage Students</a>
-          <button class="btn btn-secondary" id="logoutBtn">Logout</button>
-        </div>
+<!-- Header -->
+<header class="portal-header">
+  <div class="container">
+    <div class="header-content">
+      <img src="https://raw.githubusercontent.com/JDaws-Dev/3DJumpstart/main/3d-jumpstart-logo.png" 
+           alt="3D Jumpstart" 
+           class="logo-image" 
+           style="height:72px; width:auto;" />
+      <div class="user-info">
+        <span id="parent-name" class="muted">Loading…</span>
+        <button class="btn btn-secondary" id="logoutBtn">Logout</button>
       </div>
     </div>
-  </header>
+  </div>
+</header>
 
   <main class="container" style="margin-top:1rem;">
     <h1 style="font-size:2rem; font-weight:800; margin:1rem 0 1.25rem;">Welcome to Your Parent Portal</h1>
