@@ -6,90 +6,149 @@
   <title>Parent Portal – 3D Jumpstart</title>
 
   <!-- Fonts & Scripts -->
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet" />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet" />
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.39.3/dist/umd/supabase.min.js"></script>
   <script src="https://js.stripe.com/v3/"></script>
 
   <style>
-    :root { --brand:#ea580c; --brand2:#dc2626; --ink:#111827; --muted:#6b7280; --line:#e5e7eb; --bg:#f9fafb; }
-    * { box-sizing:border-box; }
-    html, body { height:100%; }
-    body { margin:0; background:var(--bg); color:var(--ink); font-family:Inter, system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif; }
+    :root{
+      --brand:#f97316;        /* orange */
+      --brand-2:#fb923c;      /* light orange */
+      --brand-3:#ea580c;      /* deeper */
+      --ink:#0f172a;          /* slate-900 */
+      --muted:#64748b;        /* slate-500 */
+      --line:#e2e8f0;         /* slate-200 */
+      --bg:#f8fafc;           /* slate-50 */
+      --card:#ffffff;
+      --shadow:0 10px 30px rgba(2,8,23,.08);
+      --radius:18px;
+    }
 
-    .container { max-width:1200px; margin:0 auto; padding:0 1rem; }
+    *{box-sizing:border-box}
+    html,body{height:100%}
+    body{
+      margin:0; font-family:Inter,system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif;
+      color:var(--ink); background:
+        radial-gradient(1200px 500px at -10% -10%, #fff 0, #fff 30%, #fff0 31%) no-repeat,
+        radial-gradient(1200px 500px at 110% -10%, #fff 0, #fff 30%, #fff0 31%) no-repeat,
+        linear-gradient(180deg,#fff, var(--bg));
+      background-attachment: fixed;
+    }
+
+    .container{max-width:1200px;margin:0 auto;padding:0 20px}
 
     /* Header */
-    .portal-header { background:#fff; box-shadow:0 1px 3px rgba(0,0,0,.08); position:sticky; top:0; z-index:10; }
-    .header-content { display:flex; align-items:center; justify-content:space-between; gap:1rem; padding:.9rem 0; }
-    .logo-image { height:72px; width:auto; }
-    .user-info { display:flex; align-items:center; gap:.6rem; color:var(--muted); }
+    .portal-header{
+      position:sticky; top:0; z-index:10; backdrop-filter:saturate(1.2) blur(6px);
+      background:linear-gradient(180deg, rgba(255,255,255,.85), rgba(255,255,255,.75));
+      border-bottom:1px solid var(--line);
+    }
+    .header-content{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:14px 0}
+    .logo-wrap{display:flex;align-items:center;gap:14px}
+    .logo-image{height:84px;width:auto;filter:drop-shadow(0 2px 2px rgba(0,0,0,.06))}
+    .brand-chip{
+      font-weight:900; letter-spacing:.4px; color:#fff; padding:.35rem .7rem; border-radius:999px;
+      background:linear-gradient(135deg,var(--brand) 0%, var(--brand-3) 100%);
+      box-shadow:0 8px 18px -8px rgba(234,88,12,.45);
+    }
+    .user-info{display:flex;align-items:center;gap:.6rem;color:var(--muted)}
 
-    /* Buttons */
-    .btn { appearance:none; border:0; border-radius:.6rem; padding:.7rem 1rem; font-weight:700; font-size:.95rem; cursor:pointer; display:inline-flex; align-items:center; gap:.45rem; text-decoration:none; }
-    .btn-primary { color:#fff; background:linear-gradient(135deg, var(--brand) 0%, var(--brand2) 100%); box-shadow:0 6px 12px -3px rgba(234,88,12,.25); }
-    .btn-primary:hover { transform:translateY(-1px); box-shadow:0 12px 18px -6px rgba(234,88,12,.32); }
-    .btn-secondary { color:#fff; background:#6b7280; }
-    .btn-secondary:hover { background:#4b5563; }
-    .btn-muted { background:#e5e7eb; color:#374151; }
-    .btn-danger { background:#ef4444; color:#fff; }
+    /* Title */
+    .page-title{
+      margin:24px 0 18px; font-size:clamp(26px,3vw,34px); font-weight:900; letter-spacing:-.5px;
+      background:linear-gradient(135deg,var(--ink), #1f2937); -webkit-background-clip:text; color:transparent;
+    }
 
     /* Tabs */
-    .tabs { background:#fff; border-bottom:2px solid var(--line); margin-bottom:1.25rem; }
-    .tab-list { list-style:none; display:flex; gap:0; padding:0; margin:0; overflow:auto; }
-    .tab-button { background:none; border:0; padding:1rem 1.25rem; border-bottom:3px solid transparent; color:#6b7280; font-weight:600; cursor:pointer; white-space:nowrap; }
-    .tab-button:hover { color:var(--brand); background:#fef3c7; }
-    .tab-button.active { color:var(--brand); background:#fef3c7; border-bottom-color:var(--brand); }
-    .tab-content { display:none; }
-    .tab-content.active { display:block; animation:fade .2s ease; }
-    @keyframes fade { from{opacity:0} to{opacity:1} }
+    .tabs{background:transparent;margin:0 0 18px}
+    .tab-list{list-style:none;display:flex;gap:6px;padding:0;margin:0;flex-wrap:wrap}
+    .tab-button{
+      border:1px solid var(--line); background:#fff; color:var(--muted);
+      padding:.6rem .95rem; border-radius:12px; font-weight:800; cursor:pointer;
+      box-shadow:var(--shadow); transition:.18s transform ease, .18s background ease;
+    }
+    .tab-button:hover{transform:translateY(-1px); color:var(--ink)}
+    .tab-button.active{
+      background:linear-gradient(135deg,#fff, #fff) padding-box,
+                 linear-gradient(135deg, var(--brand), var(--brand-2)) border-box;
+      border:2px solid transparent; color:var(--brand-3);
+    }
+    .tab-content{display:none}
+    .tab-content.active{display:block; animation:fade .2s ease}
+    @keyframes fade{from{opacity:0; transform:translateY(4px)} to{opacity:1; transform:translateY(0)}}
 
     /* Cards */
-    .card { background:#fff; border-radius:1rem; padding:1.25rem; box-shadow:0 4px 6px -1px rgba(0,0,0,.08); margin-bottom:1rem; }
-    .card-title { font-size:1.35rem; font-weight:800; margin:0 0 .75rem; }
-    .muted { color:var(--muted); }
+    .card{
+      background:var(--card); border:1px solid var(--line); border-radius:var(--radius);
+      padding:18px; box-shadow:var(--shadow);
+    }
+    .card + .card{margin-top:14px}
+    .card-title{font-size:1.3rem;font-weight:900;margin:0 0 .6rem;letter-spacing:-.2px}
+    .muted{color:var(--muted)}
 
-    /* Student list */
-    .student-row { display:flex; align-items:flex-start; justify-content:space-between; gap:1rem; border:1px solid var(--line); border-radius:.9rem; padding:1rem; background:#fff; }
-    .student-meta { color:var(--muted); line-height:1.7; font-size:.95rem; }
-    .student-actions { display:flex; align-items:center; gap:.5rem; }
+    /* Banner */
+    .pay-banner{
+      display:flex;align-items:center;justify-content:space-between;gap:12px;
+      padding:14px 16px;border-radius:14px;color:#7c2d12;
+      background:linear-gradient(135deg,#fff7ed 0%, #ffedd5 100%);
+      border:1px solid #fed7aa; font-weight:900;
+    }
 
-    /* Grid */
-    .grid { display:grid; gap:1rem; }
-    @media (min-width: 768px) { .grid-2 { grid-template-columns:1fr 1fr; } .grid-3 { grid-template-columns:repeat(3,1fr);} }
+    /* Lists */
+    .info-list{margin:.25rem 0 0; padding-left:1rem; line-height:1.75}
+    .info-list li{color:var(--muted)}
+
+    /* Student item */
+    .student-row{
+      display:flex;align-items:flex-start;justify-content:space-between;gap:14px;
+      border:1px solid var(--line); border-radius:14px; padding:14px; background:#fff;
+    }
+    .student-meta{color:var(--muted);line-height:1.7;font-size:.95rem}
+    .student-actions{display:flex;align-items:center;gap:8px}
 
     /* Inputs */
-    .field { display:flex; flex-direction:column; gap:.4rem; }
-    .label { font-weight:700; font-size:.9rem; }
-    .input, .select, .textarea {
-      width:100%; border:1px solid var(--line); background:#fff; padding:.65rem .75rem; border-radius:.6rem; font:inherit;
+    .field{display:flex;flex-direction:column;gap:.35rem}
+    .label{font-weight:800;font-size:.9rem;color:#334155}
+    .input,.select,.textarea{
+      width:100%; border:1px solid var(--line); background:#fff; padding:.65rem .75rem;
+      border-radius:12px; font:inherit; outline:none; transition:border .12s;
     }
-    .textarea { min-height:96px; }
+    .input:focus,.select:focus,.textarea:focus{border-color:#cbd5e1; box-shadow:0 0 0 4px rgba(251,146,60,.18)}
 
-    /* Modal */
-    .modal-backdrop { position:fixed; inset:0; background:rgba(0,0,0,.35); display:none; align-items:center; justify-content:center; padding:1rem; z-index:50; }
-    .modal-backdrop.show { display:flex; }
-    .modal { width:100%; max-width:640px; background:#fff; border-radius:1rem; padding:1rem; box-shadow:0 16px 40px rgba(0,0,0,.25); }
+    /* Buttons */
+    .btn{appearance:none;border:0;border-radius:12px;padding:.7rem 1rem;font-weight:900;font-size:.95rem;cursor:pointer;display:inline-flex;align-items:center;gap:.45rem;text-decoration:none}
+    .btn-primary{color:#fff;background:linear-gradient(135deg,var(--brand) 0%, var(--brand-3) 100%);box-shadow:0 10px 18px -8px rgba(234,88,12,.55)}
+    .btn-primary:hover{transform:translateY(-1px)}
+    .btn-secondary{color:#fff;background:#334155}
+    .btn-muted{background:#e2e8f0;color:#334155}
+    .btn-danger{background:#ef4444;color:#fff}
+    .btn[disabled]{opacity:.45;cursor:not-allowed}
 
-    /* Badges */
-    .badge { display:inline-block; padding:.15rem .55rem; border-radius:999px; font-size:.78rem; font-weight:800; }
-    .badge-good { background:#dcfce7; color:#166534; border:1px solid #16a34a; }
-    .badge-warn { background:#fee2e2; color:#991b1b; border:1px solid #ef4444; }
+    /* Badge */
+    .badge{display:inline-block;padding:.2rem .55rem;border-radius:999px;font-size:.78rem;font-weight:900}
+    .badge-good{background:#dcfce7;color:#166534;border:1px solid #16a34a}
+    .badge-warn{background:#fee2e2;color:#991b1b;border:1px solid #ef4444}
 
-    /* Billing Table */
-    table { width:100%; border-collapse:collapse; }
-    th, td { text-align:left; padding:.75rem; border-bottom:1px solid #eee; }
-    thead tr { background:#f3f4f6; }
-
-    /* Cart pill */
-    .pill { display:inline-flex; align-items:center; gap:.5rem; padding:.35rem .6rem; background:#f3f4f6; border-radius:999px; font-weight:700; }
+    /* Pill */
+    .pill{display:inline-flex;align-items:center;gap:.55rem;padding:.35rem .6rem;background:#eef2ff;border-radius:999px;border:1px solid #c7d2fe;color:#3730a3;font-weight:900}
 
     /* Totals */
-    .totals { display:grid; gap:.35rem; margin:.75rem 0 0; }
-    .totals .row { display:flex; justify-content:space-between; }
-    .totals .em { font-weight:800; }
+    .totals{display:grid;gap:.35rem;margin:.75rem 0 0}
+    .totals .row{display:flex;justify-content:space-between}
+    .totals .em{font-weight:900}
 
-    /* Payment banner */
-    .pay-banner { display:flex; align-items:center; justify-content:space-between; gap:.75rem; background:#fff7ed; border:1px solid #fed7aa; color:#7c2d12; padding:.75rem .9rem; border-radius:.6rem; font-weight:800; }
+    /* Tables */
+    table{width:100%;border-collapse:collapse}
+    th,td{text-align:left;padding:.75rem;border-bottom:1px solid var(--line)}
+    thead tr{background:#f1f5f9}
+
+    /* Modal */
+    .modal-backdrop{position:fixed;inset:0;background:rgba(2,8,23,.4);display:none;align-items:center;justify-content:center;padding:18px;z-index:50}
+    .modal-backdrop.show{display:flex}
+    .modal{
+      width:100%;max-width:680px;background:#fff;border-radius:20px;padding:18px;
+      box-shadow:0 30px 80px rgba(2,8,23,.35); border:1px solid var(--line)
+    }
   </style>
 </head>
 <body>
@@ -97,8 +156,10 @@
   <header class="portal-header">
     <div class="container">
       <div class="header-content">
-        <img src="https://raw.githubusercontent.com/JDaws-Dev/3DJumpstart/main/3d-jumpstart-logo.png"
-             alt="3D Jumpstart" class="logo-image" />
+        <div class="logo-wrap">
+          <img src="https://raw.githubusercontent.com/JDaws-Dev/3DJumpstart/main/3d-jumpstart-logo.png" alt="3D Jumpstart" class="logo-image" />
+          <span class="brand-chip">Parent Portal</span>
+        </div>
         <div class="user-info">
           <span id="parent-name" class="muted">Loading…</span>
           <button class="btn btn-secondary" id="logoutBtn" type="button">Logout</button>
@@ -107,8 +168,8 @@
     </div>
   </header>
 
-  <main class="container" style="margin-top:1rem;">
-    <h1 style="font-size:2rem; font-weight:800; margin:1rem 0 1.25rem;">Welcome to Your Parent Portal</h1>
+  <main class="container">
+    <h1 class="page-title">Welcome to Your Parent Portal</h1>
 
     <!-- Tabs -->
     <nav class="tabs">
@@ -124,42 +185,39 @@
     <!-- Students -->
     <section id="tab-students" class="tab-content active">
       <div class="card">
-        <div class="grid grid-2" style="align-items:center;">
-          <h2 class="card-title" style="margin:0;">Your Students</h2>
-          <div style="text-align:right;">
-            <button class="btn btn-primary" id="addStudentBtn" type="button" onclick="openModal()">+ Add Student</button>
-          </div>
+        <div style="display:flex;align-items:center;justify-content:space-between;gap:12px;">
+          <h2 class="card-title" style="margin:0">Your Students</h2>
+          <button class="btn btn-primary" id="addStudentBtn" type="button" onclick="openModal()">+ Add Student</button>
         </div>
-        <div id="studentsList" class="grid" style="margin-top:.75rem;"></div>
+        <div id="studentsList" class="grid" style="margin-top:12px;"></div>
       </div>
 
       <div class="card">
-        <!-- NEW: Level + price banner -->
         <div class="pay-banner">
           <span>Level 1 • 12-week course • $60/class</span>
           <span style="font-weight:900;">List total: $720</span>
         </div>
 
-        <div class="grid grid-2" style="align-items:center; margin-top:.9rem;">
-          <div>
-            <h3 class="card-title" style="margin-bottom:.25rem;">Payment</h3>
-            <ul class="muted" style="margin:.25rem 0 0; padding-left:1rem; line-height:1.7;">
+        <div style="display:flex;align-items:flex-start;gap:16px;justify-content:space-between;margin-top:14px;flex-wrap:wrap">
+          <div style="min-width:280px;flex:1">
+            <h3 class="card-title" style="margin:.1rem 0 .3rem">Payment Options</h3>
+            <ul class="info-list">
               <li>Pick a class period for each student, then add to cart.</li>
-              <li><strong>Pay in Full:</strong> <strong>$670</strong> per student <em>(you save $50 vs $720 list)</em>.</li>
+              <li><strong>Pay in Full:</strong> <strong>$670</strong> per student <em>(save $50 vs $720 list)</em>.</li>
               <li><strong>Pay Half Now:</strong> $360 per student now; remainder due <strong>Oct 15</strong>.</li>
               <li><strong>Sibling discount:</strong> $50 off the second child (applies once).</li>
             </ul>
           </div>
-          <div style="text-align:right;">
+          <div style="text-align:right;min-width:120px">
             <span class="pill">Cart: <span id="cartCount">0</span></span>
           </div>
         </div>
 
-        <div id="cartList" class="grid" style="margin:.75rem 0;"></div>
+        <div id="cartList" class="grid" style="margin:12px 0;"></div>
 
         <div class="totals" id="totalsBox"></div>
 
-        <div class="student-actions" style="gap:.75rem; margin-top:.75rem;">
+        <div class="student-actions" style="gap:10px;margin-top:12px;flex-wrap:wrap">
           <button id="payFullBtn" class="btn btn-primary" type="button" disabled>Pay In Full</button>
           <button id="payHalfBtn" class="btn btn-secondary" type="button" disabled>Pay Half Now</button>
         </div>
@@ -170,16 +228,14 @@
     <section id="tab-class-info" class="tab-content">
       <div class="card">
         <h2 class="card-title">Location</h2>
-        <div style="font-size:1.05rem;">
-          <strong>Shadowbrook Church</strong><br />
-          4187 Suwanee Dam Rd NW<br />
-          Suwanee, GA 30024
+        <div class="muted" style="font-size:1.05rem;">
+          <strong>Shadowbrook Church</strong><br/>4187 Suwanee Dam Rd NW, Suwanee, GA 30024
         </div>
       </div>
 
       <div class="card">
         <h2 class="card-title">Current Class Periods (Level 1)</h2>
-        <ul class="muted" style="line-height:1.9;">
+        <ul class="info-list" style="padding-left:0;list-style:none">
           <li>Tuesday 4:30–5:30</li>
           <li>Tuesday 5:30–6:30</li>
         </ul>
@@ -189,29 +245,27 @@
         <h2 class="card-title">What Your Student Needs</h2>
         <div class="grid grid-2">
           <div>
-            <p class="muted" style="font-size:1.05rem;">
-              <strong>Computers are provided.</strong> Your student does not need to bring a laptop.
-            </p>
+            <p class="muted" style="font-size:1.05rem;"><strong>Computers are provided.</strong> Your student does not need to bring a laptop.</p>
             <p class="muted"><strong>Required Supply:</strong> Imperial (Inch) Digital or Dial Calipers</p>
             <a href="https://a.co/d/7BT1kL0" target="_blank" class="btn btn-primary" style="width:max-content;">View Recommended Calipers →</a>
           </div>
           <div>
-            <div class="card" style="margin:0;">
-              <h3 class="card-title" style="font-size:1.1rem;">Level 1 – 12-Week Schedule</h3>
-              <div class="grid grid-3" style="margin-top:.5rem;">
-                <div class="info-box">Week 1 – Sep 9</div>
-                <div class="info-box">Week 2 – Sep 16</div>
-                <div class="info-box">Week 3 – Sep 23</div>
-                <div class="info-box">Week 4 – Sep 30</div>
-                <div class="info-box">Week 5 – Oct 7</div>
-                <div class="info-box">Week 6 – Oct 14</div>
-                <div class="info-box">Week 7 – Oct 21</div>
-                <div class="info-box">Week 8 – Oct 28</div>
-                <div class="info-box">Week 9 – Nov 4</div>
-                <div class="info-box">Week10 – Nov 11</div>
-                <div class="info-box">Week11 – Nov 18</div>
-                <div class="warning-box">Thanksgiving Break – Nov 25</div>
-                <div class="info-box">Week12 – Dec 2</div>
+            <div class="card" style="margin:0;border:1px dashed var(--line);background:#fffbeb">
+              <h3 class="card-title" style="font-size:1.05rem;margin-bottom:.35rem;">Level 1 – 12-Week Schedule</h3>
+              <div class="grid" style="grid-template-columns:repeat(3,minmax(0,1fr));gap:8px">
+                <div class="btn-muted" style="padding:.5rem .6rem;border-radius:10px">Week 1 – Sep 9</div>
+                <div class="btn-muted" style="padding:.5rem .6rem;border-radius:10px">Week 2 – Sep 16</div>
+                <div class="btn-muted" style="padding:.5rem .6rem;border-radius:10px">Week 3 – Sep 23</div>
+                <div class="btn-muted" style="padding:.5rem .6rem;border-radius:10px">Week 4 – Sep 30</div>
+                <div class="btn-muted" style="padding:.5rem .6rem;border-radius:10px">Week 5 – Oct 7</div>
+                <div class="btn-muted" style="padding:.5rem .6rem;border-radius:10px">Week 6 – Oct 14</div>
+                <div class="btn-muted" style="padding:.5rem .6rem;border-radius:10px">Week 7 – Oct 21</div>
+                <div class="btn-muted" style="padding:.5rem .6rem;border-radius:10px">Week 8 – Oct 28</div>
+                <div class="btn-muted" style="padding:.5rem .6rem;border-radius:10px">Week 9 – Nov 4</div>
+                <div class="btn-muted" style="padding:.5rem .6rem;border-radius:10px">Week10 – Nov 11</div>
+                <div class="btn-muted" style="padding:.5rem .6rem;border-radius:10px">Week11 – Nov 18</div>
+                <div class="btn-muted" style="padding:.5rem .6rem;border-radius:10px;background:#fee2e2;color:#991b1b">Thanksgiving Break – Nov 25</div>
+                <div class="btn-muted" style="padding:.5rem .6rem;border-radius:10px">Week12 – Dec 2</div>
               </div>
             </div>
           </div>
@@ -223,19 +277,19 @@
     <section id="tab-support" class="tab-content">
       <div class="card">
         <h2 class="card-title">Professional 3D Printer Support</h2>
-        <p class="muted" style="margin-bottom:1rem;">Expert help for your home 3D printing journey — Coming Fall 2025</p>
+        <p class="muted" style="margin-bottom:10px;">Expert help for your home 3D printing journey — Coming Fall 2025</p>
         <div class="grid grid-2">
-          <div class="card" style="border:2px solid var(--line);">
+          <div class="card" style="border:1px dashed var(--line);background:#fafafa">
             <h3 class="card-title">Printer Setup Service</h3>
             <p class="muted">Bambu Lab setup at your home</p>
-            <ul class="muted"><li>Assembly & calibration</li><li>Software install</li><li>First print guaranteed</li></ul>
-            <strong style="color:var(--brand);"> $150 </strong>
+            <ul class="info-list"><li>Assembly & calibration</li><li>Software install</li><li>First print guaranteed</li></ul>
+            <strong style="color:var(--brand-3);"> $150 </strong>
           </div>
-          <div class="card" style="border:2px solid var(--line);">
+          <div class="card" style="border:1px dashed var(--line);background:#fafafa">
             <h3 class="card-title">Troubleshooting Visit</h3>
             <p class="muted">Fix issues, maintenance & optimization</p>
-            <ul class="muted"><li>Diagnose & fix problems</li><li>Advanced training</li></ul>
-            <strong style="color:var(--brand);"> $100 </strong>
+            <ul class="info-list"><li>Diagnose & fix problems</li><li>Advanced training</li></ul>
+            <strong style="color:var(--brand-3);"> $100 </strong>
           </div>
         </div>
         <a class="btn btn-primary" href="mailto:jeremiah@3djumpstart.com">Contact Us About Support Services</a>
@@ -248,12 +302,7 @@
         <h2 class="card-title">Billing & Payments</h2>
         <table>
           <thead>
-            <tr>
-              <th>Date</th>
-              <th>Description</th>
-              <th>Amount</th>
-              <th>Status</th>
-            </tr>
+            <tr><th>Date</th><th>Description</th><th>Amount</th><th>Status</th></tr>
           </thead>
           <tbody id="billingTable"></tbody>
         </table>
@@ -262,25 +311,24 @@
 
     <!-- Contact -->
     <section id="tab-contact" class="tab-content">
-      <div class="card" style="background:linear-gradient(135deg,#fed7aa 0%,#fb923c 100%); color:#fff;">
-        <h2 class="card-title">Questions? Reach out anytime!</h2>
+      <div class="card" style="background:linear-gradient(135deg,#ffedd5 0%, #fdba74 100%); color:#7c2d12; border:0;">
+        <h2 class="card-title" style="color:#7c2d12">Questions? Reach out anytime!</h2>
         <p><strong>Jeremiah Daws</strong> • 3D Jumpstart Instructor</p>
-        <p>📧 <a style="color:#fff; font-weight:800;" href="mailto:jeremiah@3djumpstart.com">jeremiah@3djumpstart.com</a></p>
-        <p>📱 <a style="color:#fff; font-weight:800;" href="tel:310-845-5702">310-845-5702</a></p>
+        <p>📧 <a style="color:#7c2d12; font-weight:900;" href="mailto:jeremiah@3djumpstart.com">jeremiah@3djumpstart.com</a></p>
+        <p>📱 <a style="color:#7c2d12; font-weight:900;" href="tel:310-845-5702">310-845-5702</a></p>
       </div>
     </section>
   </main>
 
-  <!-- Add/Edit Student Modal -->
+  <!-- Modal -->
   <div id="studentModal" class="modal-backdrop">
     <div class="modal" role="dialog" aria-modal="true" aria-labelledby="modalTitle">
-      <div class="grid grid-2" style="align-items:center;">
+      <div style="display:flex;align-items:center;justify-content:space-between;gap:10px;">
         <h3 class="card-title" id="modalTitle" style="margin:0;">Add Student</h3>
-        <div style="text-align:right;">
-          <button class="btn btn-muted" id="closeModalBtn" type="button">Close</button>
-        </div>
+        <button class="btn btn-muted" id="closeModalBtn" type="button">Close</button>
       </div>
-      <div class="grid grid-2" style="margin-top:.75rem;">
+
+      <div class="grid grid-2" style="margin-top:10px;">
         <div class="field">
           <label class="label" for="firstName">First Name</label>
           <input id="firstName" class="input" />
@@ -310,7 +358,8 @@
           <textarea id="special" class="textarea" placeholder="Allergies, learning accommodations, etc."></textarea>
         </div>
       </div>
-      <div style="margin-top:1rem; display:flex; gap:.6rem; justify-content:flex-end;">
+
+      <div style="margin-top:12px; display:flex; gap:8px; justify-content:flex-end;">
         <button class="btn btn-muted" id="cancelBtn" type="button">Cancel</button>
         <button class="btn btn-primary" id="saveStudentBtn" type="button">Save Student</button>
       </div>
@@ -318,25 +367,25 @@
   </div>
 
   <script>
-    // ---------- CONFIG ----------
+    /* ====== CONFIG ====== */
     const SUPABASE_URL = 'https://hucjmggkasahwpjgnwia.supabase.co';
-    const SUPABASE_ANON_KEY = 'REPLACE_WITH_YOUR_PUBLIC_ANON_KEY';
+    const SUPABASE_ANON_KEY = 'REPLACE_WITH_YOUR_PUBLIC_ANON_KEY'; // auth-only
     const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
     // Class periods (Level 1)
     const CLASS_PERIODS = ['Tuesday 4:30–5:30','Tuesday 5:30–6:30'];
 
     // Dropdown options
-    const AGE_OPTIONS = Array.from({length: 11}, (_,i)=> (8+i)); // 8..18
+    const AGE_OPTIONS = Array.from({length:11}, (_,i)=>8+i); // 8..18
     const GRADE_OPTIONS = ['3rd','4th','5th','6th','7th','8th','9th','10th','11th','12th'];
 
-    // Pricing (list vs discounts)
-    const PRICE_LIST_PER = 720;   // list total per student (12 × $60)
-    const PRICE_FULL_PER = 670;   // pay-in-full per student (save $50 vs list)
-    const PRICE_HALF_NOW = 360;   // due now per student for half plan
-    const SIBLING_DISCOUNT = 50;  // off the second child (once)
+    // Pricing
+    const PRICE_LIST_PER = 720;   // 12 x $60
+    const PRICE_FULL_PER = 670;   // pay in full
+    const PRICE_HALF_NOW = 360;   // due now per student
+    const SIBLING_DISCOUNT = 50;  // one-time off second child
 
-    // ---------- STATE ----------
+    /* ====== STATE ====== */
     let currentUser = null;
     let editingId = null;
     const studentsKey = 'portal.students.v1';
@@ -346,11 +395,11 @@
     const loadCart = () => JSON.parse(localStorage.getItem(cartKey) || '[]');
     const saveCart = (arr) => localStorage.setItem(cartKey, JSON.stringify(arr));
 
-    // ---------- AUTH BOOT ----------
+    /* ====== BOOT ====== */
     document.addEventListener('DOMContentLoaded', () => {
       (async () => {
         const { data: { session } } = await supabase.auth.getSession();
-        if (!session) { window.location.href = 'login.html'; return; }
+        if (!session){ window.location.href = 'login.html'; return; }
         currentUser = session.user;
         document.getElementById('parent-name').textContent = currentUser.email || 'Parent';
 
@@ -368,15 +417,14 @@
       window.location.href = 'login.html';
     });
 
-    // ---------- TABS / UI ----------
+    /* ====== UI & TABS ====== */
     function bindUI(){
       document.querySelectorAll('.tab-button').forEach(btn=>{
         btn.addEventListener('click', () => {
           document.querySelectorAll('.tab-button').forEach(b=>b.classList.remove('active'));
           btn.classList.add('active');
-          const tab = btn.dataset.tab;
           document.querySelectorAll('.tab-content').forEach(c=>c.classList.remove('active'));
-          document.getElementById('tab-'+tab).classList.add('active');
+          document.getElementById('tab-'+btn.dataset.tab).classList.add('active');
         });
       });
 
@@ -394,46 +442,41 @@
     }
 
     function populateDropdowns(){
-      const ageSel = document.getElementById('age');
-      AGE_OPTIONS.forEach(a=>{
-        const opt = document.createElement('option'); opt.value = String(a); opt.textContent = String(a); ageSel.appendChild(opt);
-      });
-      const gradeSel = document.getElementById('grade');
-      GRADE_OPTIONS.forEach(g=>{
-        const opt = document.createElement('option'); opt.value = g; opt.textContent = g; gradeSel.appendChild(opt);
-      });
+      const age = document.getElementById('age');
+      AGE_OPTIONS.forEach(v=>{ const o=document.createElement('option'); o.value=v; o.textContent=v; age.appendChild(o); });
+      const grade = document.getElementById('grade');
+      GRADE_OPTIONS.forEach(v=>{ const o=document.createElement('option'); o.value=v; o.textContent=v; grade.appendChild(o); });
     }
 
-    // ---------- STUDENTS ----------
+    /* ====== STUDENTS ====== */
     function renderStudents(){
       const wrap = document.getElementById('studentsList');
       const list = loadStudents();
 
       if (!list.length){
         wrap.innerHTML = `
-          <div class="card" style="text-align:center; background:#f3f4f6;">
+          <div class="card" style="text-align:center;background:#f8fafc;border:1px dashed var(--line)">
             <p class="muted" style="margin:.25rem 0 1rem;">No students yet.</p>
             <button class="btn btn-primary" type="button" onclick="openModal()">+ Add Your First Student</button>
           </div>`;
         renderCart(); updateTotals(); return;
       }
 
-      wrap.innerHTML = list.map(s => {
-        const options = CLASS_PERIODS.map(p => `<option value="${p}" ${s.classPeriod===p?'selected':''}>${p}</option>`).join('');
+      wrap.innerHTML = list.map(s=>{
+        const options = CLASS_PERIODS.map(p=>`<option value="${p}" ${s.classPeriod===p?'selected':''}>${p}</option>`).join('');
         const inClass = !!s.classPeriod;
         const inCart = loadCart().includes(s.id);
         const status = inClass ? `<span class="badge badge-good">In Class</span>` : `<span class="badge badge-warn">Not in Class</span>`;
         const actionBtn = inClass
-          ? (inCart
-              ? `<button class="btn btn-muted" type="button" onclick="removeFromCart('${s.id}')">Remove from Cart</button>`
-              : `<button class="btn btn-primary" type="button" onclick="addToCart('${s.id}')">Add to Cart</button>`)
+          ? (inCart ? `<button class="btn btn-muted" type="button" onclick="removeFromCart('${s.id}')">Remove from Cart</button>`
+                    : `<button class="btn btn-primary" type="button" onclick="addToCart('${s.id}')">Add to Cart</button>`)
           : `<button class="btn btn-primary" type="button" onclick="requireClassThenAdd('${s.id}')">Select Class & Add</button>`;
 
         return `
           <div class="student-row" data-id="${s.id}">
             <div>
-              <div style="display:flex; align-items:center; gap:.5rem;">
-                <div style="font-weight:800; font-size:1.05rem;">${s.firstName} ${s.lastName}</div>
+              <div style="display:flex;align-items:center;gap:.5rem">
+                <div style="font-weight:900;font-size:1.05rem">${s.firstName} ${s.lastName}</div>
                 ${status}
               </div>
               <div class="student-meta">
@@ -441,7 +484,7 @@
                 ${s.special ? `<br/><span class="muted">Notes:</span> ${escapeHtml(s.special)}` : ''}
                 ${s.classPeriod ? `<br/><span class="muted">Class:</span> ${s.classPeriod}` : ''}
               </div>
-              <div class="field" style="margin-top:.4rem; max-width:320px;">
+              <div class="field" style="margin-top:.4rem;max-width:320px">
                 <label class="label">Class Period (Level 1)</label>
                 <select class="select" onchange="setClassPeriod('${s.id}', this.value)">
                   <option value="">Select a period</option>
@@ -449,7 +492,7 @@
                 </select>
               </div>
             </div>
-            <div class="student-actions" style="flex-shrink:0;">
+            <div class="student-actions">
               ${actionBtn}
               <button class="btn btn-muted" type="button" onclick="openModal('${s.id}')">Edit</button>
               <button class="btn btn-danger" type="button" onclick="removeStudent('${s.id}')">Remove</button>
@@ -460,25 +503,18 @@
       renderCart(); updateTotals();
     }
 
-    // ---------- MODAL ----------
-    function openModal(id = null){
+    /* ====== MODAL ====== */
+    function openModal(id=null){
       editingId = id;
-      const m = document.getElementById('studentModal');
       document.getElementById('modalTitle').textContent = id ? 'Edit Student' : 'Add Student';
-
-      const s = id ? loadStudents().find(x => x.id === id)
-                   : { firstName:'', lastName:'', age: AGE_OPTIONS[0], grade: GRADE_OPTIONS[0], experience:'Beginner', special:'' };
-
-      document.getElementById('firstName').value = s.firstName || '';
-      document.getElementById('lastName').value  = s.lastName  || '';
-      document.getElementById('age').value       = s.age       || AGE_OPTIONS[0];
-      document.getElementById('grade').value     = s.grade     || GRADE_OPTIONS[0];
-      document.getElementById('experience').value= s.experience|| 'Beginner';
-      document.getElementById('special').value   = s.special   || '';
-
-      m.classList.add('show');
+      const s = id ? loadStudents().find(x=>x.id===id)
+                   : {firstName:'',lastName:'',age:AGE_OPTIONS[0],grade:GRADE_OPTIONS[0],experience:'Beginner',special:''};
+      firstName.value=s.firstName||''; lastName.value=s.lastName||'';
+      age.value=s.age||AGE_OPTIONS[0]; grade.value=s.grade||GRADE_OPTIONS[0];
+      experience.value=s.experience||'Beginner'; special.value=s.special||'';
+      document.getElementById('studentModal').classList.add('show');
     }
-    function closeModal(){ document.getElementById('studentModal').classList.remove('show'); editingId = null; }
+    function closeModal(){ document.getElementById('studentModal').classList.remove('show'); editingId=null; }
 
     function saveStudentFromModal(){
       const firstName = document.getElementById('firstName').value.trim();
@@ -487,60 +523,59 @@
       const grade     = document.getElementById('grade').value;
       const experience= document.getElementById('experience').value;
       const special   = document.getElementById('special').value.trim();
-      if (!firstName || !lastName || !age || !grade){ alert('Please complete First/Last, Age, and Grade.'); return; }
+      if(!firstName || !lastName || !age || !grade){ alert('Please complete First/Last, Age, and Grade.'); return; }
 
       const list = loadStudents();
-      if (editingId){
-        const i = list.findIndex(x => x.id === editingId);
-        if (i > -1){ list[i] = { ...list[i], firstName, lastName, age, grade, experience, special }; }
-      } else {
-        list.push({ id: cryptoRandom(), firstName, lastName, age, grade, experience, special, classPeriod: '' });
+      if(editingId){
+        const i=list.findIndex(x=>x.id===editingId);
+        if(i>-1){ list[i]={...list[i],firstName,lastName,age,grade,experience,special};}
+      }else{
+        list.push({id:cryptoRandom(),firstName,lastName,age,grade,experience,special,classPeriod:''});
       }
       saveStudents(list); renderStudents(); closeModal();
     }
 
     function removeStudent(id){
-      if (!confirm('Remove this student?')) return;
-      saveStudents(loadStudents().filter(s => s.id !== id));
-      saveCart(loadCart().filter(x => x !== id)); // also out of cart
+      if(!confirm('Remove this student?')) return;
+      saveStudents(loadStudents().filter(s=>s.id!==id));
+      saveCart(loadCart().filter(x=>x!==id));
       renderStudents();
     }
 
-    function setClassPeriod(id, period){
-      const list = loadStudents(); const i = list.findIndex(s => s.id === id);
-      if (i>-1){ list[i].classPeriod = period; saveStudents(list); }
+    function setClassPeriod(id,period){
+      const list=loadStudents(); const i=list.findIndex(s=>s.id===id);
+      if(i>-1){ list[i].classPeriod = period; saveStudents(list); }
       renderStudents();
     }
 
-    // ---------- CART ----------
+    /* ====== CART ====== */
     function addToCart(id){
-      const s = loadStudents().find(x=>x.id===id);
-      if (!s || !s.classPeriod){ alert('Please select a class period first.'); return; }
-      const cart = loadCart(); if (!cart.includes(id)){ cart.push(id); saveCart(cart); }
+      const s=loadStudents().find(x=>x.id===id);
+      if(!s || !s.classPeriod){ alert('Please select a class period first.'); return; }
+      const cart=loadCart(); if(!cart.includes(id)){ cart.push(id); saveCart(cart); }
       renderCart(); renderStudents();
     }
     function requireClassThenAdd(id){
-      const s = loadStudents().find(x=>x.id===id);
-      if (!s || !s.classPeriod){ alert('Select a class period first, then add to cart.'); return; }
+      const s=loadStudents().find(x=>x.id===id);
+      if(!s || !s.classPeriod){ alert('Select a class period first, then add to cart.'); return; }
       addToCart(id);
     }
-    function removeFromCart(id){ saveCart(loadCart().filter(x => x !== id)); renderCart(); renderStudents(); }
+    function removeFromCart(id){ saveCart(loadCart().filter(x=>x!==id)); renderCart(); renderStudents(); }
 
     function renderCart(){
-      const cartWrap = document.getElementById('cartList');
-      const cart = loadCart();
+      const wrap=document.getElementById('cartList');
+      const cart=loadCart();
       document.getElementById('cartCount').textContent = cart.length;
 
-      if (!cart.length){ cartWrap.innerHTML = `<div class="muted">Your cart is empty.</div>`; updatePayButtons(false); updateTotals(); return; }
+      if(!cart.length){ wrap.innerHTML=`<div class="muted">Your cart is empty.</div>`; updatePayButtons(false); updateTotals(); return; }
 
-      const students = loadStudents();
-      const items = cart.map(id => students.find(s => s.id === id)).filter(Boolean);
-      const allHavePeriod = items.every(s => !!s.classPeriod);
+      const students=loadStudents(); const items=cart.map(id=>students.find(s=>s.id===id)).filter(Boolean);
+      const allHavePeriod = items.every(s=>!!s.classPeriod);
 
-      cartWrap.innerHTML = items.map(s => `
+      wrap.innerHTML = items.map(s=>`
         <div class="student-row">
           <div>
-            <div style="font-weight:800">${s.firstName} ${s.lastName}</div>
+            <div style="font-weight:900">${s.firstName} ${s.lastName}</div>
             <div class="muted">Class (Level 1): ${s.classPeriod || '<em>Not selected</em>'}</div>
           </div>
           <div class="student-actions">
@@ -549,7 +584,7 @@
           </div>
         </div>`).join('');
 
-      updatePayButtons(allHavePeriod && items.length > 0);
+      updatePayButtons(allHavePeriod && items.length>0);
       updateTotals();
     }
 
@@ -558,98 +593,85 @@
       document.getElementById('payHalfBtn').disabled = !enable;
     }
 
-    // ---------- LIVE TOTALS ----------
-    function updateTotals() {
-      const totalsBox = document.getElementById('totalsBox');
-      const cartIds = loadCart();
-      const students = loadStudents().filter(s => cartIds.includes(s.id));
-      const count = students.length;
-      const allHavePeriod = students.every(s => !!s.classPeriod);
+    /* ====== LIVE TOTALS ====== */
+    function updateTotals(){
+      const box=document.getElementById('totalsBox');
+      const ids=loadCart();
+      const students=loadStudents().filter(s=>ids.includes(s.id));
+      const count=students.length;
+      const allHavePeriod=students.every(s=>!!s.classPeriod);
 
-      const siblingDiscount = count >= 2 ? SIBLING_DISCOUNT : 0;
+      const sibling = count>=2 ? SIBLING_DISCOUNT : 0;
 
-      // Full: 670 ea, minus one-time sibling $50
-      const fullSubtotal = count * PRICE_FULL_PER;
-      const fullTotal = Math.max(0, fullSubtotal - siblingDiscount);
+      const fullSubtotal = count*PRICE_FULL_PER;
+      const fullTotal = Math.max(0, fullSubtotal - sibling);
 
-      // Half: list 720 ea, minus one-time sibling $50; split 360 now ea
-      const halfTotal = count * PRICE_LIST_PER - siblingDiscount;
-      const halfNow = count * PRICE_HALF_NOW;
+      const halfTotal = count*PRICE_LIST_PER - sibling;
+      const halfNow = count*PRICE_HALF_NOW;
       const halfLater = Math.max(0, halfTotal - halfNow);
 
-      updatePayButtons(count > 0 && allHavePeriod);
+      updatePayButtons(count>0 && allHavePeriod);
 
-      if (count === 0){ totalsBox.innerHTML = ''; return; }
+      if(count===0){ box.innerHTML=''; return; }
 
-      totalsBox.innerHTML = `
+      box.innerHTML = `
         <div class="row"><div><strong>Students in cart</strong></div><div>${count}</div></div>
 
         <div class="row"><div><strong>Pay in Full</strong> ($${PRICE_FULL_PER} ea)</div><div>$${fullSubtotal}</div></div>
-        ${siblingDiscount ? `<div class="row"><div>Sibling discount (one time)</div><div>−$${SIBLING_DISCOUNT}</div></div>` : ``}
+        ${sibling ? `<div class="row"><div>Sibling discount (one time)</div><div>−$${SIBLING_DISCOUNT}</div></div>`:''}
         <div class="row em"><div>Pay in Full – Final Total</div><div>$${fullTotal}</div></div>
 
-        <div style="height:10px;"></div>
+        <div style="height:10px"></div>
 
         <div class="row"><div><strong>Pay Half Now</strong> ($${PRICE_HALF_NOW} now ea)</div><div>$${halfNow}</div></div>
-        ${siblingDiscount ? `<div class="row"><div>Sibling discount (applied to final total)</div><div>−$${SIBLING_DISCOUNT}</div></div>` : ``}
+        ${sibling ? `<div class="row"><div>Sibling discount (applied to final total)</div><div>−$${SIBLING_DISCOUNT}</div></div>`:''}
         <div class="row"><div>Final Total (list $${PRICE_LIST_PER} ea)</div><div>$${halfTotal}</div></div>
         <div class="row em"><div>Due Oct 15</div><div>$${halfLater}</div></div>
       `;
     }
 
-    // ---------- PAYMENT (preview) ----------
+    /* ====== PAYMENT (preview only) ====== */
     function startCheckout(method){
-      const cartIds = loadCart(); if (!cartIds.length){ alert('Add at least one student to the cart.'); return; }
-      const students = loadStudents().filter(s => cartIds.includes(s.id));
-      if (students.some(s => !s.classPeriod)){ alert('Select a class period for each student in the cart.'); return; }
+      const ids=loadCart(); if(!ids.length){ alert('Add at least one student to the cart.'); return; }
+      const students=loadStudents().filter(s=>ids.includes(s.id));
+      if(students.some(s=>!s.classPeriod)){ alert('Select a class period for each student in the cart.'); return; }
 
-      const count = students.length;
-      const siblingDiscount = count >= 2 ? SIBLING_DISCOUNT : 0;
-      const fullSubtotal = count * PRICE_FULL_PER;
-      const fullTotal = Math.max(0, fullSubtotal - siblingDiscount);
-      const halfTotal = count * PRICE_LIST_PER - siblingDiscount;
-      const halfNow = count * PRICE_HALF_NOW;
+      const count=students.length; const sibling=count>=2?SIBLING_DISCOUNT:0;
+      const fullTotal = Math.max(0, count*PRICE_FULL_PER - sibling);
+      const halfTotal = count*PRICE_LIST_PER - sibling;
+      const halfNow = count*PRICE_HALF_NOW;
       const halfLater = Math.max(0, halfTotal - halfNow);
 
       const payload = {
         parent_email: currentUser?.email || '',
         method,
-        level: 'Level 1',
-        students: students.map(s => ({
-          student_name: `${s.firstName} ${s.lastName}`,
-          age: s.age, grade: s.grade, experience: s.experience, special: s.special,
-          class_period: s.classPeriod, level: 'Level 1'
-        })),
-        totals: { count, full_total: fullTotal, half_total: halfTotal, half_due_now: halfNow, half_due_oct15: halfLater }
+        level:'Level 1',
+        students: students.map(s=>({student_name:`${s.firstName} ${s.lastName}`,age:s.age,grade:s.grade,experience:s.experience,special:s.special,class_period:s.classPeriod,level:'Level 1'})),
+        totals:{count, full_total:fullTotal, half_total:halfTotal, half_due_now:halfNow, half_due_oct15:halfLater}
       };
-
       console.log('CHECKOUT PAYLOAD (preview):', payload);
-      alert(
-        method === 'full'
-          ? `Level 1 • Pay in Full\nFinal Total: $${fullTotal}`
-          : `Level 1 • Half Plan\nDue Now: $${halfNow}\nFinal Total: $${halfTotal}\nDue Oct 15: $${halfLater}\n\n(Next: connect to Stripe + Google Sheets.)`
+
+      alert(method==='full'
+        ? `Level 1 • Pay in Full\nFinal Total: $${fullTotal}`
+        : `Level 1 • Half Plan\nDue Now: $${halfNow}\nFinal Total: $${halfTotal}\nDue Oct 15: $${halfLater}\n\n(Next: Stripe + Google Sheets.)`
       );
     }
 
-    // ---------- BILLING (placeholder) ----------
+    /* ====== BILLING (placeholder) ====== */
     function renderBilling(){
       document.getElementById('billingTable').innerHTML = `<tr><td>—</td><td>No payments yet</td><td>—</td><td>—</td></tr>`;
     }
 
-    // ---------- UTIL ----------
+    /* ====== UTIL ====== */
     function cryptoRandom(){
-      if (window.crypto?.getRandomValues) { const a = new Uint32Array(2); crypto.getRandomValues(a); return a[0].toString(36) + a[1].toString(36); }
-      return Math.random().toString(36).slice(2) + Math.random().toString(36).slice(2);
+      if(window.crypto?.getRandomValues){ const a=new Uint32Array(2); crypto.getRandomValues(a); return a[0].toString(36)+a[1].toString(36); }
+      return Math.random().toString(36).slice(2)+Math.random().toString(36).slice(2);
     }
-    function escapeHtml(s){ return (s||'').replace(/[&<>"']/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m])); }
+    function escapeHtml(s){ return (s||'').replace(/[&<>"']/g, m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m])); }
 
     // Expose for inline handlers
-    window.openModal = openModal;
-    window.removeStudent = removeStudent;
-    window.setClassPeriod = setClassPeriod;
-    window.addToCart = addToCart;
-    window.removeFromCart = removeFromCart;
-    window.requireClassThenAdd = requireClassThenAdd;
+    window.openModal=openModal; window.removeStudent=removeStudent; window.setClassPeriod=setClassPeriod;
+    window.addToCart=addToCart; window.removeFromCart=removeFromCart; window.requireClassThenAdd=requireClassThenAdd;
   </script>
 </body>
 </html>
