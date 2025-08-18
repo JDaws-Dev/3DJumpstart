@@ -8,7 +8,6 @@
   <!-- Fonts & Scripts -->
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet" />
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.39.3/dist/umd/supabase.min.js"></script>
-  <script src="https://js.stripe.com/v3/"></script>
 
   <style>
     :root{
@@ -163,13 +162,13 @@
       <div class="header-content">
         <div class="logo-wrap">
           <img src="https://raw.githubusercontent.com/JDaws-Dev/3DJumpstart/main/3d-jumpstart-logo.png" alt="3D Jumpstart" class="logo-image" />
-        </div>
-
-        <div class="user-cluster">
           <div class="portal-switch">
             <a href="portal.html" class="switch-btn active">Parent Portal</a>
             <a href="student-portal.html" class="switch-btn">Student Portal</a>
           </div>
+        </div>
+
+        <div class="user-cluster">
           <span id="parent-name" class="muted">Loading…</span>
           <button class="btn btn-secondary" id="logoutBtn" type="button">Logout</button>
         </div>
@@ -196,15 +195,11 @@
       <div class="card">
         <div style="display:flex;align-items:center;justify-content:space-between;gap:12px;">
           <h2 class="card-title" style="margin:0">Your Students</h2>
-          <button class="btn btn-primary" id="addStudentBtn" type="button" onclick="openModal()">+ Add Student</button>
+          <button class="btn btn-primary" id="addStudentBtn" type="button">+ Add Student</button>
         </div>
         <div id="studentsList" class="grid" style="margin-top:12px;"></div>
       </div>
 
-
-
- 
-      
       <div class="card">
         <div class="pay-banner">
           <span>Level 1 • 12-week course • $60/class</span>
@@ -247,7 +242,6 @@
         </div>
       </div>
 
-      <!-- Schedule + Dates in one card -->
       <div class="card">
         <h2 class="card-title">Level 1 Schedule (12 Weeks)</h2>
         <ul class="muted" style="line-height:1.9; margin:0 0 1rem;">
@@ -334,7 +328,7 @@
     <section id="tab-billing" class="tab-content">
       <div class="card">
         <h2 class="card-title">Billing & Payments</h2>
-          <div id="paymentBox"></div>
+        <div id="paymentBox"></div>
         <table style="width:100%;border-collapse:collapse">
           <thead>
             <tr><th style="text-align:left;padding:.75rem;border-bottom:1px solid var(--line)">Date</th><th style="text-align:left;padding:.75rem;border-bottom:1px solid var(--line)">Description</th><th style="text-align:left;padding:.75rem;border-bottom:1px solid var(--line)">Amount</th><th style="text-align:left;padding:.75rem;border-bottom:1px solid var(--line)">Status</th></tr>
@@ -404,8 +398,10 @@
   <script>
     /* ====== CONFIG ====== */
     const SUPABASE_URL = 'https://hucjmggkasahwpjgnwia.supabase.co';
-    const SUPABASE_ANON_KEY = 'REPLACE_WITH_YOUR_PUBLIC_ANON_KEY'; // auth-only
-    const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+    const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imh1Y2ptZ2drYXNhaHdwamdud2lhIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTQ2MTI2MDIsImV4cCI6MjA3MDE4ODYwMn0.hxFmoZexaKverih9crJfP9fjWItOTfC_6D_CM7hr_Rg'; // TODO: paste your anon key
+    const CREATE_CHECKOUT_URL = 'https://hucjmggkasahwpjgnwia.supabase.co/functions/v1/create-checkout';
+
+    const sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
     // Class periods (Level 1) — store by id; show label with grade ranges
     const CLASS_PERIODS = [
@@ -423,25 +419,9 @@
     const PRICE_HALF_NOW = 360;   // due now per student
     const SIBLING_DISCOUNT = 50;  // one-time off second child
 
-    /* ====== WHAT TO STORE IN DB (reference for backend) ======
-    Parent (from auth): { parent_id: user.id, email: user.email }
-    Student: { id, parent_id, first_name, last_name, age, grade, experience, special }
-    Enrollment (per student): { student_id, class_period_id, class_time, level, season:'Fall 2025' }
-    Order/Checkout: {
-      parent_id, method: 'full'|'half', items:[{student_id, class_period_id}],
-      totals:{ count, full_total, half_total, half_due_now, half_due_oct15 }
-    }
-    ========================================================== */
-
     /* ====== STATE ====== */
     let currentUser = null;
     let editingId = null;
-    const studentsKey = 'portal.students.v2';
-    const cartKey = 'portal.cart.v2';
-    const loadStudents = () => JSON.parse(localStorage.getItem(studentsKey) || '[]');
-    const saveStudents = (arr) => localStorage.setItem(studentsKey, JSON.stringify(arr));
-    const loadCart = () => JSON.parse(localStorage.getItem(cartKey) || '[]');
-    const saveCart = (arr) => localStorage.setItem(cartKey, JSON.stringify(arr));
 
     /* ====== HELPERS: Grade ↔ class eligibility ====== */
     function gradeToNum(gradeStr){
@@ -455,24 +435,22 @@
     }
     function periodById(id){ return CLASS_PERIODS.find(p=>p.id===id); }
 
-    /* ====== BOOT ====== */
+    /* ====== AUTH BOOT ====== */
     document.addEventListener('DOMContentLoaded', () => {
       (async () => {
-        const { data: { session } } = await supabase.auth.getSession();
+        const { data: { session } } = await sb.auth.getSession();
         if (!session){ window.location.href = 'login.html'; return; }
         currentUser = session.user;
         document.getElementById('parent-name').textContent = currentUser.email || 'Parent';
 
         bindUI();
         populateDropdowns();
-        renderStudents();
-        renderCart();
-        updateTotals();
+        await render();
       })().catch(console.error);
     });
 
     document.getElementById('logoutBtn').addEventListener('click', async () => {
-      await supabase.auth.signOut();
+      await sb.auth.signOut();
       window.location.href = 'login.html';
     });
 
@@ -507,182 +485,176 @@
       GRADE_OPTIONS.forEach(v=>{ const o=document.createElement('option'); o.value=v; o.textContent=v; grade.appendChild(o); });
     }
 
-    /* ====== STUDENTS ====== */
-    function renderStudents(){
+    /* ====== SUPABASE: STUDENTS ====== */
+    async function sbListStudents() {
+      const { data, error } = await sb.from('students').select('*').eq('parent_id', currentUser.id).order('created_at');
+      if (error) throw error;
+      return data || [];
+    }
+
+    async function sbSaveStudent(row) {
+      const base = {
+        parent_id: currentUser.id,
+        first_name: row.first_name,
+        last_name: row.last_name,
+        age: Number(row.age),
+        grade: row.grade,
+        experience: row.experience,
+        special: row.special || null,
+      };
+      const { data, error } = row.id
+        ? await sb.from('students').update(base).eq('id', row.id).select().single()
+        : await sb.from('students').insert(base).select().single();
+      if (error) throw error;
+      return data;
+    }
+
+    async function sbDeleteStudent(studentId) {
+      const { error } = await sb.from('students').delete().eq('id', studentId);
+      if (error) throw error;
+    }
+
+    /* ====== SUPABASE: ENROLLMENTS (CART) ====== */
+    async function sbUpsertEnrollment(student, classPeriodId) {
+      const p = periodById(classPeriodId);
+      const row = {
+        parent_id: currentUser.id,
+        student_id: student.id,
+        level: 'Level 1',
+        season: 'Fall 2025',
+        class_period_id: p?.id || null,
+        class_time: p?.time || null,
+        payment_plan: 'full',   // final plan decided at checkout
+        amount_list: 720,
+        status: 'cart'
+      };
+      const { data, error } = await sb
+        .from('enrollments')
+        .upsert(row, { onConflict: 'student_id,season' })
+        .select()
+        .single();
+      if (error) throw error;
+      return data;
+    }
+
+    async function sbListCart() {
+      const { data, error } = await sb
+        .from('enrollments')
+        .select('*')
+        .eq('parent_id', currentUser.id)
+        .eq('status', 'cart')
+        .not('class_period_id', 'is', null)
+        .order('created_at');
+      if (error) throw error;
+      return data || [];
+    }
+
+    /* ====== RENDER ====== */
+    async function render() {
+      const [students, cart] = await Promise.all([sbListStudents(), sbListCart()]);
+      renderStudents(students, cart);
+      renderCart(cart, students);
+      updateTotals(cart);
+    }
+
+    function renderStudents(list){
       const wrap = document.getElementById('studentsList');
-      const list = loadStudents();
 
       if (!list.length){
         wrap.innerHTML = `
           <div class="card pop-in" style="text-align:center;background:#f8fafc;border:1px dashed var(--line)">
             <p class="muted" style="margin:.25rem 0 1rem;">No students yet.</p>
-            <button class="btn btn-primary" type="button" onclick="openModal()">+ Add Your First Student</button>
+            <button class="btn btn-primary" type="button" id="ctaAddFirst">+ Add Your First Student</button>
           </div>`;
-        renderCart(); updateTotals(); return;
+        document.getElementById('ctaAddFirst')?.addEventListener('click', openModal);
+        return;
       }
 
       wrap.innerHTML = list.map(s=>{
         const allowed = allowedPeriodsForGrade(s.grade);
-        // Build options, showing label (includes grade grouping)
         let options = `<option value="">Select a period</option>`;
-        options += allowed.map(p=>`<option value="${p.id}" ${s.classPeriodId===p.id?'selected':''}>${p.label}</option>`).join('');
-
-        // If saved class no longer allowed (grade changed), clear it
-        if (s.classPeriodId && !allowed.some(p=>p.id===s.classPeriodId)) {
-          s.classPeriodId = ''; s.classPeriodLabel = '';
-          const all = loadStudents(); const idx = all.findIndex(x=>x.id===s.id);
-          if (idx>-1){ all[idx] = s; saveStudents(all); }
-        }
-
-        const inClass = !!s.classPeriodId;
-        const inCart = loadCart().includes(s.id);
-        const status = inClass ? `<span class="badge badge-good">In Class</span>` : `<span class="badge badge-warn">Not in Class</span>`;
-        const needsGradeMsg = allowed.length===0 ? `<div class="muted" style="margin-top:.35rem;">No class available for grade <strong>${s.grade}</strong>.</div>` : '';
-        const actionBtn = inClass
-          ? (inCart ? `<button class="btn btn-muted" type="button" onclick="removeFromCart('${s.id}')">Remove from Cart</button>`
-                    : `<button class="btn btn-primary" type="button" onclick="addToCart('${s.id}')">Add to Cart</button>`)
-          : (allowed.length
-              ? `<button class="btn btn-primary" type="button" onclick="requireClassThenAdd('${s.id}')">Select Class & Add</button>`
-              : `<button class="btn btn-primary" type="button" disabled title="No class available for this grade">Select Class & Add</button>` );
+        options += allowed.map(p=>`<option value="${p.id}">${p.label}</option>`).join('');
 
         return `
           <div class="student-row pop-in" data-id="${s.id}">
             <div>
               <div style="display:flex;align-items:center;gap:.5rem">
-                <div style="font-weight:900;font-size:1.05rem">${s.firstName} ${s.lastName}</div>
-                ${status}
+                <div style="font-weight:900;font-size:1.05rem">${s.first_name} ${s.last_name}</div>
               </div>
               <div class="student-meta">
                 Age ${s.age} • Grade ${s.grade} • ${s.experience}
                 ${s.special ? `<br/><span class="muted">Notes:</span> ${escapeHtml(s.special)}` : ''}
-                ${s.classPeriodLabel ? `<br/><span class="muted">Class:</span> ${s.classPeriodLabel}` : ''}
               </div>
               <div class="field" style="margin-top:.4rem;max-width:420px">
                 <label class="label">Class Period (Level 1)</label>
-                <select class="select" onchange="setClassPeriod('${s.id}', this.value)">
+                <select class="select classSelect" data-student="${s.id}">
                   ${options}
                 </select>
-                ${needsGradeMsg}
+                ${!allowed.length ? `<div class="muted" style="margin-top:.35rem;">No class available for grade <strong>${s.grade}</strong>.</div>` : ''}
               </div>
             </div>
             <div class="student-actions">
-              ${actionBtn}
-              <button class="btn btn-muted" type="button" onclick="openModal('${s.id}')">Edit</button>
-              <button class="btn btn-danger" type="button" onclick="removeStudent('${s.id}')">Remove</button>
+              <button class="btn btn-muted btn-edit" data-id="${s.id}" type="button">Edit</button>
+              <button class="btn btn-danger btn-remove" data-id="${s.id}" type="button">Remove</button>
             </div>
           </div>`;
       }).join('');
 
-      renderCart(); updateTotals();
+      // Wire selects & buttons
+      wrap.querySelectorAll('.classSelect').forEach(sel => {
+        sel.addEventListener('change', async (e) => {
+          const studentId = e.target.getAttribute('data-student');
+          const period = e.target.value;
+          if (!period) return;
+          const { data: student } = await sb.from('students').select('*').eq('id', studentId).single();
+          // grade guard
+          const allowed = allowedPeriodsForGrade(student.grade).map(p=>p.id);
+          if (!allowed.includes(period)) {
+            alert(`Selected class period isn’t available for grade ${student.grade}.`);
+            e.target.value = '';
+            return;
+          }
+          await sbUpsertEnrollment(student, period);
+          toast('Added to cart');
+          await render();
+        });
+      });
+
+      wrap.querySelectorAll('.btn-edit').forEach(btn=>{
+        btn.addEventListener('click', () => openModal(btn.dataset.id));
+      });
+      wrap.querySelectorAll('.btn-remove').forEach(btn=>{
+        btn.addEventListener('click', async () => {
+          if(!confirm('Remove this student?')) return;
+          await sbDeleteStudent(btn.dataset.id);
+          await render();
+        });
+      });
     }
 
-    /* ====== MODAL ====== */
-    function openModal(id=null){
-      editingId = id;
-      document.getElementById('modalTitle').textContent = id ? 'Edit Student' : 'Add Student';
-      const s = id ? loadStudents().find(x=>x.id===id)
-                   : {id:'',firstName:'',lastName:'',age:AGE_OPTIONS[0],grade:GRADE_OPTIONS[0],experience:'Beginner',special:'',classPeriodId:'',classPeriodLabel:''};
-      firstName.value=s.firstName||''; lastName.value=s.lastName||'';
-      age.value=s.age||AGE_OPTIONS[0]; grade.value=s.grade||GRADE_OPTIONS[0];
-      experience.value=s.experience||'Beginner'; special.value=s.special||'';
-      document.getElementById('studentModal').classList.add('show');
-    }
-    function closeModal(){ document.getElementById('studentModal').classList.remove('show'); editingId=null; }
-
-    function saveStudentFromModal(){
-      const firstName = document.getElementById('firstName').value.trim();
-      const lastName  = document.getElementById('lastName').value.trim();
-      const age       = document.getElementById('age').value;
-      const grade     = document.getElementById('grade').value;
-      const experience= document.getElementById('experience').value;
-      const special   = document.getElementById('special').value.trim();
-      if(!firstName || !lastName || !age || !grade){ alert('Please complete First/Last, Age, and Grade.'); return; }
-
-      const list = loadStudents();
-      if(editingId){
-        const i=list.findIndex(x=>x.id===editingId);
-        if(i>-1){ list[i]={...list[i],firstName,lastName,age,grade,experience,special};}
-      }else{
-        list.push({id:cryptoRandom(),firstName,lastName,age,grade,experience,special,classPeriodId:'',classPeriodLabel:''});
-      }
-      saveStudents(list); renderStudents(); closeModal();
-    }
-
-    function removeStudent(id){
-      if(!confirm('Remove this student?')) return;
-      saveStudents(loadStudents().filter(s=>s.id!==id));
-      saveCart(loadCart().filter(x=>x!==id));
-      renderStudents();
-    }
-
-    function setClassPeriod(id,periodId){
-      const list=loadStudents(); const i=list.findIndex(s=>s.id===id);
-      if(i>-1){
-        const allowed = allowedPeriodsForGrade(list[i].grade);
-        if (periodId && !allowed.some(p=>p.id===periodId)){
-          alert(`Selected class period isn’t available for grade ${list[i].grade}.`);
-          renderStudents(); // reset the select
-          return;
-        }
-        const p = periodById(periodId);
-        list[i].classPeriodId = p ? p.id : '';
-        list[i].classPeriodLabel = p ? p.label : '';
-        saveStudents(list);
-      }
-      renderStudents();
-    }
-
-    /* ====== CART ====== */
-    function toast(msg, ok=true){
-      const t=document.getElementById('toast');
-      document.getElementById('toastIcon').textContent = ok?'✅':'✖️';
-      document.getElementById('toastMsg').textContent = msg;
-      t.classList.remove('hide'); t.classList.add('show');
-      setTimeout(()=>{ t.classList.add('hide'); t.classList.remove('show'); }, 1600);
-    }
-
-    function addToCart(id){
-      const s=loadStudents().find(x=>x.id===id);
-      if(!s || !s.classPeriodId){ alert('Please select a class period first.'); return; }
-      const allowed = allowedPeriodsForGrade(s.grade);
-      if (!allowed.some(p=>p.id===s.classPeriodId)){
-        alert(`For grade ${s.grade}, available class is: ${allowed.map(a=>a.time).join(' or ') || '—'}.`);
-        return;
-      }
-      const cart=loadCart(); if(!cart.includes(id)){ cart.push(id); saveCart(cart); toast('Added to cart'); }
-      renderCart(); renderStudents();
-    }
-    function requireClassThenAdd(id){
-      const s=loadStudents().find(x=>x.id===id);
-      if(!s || !s.classPeriodId){ alert('Select a class period first, then add to cart.'); return; }
-      addToCart(id);
-    }
-    function removeFromCart(id){ saveCart(loadCart().filter(x=>x!==id)); toast('Removed from cart'); renderCart(); renderStudents(); }
-
-    function renderCart(){
+    function renderCart(cart, students){
       const wrap=document.getElementById('cartList');
-      const cart=loadCart();
       document.getElementById('cartCount').textContent = cart.length;
 
-      if(!cart.length){ wrap.innerHTML=`<div class="muted">Your cart is empty.</div>`; updatePayButtons(false); updateTotals(); return; }
+      if(!cart.length){ wrap.innerHTML=`<div class="muted">Your cart is empty.</div>`; updatePayButtons(false); return; }
 
-      const students=loadStudents(); const items=cart.map(id=>students.find(s=>s.id===id)).filter(Boolean);
-      const allHavePeriod = items.every(s=>!!s.classPeriodId);
+      wrap.innerHTML = cart.map(e=>{
+        const s = students.find(x=>x.id===e.student_id);
+        return `
+          <div class="student-row pop-in">
+            <div>
+              <div style="font-weight:900">${s ? `${s.first_name} ${s.last_name}` : 'Student'}</div>
+              <div class="muted">Class (Level 1): ${e.class_time || '<em>Not selected</em>'}</div>
+            </div>
+            <div class="student-actions">
+              <button class="btn btn-muted" type="button" onclick="openModal('${e.student_id}')">Edit</button>
+              <button class="btn btn-danger" type="button" onclick="removeFromCart('${e.id}')">Remove</button>
+            </div>
+          </div>`;
+      }).join('');
 
-      wrap.innerHTML = items.map(s=>`
-        <div class="student-row pop-in">
-          <div>
-            <div style="font-weight:900">${s.firstName} ${s.lastName}</div>
-            <div class="muted">Class (Level 1): ${s.classPeriodLabel || '<em>Not selected</em>'}</div>
-          </div>
-          <div class="student-actions">
-            <button class="btn btn-muted" type="button" onclick="openModal('${s.id}')">Edit</button>
-            <button class="btn btn-danger" type="button" onclick="removeFromCart('${s.id}')">Remove</button>
-          </div>
-        </div>`).join('');
-
-      updatePayButtons(allHavePeriod && items.length>0);
-      updateTotals();
+      const allHavePeriod = cart.every(e=>!!e.class_period_id);
+      updatePayButtons(allHavePeriod && cart.length>0);
     }
 
     function updatePayButtons(enable){
@@ -691,12 +663,9 @@
     }
 
     /* ====== LIVE TOTALS ====== */
-    function updateTotals(){
+    function updateTotals(cart){
       const wrap=document.getElementById('totalsWrap');
-      const ids=loadCart();
-      const students=loadStudents().filter(s=>ids.includes(s.id));
-      const count=students.length;
-      const allHavePeriod=students.every(s=>!!s.classPeriodId);
+      const count=cart.length;
 
       const sibling = count>=2 ? SIBLING_DISCOUNT : 0;
 
@@ -706,8 +675,6 @@
       const halfTotal = count*PRICE_LIST_PER - sibling;
       const halfNow = count*PRICE_HALF_NOW;
       const halfLater = Math.max(0, halfTotal - halfNow);
-
-      updatePayButtons(count>0 && allHavePeriod);
 
       if(count===0){ wrap.innerHTML=''; return; }
 
@@ -738,362 +705,104 @@
         </div>`;
     }
 
-    /* ====== PAYMENT (preview only) ====== */
-    function startCheckout(method){
-      const ids=loadCart(); if(!ids.length){ alert('Add at least one student to the cart.'); return; }
-      const students=loadStudents().filter(s=>ids.includes(s.id));
-      if(students.some(s=>!s.classPeriodId)){ alert('Select a class period for each student in the cart.'); return; }
+    /* ====== CHECKOUT ====== */
+    async function startCheckout(method /* 'full' | 'half' */) {
+      try {
+        const cart = await sbListCart();
+        if (!cart.length) { alert('Add at least one student to the cart.'); return; }
+        if (cart.some(e=>!e.class_period_id)) { alert('Select a class period for each student.'); return; }
 
-      const count=students.length; const sibling=count>=2?SIBLING_DISCOUNT:0;
-      const fullTotal = Math.max(0, count*PRICE_FULL_PER - sibling);
-      const halfTotal = count*PRICE_LIST_PER - sibling;
-      const halfNow = count*PRICE_HALF_NOW;
-      const halfLater = Math.max(0, halfTotal - halfNow);
+        // enrich with names
+        const ids = [...new Set(cart.map(e => e.student_id))];
+        const { data: students } = await sb.from('students').select('id,first_name,last_name').in('id', ids);
 
-      const payload = {
-        parent_id: currentUser?.id || null,
-        parent_email: currentUser?.email || '',
-        method,
-        level:'Level 1',
-        items: students.map(s=>{
-          const p = periodById(s.classPeriodId);
+        const enrollments = cart.map(e => {
+          const s = students?.find(st => st.id === e.student_id);
           return {
-            student_id: s.id,
-            student_name:`${s.firstName} ${s.lastName}`,
-            age:s.age, grade:s.grade, experience:s.experience, special:s.special,
-            class_period_id: p?.id || '', class_time: p?.time || '', level: p?.level || 'Level 1'
+            enrollment_id: e.id,
+            student_id: e.student_id,
+            student_name: s ? `${s.first_name} ${s.last_name}` : '',
+            class_period_id: e.class_period_id,
+            class_time: e.class_time,
+            level: e.level || 'Level 1'
           };
-        }),
-        totals:{count, full_total:fullTotal, half_total:halfTotal, half_due_now:halfNow, half_due_oct15:halfLater}
-      };
-      console.log('CHECKOUT PAYLOAD (preview):', payload);
+        });
 
-      alert(method==='full'
-        ? `Level 1 • Pay in Full\nFinal Total: $${fullTotal}`
-        : `Level 1 • Half Plan\nDue Now: $${halfNow}\nFinal Total: $${halfTotal}\nDue Oct 15: $${halfLater}\n\n(Next: Stripe + Google Sheets.)`
-      );
+        const res = await fetch(CREATE_CHECKOUT_URL, {
+          method: 'POST',
+          headers: { 'Content-Type':'application/json' },
+          body: JSON.stringify({
+            parent_id: currentUser.id,
+            parent_email: currentUser.email,
+            method,
+            enrollments,
+            return_base_url: window.location.origin
+          })
+        });
+
+        if (!res.ok) {
+          const msg = await res.text();
+          console.error('Checkout error:', msg);
+          alert('Checkout error: ' + msg);
+          return;
+        }
+
+        const { url } = await res.json();
+        window.location.href = url; // → Stripe Checkout
+      } catch (err) {
+        console.error(err);
+        alert('Could not start checkout.');
+      }
     }
 
-    /* ====== UTIL ====== */
-    function cryptoRandom(){
-      if(window.crypto?.getRandomValues){ const a=new Uint32Array(2); crypto.getRandomValues(a); return a[0].toString(36)+a[1].toString(36); }
-      return Math.random().toString(36).slice(2)+Math.random().toString(36).slice(2);
+    /* ====== MODAL (Add/Edit Student) ====== */
+    function openModal(id=null){
+      editingId = id;
+      document.getElementById('modalTitle').textContent = id ? 'Edit Student' : 'Add Student';
+      (async ()=>{
+        let s = null;
+        if (id){
+          const { data } = await sb.from('students').select('*').eq('id', id).single();
+          s = data;
+        }
+        firstName.value=s?.first_name||''; lastName.value=s?.last_name||'';
+        age.value=s?.age||AGE_OPTIONS[0]; grade.value=s?.grade||GRADE_OPTIONS[0];
+        experience.value=s?.experience||'Beginner'; special.value=s?.special||'';
+        document.getElementById('studentModal').classList.add('show');
+      })();
+    }
+    function closeModal(){ document.getElementById('studentModal').classList.remove('show'); editingId=null; }
+
+    async function saveStudentFromModal(){
+      const first = document.getElementById('firstName').value.trim();
+      const last  = document.getElementById('lastName').value.trim();
+      const age   = document.getElementById('age').value;
+      const grade = document.getElementById('grade').value;
+      const exp   = document.getElementById('experience').value;
+      const spec  = document.getElementById('special').value.trim();
+      if(!first || !last || !age || !grade){ alert('Please complete First/Last, Age, and Grade.'); return; }
+
+      await sbSaveStudent({ id:editingId, first_name:first, last_name:last, age, grade, experience:exp, special:spec });
+      closeModal();
+      await render();
+    }
+
+    async function removeFromCart(enrollmentId) {
+      if (!confirm('Remove from cart?')) return;
+      const { error } = await sb.from('enrollments').delete().eq('id', enrollmentId);
+      if (error) alert(error.message);
+      await render();
+    }
+
+    /* ====== UTILS ====== */
+    function toast(msg, ok=true){
+      const t=document.getElementById('toast');
+      document.getElementById('toastIcon').textContent = ok?'✅':'✖️';
+      document.getElementById('toastMsg').textContent = msg;
+      t.classList.remove('hide'); t.classList.add('show');
+      setTimeout(()=>{ t.classList.add('hide'); t.classList.remove('show'); }, 1600);
     }
     function escapeHtml(s){ return (s||'').replace(/[&<>"']/g, m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m])); }
-
-    // Expose for inline handlers
-    window.openModal=openModal; window.removeStudent=removeStudent; window.setClassPeriod=setClassPeriod;
-    window.addToCart=addToCart; window.removeFromCart=removeFromCart; window.requireClassThenAdd=requireClassThenAdd;
   </script>
-
-<script>
-// ================== CONFIG ==================
-const SUPABASE_URL = 'https://hucjmggkasahwpjgnwia.supabase.co';
-const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imh1Y2ptZ2drYXNhaHdwamdud2lhIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTQ2MTI2MDIsImV4cCI6MjA3MDE4ODYwMn0.hxFmoZexaKverih9crJfP9fjWItOTfC_6D_CM7hr_Rg
-';
-const CREATE_CHECKOUT_URL = 'https://hucjmggkasahwpjgnwia.supabase.co/functions/v1/create-checkout';
-
-const sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-
-// Class periods (UI label + stable id)
-const CLASS_PERIODS = [
-  { id: 'tue_430', label: 'Tuesday 4:30–5:30 (Grades 4–7)' },
-  { id: 'tue_530', label: 'Tuesday 5:30–6:30 (Grades 8–12)' }
-];
-
-// ================== UTILITIES ==================
-function allowedPeriodsForGrade(gradeText) {
-  const n = parseInt(gradeText, 10);
-  if (n >= 4 && n <= 7) return ['tue_430'];
-  if (n >= 8 && n <= 12) return ['tue_530'];
-  return [];
-}
-function classLabel(id) {
-  const c = CLASS_PERIODS.find(x => x.id === id);
-  return c ? c.label : '';
-}
-
-// Discounts/price math
-function computeTotals(cartCount) {
-  // Pay in full: $670 each, with $50 off the second child (applies once)
-  const PER_FULL = 670;
-  let fullTotal = cartCount * PER_FULL;
-  if (cartCount >= 2) fullTotal -= 50;
-
-  // Pay half now: $360 each (deposit now). (Sibling discount does not change deposit.)
-  const halfNow = cartCount * 360;
-  // You may apply sibling discount to the second payment later via invoice if desired.
-
-  return { fullTotal, halfNow, listTotal: cartCount * 720 };
-}
-
-// ================== STUDENTS ==================
-async function sbCurrentUser() {
-  const { data: { user } } = await sb.auth.getUser();
-  if (!user) throw new Error('Not signed in');
-  return user;
-}
-
-async function sbListStudents() {
-  const user = await sbCurrentUser();
-  const { data, error } = await sb.from('students').select('*').eq('parent_id', user.id).order('created_at');
-  if (error) throw error;
-  return data || [];
-}
-
-async function sbSaveStudent(s) {
-  const user = await sbCurrentUser();
-  const row = {
-    id: s.id || undefined,
-    parent_id: user.id,
-    first_name: s.first_name,
-    last_name: s.last_name,
-    age: Number(s.age),
-    grade: s.grade,
-    experience: s.experience,
-    special: s.special || null,
-  };
-  const { data, error } = s.id
-    ? await sb.from('students').update(row).eq('id', s.id).select().single()
-    : await sb.from('students').insert(row).select().single();
-  if (error) throw error;
-  return data;
-}
-
-async function sbDeleteStudent(studentId) {
-  const { error } = await sb.from('students').delete().eq('id', studentId);
-  if (error) throw error;
-}
-
-// ================== ENROLLMENTS (CART) ==================
-async function sbUpsertEnrollment(student, classPeriodId) {
-  const user = await sbCurrentUser();
-  const label = classLabel(classPeriodId);
-  const row = {
-    parent_id: user.id,
-    student_id: student.id,
-    level: 'Level 1',
-    season: 'Fall 2025',
-    class_period_id: classPeriodId,
-    class_time: label,
-    payment_plan: 'full',   // default; final choice at checkout
-    amount_list: 720,
-    status: 'cart'
-  };
-  const { data, error } = await sb
-    .from('enrollments')
-    .upsert(row, { onConflict: 'student_id,season' })
-    .select()
-    .single();
-  if (error) throw error;
-  return data;
-}
-
-async function sbListCart() {
-  const user = await sbCurrentUser();
-  const { data, error } = await sb
-    .from('enrollments')
-    .select('*')
-    .eq('parent_id', user.id)
-    .eq('status', 'cart')
-    .not('class_period_id', 'is', null)
-    .order('created_at');
-  if (error) throw error;
-  return data || [];
-}
-
-// ================== CHECKOUT ==================
-async function startCheckout(method /* 'full' | 'half' */) {
-  const user = await sbCurrentUser();
-  const cart = await sbListCart();
-  if (!cart.length) { alert('No students in cart'); return; }
-
-  // enrich with names
-  const ids = [...new Set(cart.map(e => e.student_id))];
-  const { data: students } = await sb.from('students').select('id,first_name,last_name').in('id', ids);
-
-  const enrollments = cart.map(e => {
-    const s = students?.find(st => st.id === e.student_id);
-    return {
-      enrollment_id: e.id,
-      student_id: e.student_id,
-      student_name: s ? `${s.first_name} ${s.last_name}` : '',
-      class_period_id: e.class_period_id,
-      class_time: e.class_time,
-      level: e.level || 'Level 1'
-    };
-  });
-
-  const res = await fetch(CREATE_CHECKOUT_URL, {
-    method: 'POST',
-    headers: { 'Content-Type':'application/json' },
-    body: JSON.stringify({
-      parent_id: user.id,
-      parent_email: user.email,
-      method,
-      enrollments,
-      return_base_url: window.location.origin
-    })
-  });
-  if (!res.ok) { alert(await res.text()); return; }
-  const { url } = await res.json();
-  window.location.href = url;
-}
-
-// ================== UI WIRING ==================
-// These expect you have simple containers in your HTML:
-// <div id="studentsList"></div>
-// <div id="paymentBox"></div>
-
-async function render() {
-  const students = await sbListStudents();
-  const cart = await sbListCart();
-  renderStudents(students, cart);
-  renderPayment(cart, students);
-}
-
-function renderStudents(students, cart) {
-  const el = document.getElementById('studentsList');
-  if (!el) return;
-  el.innerHTML = students.map(s => {
-    const allowed = allowedPeriodsForGrade(s.grade);
-    const sel = `
-      <select data-student="${s.id}" class="classSelect">
-        <option value="">Select class…</option>
-        ${CLASS_PERIODS
-          .filter(c => allowed.includes(c.id))
-          .map(c => `<option value="${c.id}">${c.label}</option>`).join('')}
-      </select>`;
-    const inCart = cart.find(e => e.student_id === s.id);
-    return `
-      <div class="student-card">
-        <div><strong>${s.first_name} ${s.last_name}</strong> • Age ${s.age} • Grade ${s.grade} • ${s.experience}</div>
-        <div class="muted">Notes: ${s.special || '—'}</div>
-        <div style="margin-top:.5rem">${sel}</div>
-        ${inCart ? `<div class="badge" style="margin-top:.5rem">In Cart: ${inCart.class_time}</div>` : ''}
-        <div style="margin-top:.5rem;display:flex;gap:.5rem">
-          <button class="btn btn-muted" onclick="editStudent('${s.id}')">Edit</button>
-          <button class="btn btn-danger" onclick="removeStudent('${s.id}')">Remove</button>
-        </div>
-      </div>`;
-  }).join('') + `
-    <div style="margin-top:1rem">
-      <button class="btn" onclick="openAddStudent()">+ Add Student</button>
-    </div>`;
-
-  // attach change handlers
-  el.querySelectorAll('.classSelect').forEach(sel => {
-    sel.addEventListener('change', async (e) => {
-      const studentId = e.target.getAttribute('data-student');
-      const period = e.target.value;
-      if (!period) return;
-      const { data: student } = await sb.from('students').select('*').eq('id', studentId).single();
-      // guard by grade
-      const allowed = allowedPeriodsForGrade(student.grade);
-      if (!allowed.includes(period)) {
-        alert('This class time is not available for the student’s grade.');
-        e.target.value = '';
-        return;
-      }
-      await sbUpsertEnrollment(student, period);
-      await render();
-    });
-  });
-}
-
-function renderPayment(cart, students) {
-  const box = document.getElementById('paymentBox');
-  if (!box) return;
-
-  const count = cart.length;
-  const { fullTotal, halfNow, listTotal } = computeTotals(count);
-
-  const cartLines = cart.map(e => {
-    const s = students.find(x => x.id === e.student_id);
-    return `<div class="cart-line">
-      <div><strong>${s ? `${s.first_name} ${s.last_name}` : 'Student'}</strong></div>
-      <div class="muted">${e.class_time}</div>
-      <button class="btn btn-danger btn-sm" onclick="removeFromCart('${e.id}')">Remove</button>
-    </div>`;
-  }).join('') || `<div class="muted">Your cart is empty.</div>`;
-
-  box.innerHTML = `
-    <div class="card">
-      <div class="card-header" style="display:flex;justify-content:space-between;align-items:center">
-        <strong>Level 1 • 12-week course • $60/class</strong>
-        <span class="muted">List total: $${listTotal.toLocaleString()}</span>
-      </div>
-      <div class="card-body">
-        <div class="muted" style="margin-bottom:.5rem">
-          • Pick a class period per student, then add to cart.<br>
-          • <strong>Pay in Full:</strong> $670 per student (save $50 vs $720 list).<br>
-          • <strong>Pay Half Now:</strong> $360 per student now; remainder due Oct 15.<br>
-          • <strong>Sibling discount:</strong> $50 off the second child (applies once).
-        </div>
-        <div style="margin-bottom:1rem">${cartLines}</div>
-        <div class="totals">
-          <div><strong>Pay in Full — Final Total</strong>: $${fullTotal.toLocaleString()}</div>
-          <div class="muted">You save $50 vs $720 list; plus $50 off the second child.</div>
-          <div style="height:.5rem"></div>
-          <div><strong>Pay Half Now</strong>: $${halfNow.toLocaleString()} <span class="muted">(due now)</span></div>
-          <div class="muted">Second payment due Oct 15 (sibling discount applied on final balance).</div>
-        </div>
-        <div style="margin-top:1rem;display:flex;gap:.5rem">
-          <button class="btn" onclick="startCheckout('full')" ${count? '' : 'disabled'}>Pay In Full</button>
-          <button class="btn btn-muted" onclick="startCheckout('half')" ${count? '' : 'disabled'}>Pay Half Now</button>
-        </div>
-      </div>
-    </div>`;
-}
-
-// ================== SIMPLE MODAL HOOKS (stub) ==================
-// Wire these into your existing modal UI.
-async function openAddStudent() {
-  // Replace with your modal; for quick test:
-  const first = prompt('First name?'); if (!first) return;
-  const last = prompt('Last name?'); if (!last) return;
-  const age = prompt('Age?'); if (!age) return;
-  const grade = prompt('Grade (e.g., 4th, 7th, 10th)?'); if (!grade) return;
-  const experience = 'Beginner';
-  const special = '';
-  await sbSaveStudent({ first_name:first, last_name:last, age, grade, experience, special });
-  await render();
-}
-async function editStudent(id) {
-  const { data: s } = await sb.from('students').select('*').eq('id', id).single();
-  if (!s) return;
-  const first = prompt('First name?', s.first_name) ?? s.first_name;
-  const last = prompt('Last name?', s.last_name) ?? s.last_name;
-  const age = prompt('Age?', s.age) ?? s.age;
-  const grade = prompt('Grade?', s.grade) ?? s.grade;
-  const experience = s.experience;
-  const special = s.special || '';
-  await sbSaveStudent({ id, first_name:first, last_name:last, age, grade, experience, special });
-  await render();
-}
-async function removeStudent(id) {
-  if (!confirm('Remove this student?')) return;
-  await sbDeleteStudent(id);
-  await render();
-}
-async function removeFromCart(enrollmentId) {
-  if (!confirm('Remove from cart?')) return;
-  const { error } = await sb.from('enrollments').delete().eq('id', enrollmentId);
-  if (error) alert(error.message);
-  await render();
-}
-
-// ============= BOOTSTRAP =============
-(async function initPortal() {
-  try {
-    await render();
-  } catch (e) {
-    console.warn(e);
-  }
-})();
-</script>
-
-
-  
 </body>
 </html>
