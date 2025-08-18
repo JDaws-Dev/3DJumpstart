@@ -30,6 +30,11 @@
     }
     .container{max-width:1200px;margin:0 auto;padding:0 20px}
 
+    /* Simple grid utils (used in multiple places) */
+    .grid{display:grid; gap:12px}
+    .grid-2{display:grid; gap:12px}
+    @media (min-width: 860px){ .grid-2{grid-template-columns:repeat(2,minmax(0,1fr));} }
+
     /* Header */
     .portal-header{position:sticky; top:0; z-index:10; backdrop-filter:saturate(1.2) blur(6px);
       background:linear-gradient(180deg, rgba(255,255,255,.85), rgba(255,255,255,.75));
@@ -90,12 +95,10 @@
     .btn-danger{background:#ef4444;color:#fff}
     .btn[disabled]{opacity:.45;cursor:not-allowed}
 
-    /* Badge */
+    /* Badge & Pill */
     .badge{display:inline-block;padding:.2rem .55rem;border-radius:999px;font-size:.78rem;font-weight:900}
     .badge-good{background:#dcfce7;color:#166534;border:1px solid #16a34a}
     .badge-warn{background:#fee2e2;color:#991b1b;border:1px solid #ef4444}
-
-    /* Pill */
     .pill{display:inline-flex;align-items:center;gap:.55rem;padding:.35rem .6rem;background:#eef2ff;border-radius:999px;border:1px solid #c7d2fe;color:#3730a3;font-weight:900}
 
     /* Totals (two cards) */
@@ -126,6 +129,17 @@
     @keyframes pop-in{from{transform:scale(.98); opacity:0} to{transform:scale(1); opacity:1}}
     .btn-pulse{animation:btn-pulse 1s ease 1}
     @keyframes btn-pulse{0%{box-shadow:0 0 0 0 rgba(234,88,12,.5)} 100%{box-shadow:0 0 0 18px rgba(234,88,12,0)}}
+
+    /* Modal — this was missing in your last copy (caused the issue) */
+    .modal-backdrop{
+      position:fixed; inset:0; background:rgba(2,8,23,.45); display:none;
+      align-items:center; justify-content:center; padding:18px; z-index:80;
+    }
+    .modal-backdrop.show{display:flex}
+    .modal{
+      width:100%; max-width:680px; background:#fff; border-radius:20px; padding:18px;
+      box-shadow:0 30px 80px rgba(2,8,23,.35); border:1px solid var(--line)
+    }
   </style>
 </head>
 <body>
@@ -143,7 +157,10 @@
           <img src="https://raw.githubusercontent.com/JDaws-Dev/3DJumpstart/main/3d-jumpstart-logo.png" alt="3D Jumpstart" class="logo-image" />
           <span class="brand-chip">Parent Portal</span>
         </div>
+
         <div class="user-info">
+          <!-- NEW: Student Portal link -->
+          <a class="btn btn-muted" href="student-portal.html">Student Portal</a>
           <span id="parent-name" class="muted">Loading…</span>
           <button class="btn btn-secondary" id="logoutBtn" type="button">Logout</button>
         </div>
@@ -217,7 +234,6 @@
         </div>
       </div>
 
-      <!-- NEW: Schedule as its own section -->
       <div class="card">
         <h2 class="card-title">Level 1 Schedule (12 Weeks)</h2>
         <ul class="muted" style="line-height:1.9; margin:0;">
@@ -228,7 +244,7 @@
 
       <div class="card">
         <h2 class="card-title">What Your Student Needs</h2>
-        <div class="grid grid-2">
+        <div class="grid-2">
           <div>
             <p class="muted" style="font-size:1.05rem;">
               <strong>Computers are provided</strong>—no laptop needed.
@@ -270,11 +286,11 @@
       <div class="card">
         <h2 class="card-title">Professional 3D Printer Support (Available Now)</h2>
         <p class="muted" style="margin-bottom:10px;">
-          We offer **at-home** Bambu Lab printer services. <strong>Bambu printers only</strong> at this time.
+          We offer <strong>at-home Bambu Lab printer</strong> services. <strong>Bambu printers only</strong> at this time.
           Email us to schedule—slots are limited.
         </p>
 
-        <div class="grid grid-2">
+        <div class="grid-2">
           <div class="card" style="border:1px dashed var(--line);background:#fafafa">
             <h3 class="card-title">Printer Setup Service</h3>
             <p class="muted">We come to you and set up your Bambu printer.</p>
@@ -308,11 +324,11 @@
     <section id="tab-billing" class="tab-content">
       <div class="card">
         <h2 class="card-title">Billing & Payments</h2>
-        <table>
+        <table style="width:100%;border-collapse:collapse">
           <thead>
-            <tr><th>Date</th><th>Description</th><th>Amount</th><th>Status</th></tr>
+            <tr><th style="text-align:left;padding:.75rem;border-bottom:1px solid var(--line)">Date</th><th style="text-align:left;padding:.75rem;border-bottom:1px solid var(--line)">Description</th><th style="text-align:left;padding:.75rem;border-bottom:1px solid var(--line)">Amount</th><th style="text-align:left;padding:.75rem;border-bottom:1px solid var(--line)">Status</th></tr>
           </thead>
-          <tbody id="billingTable"></tbody>
+          <tbody id="billingTable"><tr><td style="padding:.75rem;border-bottom:1px solid var(--line)">—</td><td style="padding:.75rem;border-bottom:1px solid var(--line)">No payments yet</td><td style="padding:.75rem;border-bottom:1px solid var(--line)">—</td><td style="padding:.75rem;border-bottom:1px solid var(--line)">—</td></tr></tbody>
         </table>
       </div>
     </section>
@@ -336,7 +352,7 @@
         <button class="btn btn-muted" id="closeModalBtn" type="button">Close</button>
       </div>
 
-      <div class="grid grid-2" style="margin-top:10px;">
+      <div class="grid-2" style="margin-top:10px;">
         <div class="field">
           <label class="label" for="firstName">First Name</label>
           <input id="firstName" class="input" />
@@ -385,7 +401,7 @@
 
     // Dropdown options
     const AGE_OPTIONS = Array.from({length:11}, (_,i)=>8+i); // 8..18
-    const GRADE_OPTIONS = ['4th','5th','6th','7th','8th','9th','10th','11th','12th'];
+    const GRADE_OPTIONS = ['3rd','4th','5th','6th','7th','8th','9th','10th','11th','12th'];
 
     // Pricing
     const PRICE_LIST_PER = 720;   // 12 x $60
@@ -415,7 +431,6 @@
         populateDropdowns();
         renderStudents();
         renderCart();
-        renderBilling();
         updateTotals();
       })().catch(console.error);
     });
@@ -682,11 +697,6 @@
         ? `Level 1 • Pay in Full\nFinal Total: $${fullTotal}`
         : `Level 1 • Half Plan\nDue Now: $${halfNow}\nFinal Total: $${halfTotal}\nDue Oct 15: $${halfLater}\n\n(Next: Stripe + Google Sheets.)`
       );
-    }
-
-    /* ====== BILLING (placeholder) ====== */
-    function renderBilling(){
-      document.getElementById('billingTable').innerHTML = `<tr><td>—</td><td>No payments yet</td><td>—</td><td>—</td></tr>`;
     }
 
     /* ====== UTIL ====== */
