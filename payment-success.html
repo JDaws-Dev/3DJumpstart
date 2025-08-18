@@ -1,161 +1,97 @@
 <!doctype html>
 <html lang="en">
 <head>
-  <meta charset="utf-8" />
-  <title>Payment Successful • 3D Jumpstart</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1"/>
+  <title>Thank you • 3D Jumpstart</title>
   <style>
-    :root{
-      --bg:#f7f8fb; --card:#fff; --muted:#6b7280; --border:#e8ebf0;
-      --brand:#ff7a1a; --ok:#12a150; --danger:#b42318;
-    }
-    *{box-sizing:border-box}
-    body{font-family:Inter,system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif;background:var(--bg);color:#111827;margin:0}
-    .wrap{max-width:860px;margin:40px auto;padding:16px}
-    .card{background:var(--card);border:1px solid var(--border);border-radius:16px;box-shadow:0 8px 16px rgba(38,43,55,.05);padding:20px}
-    h1{margin:0 0 .5rem 0;font-size:1.6rem}
+    :root{--ring:#e5e7eb;--ink:#0b1329;--muted:#6b7280;--brand:#ff7a00;--card:#fff;--bg:#f6f7fb;--shadow:0 8px 24px rgba(16,24,40,.06)}
+    body{margin:0;font-family:Inter,system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif;color:var(--ink);background:var(--bg)}
+    .wrap{max-width:980px;margin:32px auto;padding:0 20px}
+    .card{background:var(--card);border:1px solid var(--ring);box-shadow:var(--shadow);border-radius:16px;padding:18px}
+    .title{font-weight:800;font-size:36px;display:flex;align-items:center;gap:12px}
+    .pill{display:inline-flex;align-items:center;padding:6px 10px;border-radius:999px;border:1px solid #fde7d1;background:#fff7ed;color:#8a3c00;font-weight:700}
+    .grid{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+    .box{border:1px dashed var(--ring);border-radius:12px;padding:12px;min-height:72px}
     .muted{color:var(--muted)}
-    .row{display:flex;gap:16px;flex-wrap:wrap}
-    .pill{display:inline-block;padding:.25rem .6rem;border-radius:999px;font-weight:700;font-size:.8rem}
-    .pill-ok{background:#e8f7ef;color:var(--ok);border:1px solid #c9eedc}
-    .pill-warn{background:#fff6e5;color:#9a5e00;border:1px solid #ffe3b1}
-    .btn{background:var(--brand);border:none;color:#fff;padding:.7rem 1rem;border-radius:10px;cursor:pointer;font-weight:700}
-    .btn.secondary{background:#1118270d;color:#111827;border:1px solid var(--border)}
-    .details{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:12px}
-    .details > div{background:#fafbfe;border:1px dashed var(--border);padding:.75rem;border-radius:10px}
-    .list{margin-top:16px;border-top:1px dashed var(--border);padding-top:12px}
-    .enroll{padding:.6rem 0;border-top:1px dashed #eef1f6}
-    .small{font-size:.9rem}
-    .hidden{display:none}
-    .icon{width:26px;height:26px;margin-right:.5rem}
+    .btn{border:1px solid var(--ring);background:#fff;border-radius:12px;padding:10px 14px;font-weight:700;cursor:pointer}
+    .btn.primary{background:var(--brand);color:#fff;border-color:var(--brand)}
   </style>
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 </head>
 <body>
   <div class="wrap">
     <div class="card">
-      <div class="row" style="align-items:center">
-        <svg class="icon" viewBox="0 0 24 24" fill="none" aria-hidden="true">
-          <path d="M12 22c5.523 0 10-4.477 10-10S17.523 2 12 2 2 6.477 2 12s4.477 10 10 10Z" fill="#E8F7EF"/>
-          <path d="m8.5 12.5 2.5 2.5 4.5-5" stroke="#12A150" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/>
-        </svg>
-        <h1 style="margin:0">Thank you! <span id="status-pill" class="pill pill-ok">Payment received</span></h1>
+      <div class="title">
+        <span style="color:#22c55e">✔</span>
+        <span>Thank you!</span>
+        <span class="pill" id="statusBadge">Pending</span>
       </div>
 
-      <p id="loading-state" class="muted">Finalizing your receipt…</p>
-
-      <div id="success-state" class="hidden">
-        <div class="details">
-          <div><strong>Receipt #</strong><br><span id="order-number" class="muted small">—</span></div>
-          <div><strong>Total Paid</strong><br><span id="amount-paid" class="small">$—</span></div>
+      <div class="grid" style="margin-top:14px">
+        <div class="box">
+          <div class="muted" style="font-size:.9rem;margin-bottom:.35rem">Receipt #</div>
+          <div id="receiptNum" style="font-weight:800">—</div>
         </div>
-        <div class="list">
-          <div class="muted small" style="margin-bottom:.5rem">
-            If you selected <strong>Pay Half Now</strong>, status shows <em>Pending</em> until your final payment posts (due Oct 15).
-          </div>
-          <div id="enroll-list"></div>
-        </div>
-        <div style="margin-top:16px;display:flex;gap:10px">
-          <button class="btn" onclick="window.location.href='portal.html'">Back to Parent Portal</button>
-          <button class="btn secondary" onclick="window.location.reload()">Refresh</button>
+        <div class="box">
+          <div class="muted" style="font-size:.9rem;margin-bottom:.35rem">Total Paid</div>
+          <div id="totalPaid" style="font-weight:800">$—</div>
         </div>
       </div>
 
-      <div id="error-state" class="hidden">
-        <p class="pill pill-warn">We hit a snag</p>
-        <p id="error-message" class="muted">Something went wrong. Please try again.</p>
-        <div style="margin-top:10px"><button class="btn secondary" onclick="window.location.href='portal.html'">Return to Portal</button></div>
+      <div class="card" style="margin-top:14px;background:#fff7ed;border:1px dashed #fde7d1">
+        <div class="muted" style="line-height:1.6">
+          If you selected <strong>Pay Half Now</strong>, status shows <em>Pending</em> until your final payment posts (due Oct 15).
+        </div>
+      </div>
+
+      <div id="enrollmentsBox" class="muted" style="margin-top:12px">No enrollments found for this receipt yet.</div>
+
+      <div class="grid" style="margin-top:16px">
+        <button class="btn primary" onclick="goPortal()">Back to Parent Portal</button>
+        <button class="btn" onclick="refresh()">Refresh</button>
       </div>
     </div>
   </div>
 
-<script>
-/* ====== CONFIG ====== */
-const SUPABASE_URL = 'https://hucjmggkasahwpjgnwia.supabase.co';   // <- change if yours differs
-const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imh1Y2ptZ2drYXNhaHdwamdud2lhIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTQ2MTI2MDIsImV4cCI6MjA3MDE4ODYwMn0.hxFmoZexaKverih9crJfP9fjWItOTfC_6D_CM7hr_Rg';      // <- paste anon key
-const sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script>
+  const SUPABASE_URL = "https://hucjmggkasahwpjgnwia.supabase.coL";
+  const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imh1Y2ptZ2drYXNhaHdwamdud2lhIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTQ2MTI2MDIsImV4cCI6MjA3MDE4ODYwMn0.hxFmoZexaKverih9crJfP9fjWItOTfC_6D_CM7hr_Rg";
+  const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
-/* ====== HELPERS ====== */
-const $ = (id) => document.getElementById(id);
-function show(id){ $(id).classList.remove('hidden'); }
-function hide(id){ $(id).classList.add('hidden'); }
-function qp(name){ return new URL(location.href).searchParams.get(name); }
+  const qs = new URLSearchParams(location.search);
+  const sessionId = qs.get('session_id') || '';
+  document.getElementById('receiptNum').textContent = sessionId || '—';
 
-/* ====== MAIN ====== */
-(async function init(){
-  try {
-    const sessionId = qp('session_id');
-    const { data: { user } } = await sb.auth.getUser();
+  async function loadReceipt(){
+    if(!sessionId) return;
 
-    if (!user) {
-      hide('loading-state'); hide('success-state'); show('error-state');
-      $('error-message').textContent = 'Please sign in again to view your receipt.';
+    // payments row inserted by webhook
+    const { data, error } = await supabase
+      .from('payments')
+      .select('amount, status')
+      .eq('stripe_session_id', sessionId)
+      .maybeSingle();
+
+    const badge = document.getElementById('statusBadge');
+    const totalEl = document.getElementById('totalPaid');
+
+    if(error){ console.error(error); badge.textContent='Pending'; return; }
+
+    if(!data){ // not yet written – poll a few times
+      badge.textContent='Pending';
+      setTimeout(loadReceipt, 2000);
       return;
     }
 
-    if (!sessionId) {
-      hide('loading-state'); show('success-state');
-      $('order-number').textContent = '—';
-      $('amount-paid').textContent = '$—';
-      $('status-pill').textContent = 'Recorded';
-      return;
-    }
-
-    // Poll payments and enrollments for up to ~8s
-    let payments, enrolls;
-    const start = Date.now();
-    while (Date.now() - start < 8000) {
-      const pRes = await sb.from('payments')
-        .select('amount,status,created_at,parent_email,stripe_session_id')
-        .eq('stripe_session_id', sessionId).maybeSingle();
-      payments = pRes.data || null;
-
-      const eRes = await sb.from('enrollments')
-        .select('id,student_id,class_time,status,paid_at')
-        .eq('parent_id', user.id)
-        .eq('stripe_session_id', sessionId);
-      enrolls = eRes.data || [];
-
-      if (payments || (enrolls && enrolls.some(r=>r.status==='paid'))) break;
-      await new Promise(r => setTimeout(r, 700));
-    }
-
-    // Get student names
-    const ids = [...new Set((enrolls||[]).map(r => r.student_id))];
-    const { data: students } = ids.length
-      ? await sb.from('students').select('id, first_name, last_name').in('id', ids)
-      : { data: [] };
-
-    hide('loading-state'); show('success-state');
-
-    $('order-number').textContent = sessionId.slice(0, 12) + '…';
-    if (payments?.amount) $('amount-paid').textContent = `$${(payments.amount/100).toLocaleString()}`;
-
-    // Status pill
-    if (enrolls && enrolls.length && enrolls.every(r => r.status === 'paid')) {
-      $('status-pill').textContent = 'Payment received'; $('status-pill').className = 'pill pill-ok';
-    } else {
-      $('status-pill').textContent = 'Pending'; $('status-pill').className = 'pill pill-warn';
-    }
-
-    // Lines
-    $('enroll-list').innerHTML = (enrolls || []).map(r=>{
-      const s = students?.find(x=>x.id===r.student_id);
-      const name = s ? `${s.first_name} ${s.last_name}` : 'Student';
-      const st = r.status === 'paid' ? 'Paid' : 'Pending';
-      const when = r.paid_at ? ` • ${new Date(r.paid_at).toLocaleString()}` : '';
-      return `<div class="enroll">
-        <div><strong>${name}</strong> — ${r.class_time}</div>
-        <div class="muted small">${st}${when}${st==='Pending' ? ' • Deposit received; final due Oct 15' : ''}</div>
-      </div>`;
-    }).join('') || '<div class="muted small">No enrollments found for this receipt yet.</div>';
-
-  } catch (err) {
-    console.error(err);
-    hide('loading-state'); hide('success-state'); show('error-state');
-    $('error-message').textContent = err.message || 'Something went wrong.';
+    badge.textContent = (data.status || 'paid').replace('_',' ');
+    totalEl.textContent = `$${(Number(data.amount||0)/100).toFixed(0)}`;
   }
-})();
-</script>
+
+  function goPortal(){ location.href = '/portal.html'; }
+  function refresh(){ loadReceipt(); }
+
+  loadReceipt();
+  </script>
 </body>
 </html>
