@@ -682,35 +682,42 @@ async function sbListCart() {
       updateTotals(cart);
     }
 
-    function renderEnrollmentSummary(enrollments, students) {
-      const activeEnrollments = enrollments.filter(e => 
-        e.status === 'enrolled' || e.status === 'pending'
-      );
+function renderEnrollmentSummary(enrollments, students) {
+  const activeEnrollments = enrollments.filter(e => 
+    e.status === 'enrolled' || e.status === 'pending'
+  );
 
-      const summaryDiv = document.getElementById('enrollmentSummary');
-      const listDiv = document.getElementById('enrollmentList');
+  const summaryDiv = document.getElementById('enrollmentSummary');
+  const listDiv = document.getElementById('enrollmentList');
 
-      if(activeEnrollments.length === 0) {
-        summaryDiv.style.display = 'none';
-        return;
-      }
+  if(activeEnrollments.length === 0) {
+    summaryDiv.style.display = 'none';
+    return;
+  }
 
-      summaryDiv.style.display = 'block';
-      listDiv.innerHTML = activeEnrollments.map(e => {
-        const student = students.find(s => s.id === e.student_id);
-        const statusText = e.status === 'enrolled' ? '✓ Enrolled' : '⏳ Pending (Pay by Oct 15)';
-        const statusClass = e.status === 'enrolled' ? 'status-enrolled' : 'status-pending';
-        
-        return `
-          <div class="enrollment-item">
-            <strong>${student ? student.first_name + ' ' + student.last_name : 'Student'}</strong> - 
-            ${e.class_time || 'Time TBD'} 
-            <span class="status-badge ${statusClass}">${statusText}</span>
-          </div>
-        `;
-      }).join('');
+  summaryDiv.style.display = 'block';
+  listDiv.innerHTML = activeEnrollments.map(e => {
+    const student = students.find(s => s.id === e.student_id);
+    let statusText = e.status === 'enrolled' ? '✓ Enrolled' : '⏳ Pending';
+    const statusClass = e.status === 'enrolled' ? 'status-enrolled' : 'status-pending';
+    
+    // Add balance due info for pending payments
+    if (e.status === 'pending' && e.balance_due > 0) {
+      statusText += ` - $${e.balance_due} due Oct 15`;
     }
+    
+    return `
+      <div class="enrollment-item">
+        <strong>${student ? student.first_name + ' ' + student.last_name : 'Student'}</strong> - 
+        ${e.class_time || 'Time TBD'} 
+        <span class="status-badge ${statusClass}">${statusText}</span>
+      </div>
+    `;
+  }).join('');
+}
 
+
+    
     function renderStudents(list, enrollments){
       const wrap = document.getElementById('studentsList');
 
@@ -864,50 +871,54 @@ async function sbListCart() {
     }
 
     /* ====== LIVE TOTALS ====== */
-    function updateTotals(cart){
-      const wrap=document.getElementById('totalsWrap');
-      const count=cart.length;
+function updateTotals(cart){
+  const wrap=document.getElementById('totalsWrap');
+  const count=cart.length;
 
-      const sibling = count>=2 ? SIBLING_DISCOUNT : 0;
+  const sibling = count>=2 ? SIBLING_DISCOUNT : 0;
 
-      const fullSubtotal = count*PRICE_FULL_PER;
-      const fullTotal = Math.max(0, fullSubtotal - sibling);
+  // Pay in Full calculation
+  const fullSubtotal = count*PRICE_FULL_PER;
+  const fullTotal = Math.max(0, fullSubtotal - sibling);
 
-      const halfTotal = count*PRICE_LIST_PER - sibling;
-      const halfNow = count*PRICE_HALF_NOW;
-      const halfLater = Math.max(0, halfTotal - halfNow);
+  // Pay Half calculation (they pay list price, just split)
+  const halfListTotal = count*PRICE_LIST_PER;
+  const halfTotalAfterDiscount = Math.max(0, halfListTotal - sibling);
+  const halfNow = Math.floor(halfTotalAfterDiscount / 2);
+  const halfLater = halfTotalAfterDiscount - halfNow;
 
-      if(count===0){ 
-        wrap.innerHTML=''; 
-        return; 
-      }
+  if(count===0){ 
+    wrap.innerHTML=''; 
+    return; 
+  }
 
-      wrap.innerHTML = `
-        <div class="total-card pop-in">
-          <div class="total-ico ico-full">💳</div>
-          <div>
-            <div class="total-title">Pay in Full</div>
-            <div class="total-rows">
-              <div class="row"><div>Students × $${PRICE_FULL_PER}</div><div>$${fullSubtotal}</div></div>
-              ${sibling ? `<div class="row"><div>Sibling discount (one time)</div><div>−$${SIBLING_DISCOUNT}</div></div>`:''}
-              <div class="row em"><div>Final Total</div><div>$${fullTotal}</div></div>
-            </div>
-          </div>
+  wrap.innerHTML = `
+    <div class="total-card pop-in">
+      <div class="total-ico ico-full">💳</div>
+      <div>
+        <div class="total-title">Pay in Full (Save $50/student)</div>
+        <div class="total-rows">
+          <div class="row"><div>Students × $${PRICE_FULL_PER}</div><div>$${fullSubtotal}</div></div>
+          ${sibling ? `<div class="row"><div>Sibling discount</div><div>−$${SIBLING_DISCOUNT}</div></div>`:''}
+          <div class="row em"><div>Total Due Now</div><div>$${fullTotal}</div></div>
         </div>
+      </div>
+    </div>
 
-        <div class="total-card pop-in">
-          <div class="total-ico ico-half">🗓️</div>
-          <div>
-            <div class="total-title">Pay Half Now</div>
-            <div class="total-rows">
-              <div class="row"><div>Due Now ($${PRICE_HALF_NOW} ea)</div><div>$${halfNow}</div></div>
-              ${sibling ? `<div class="row"><div>Sibling discount (applied to final total)</div><div>−$${SIBLING_DISCOUNT}</div></div>`:''}
-              <div class="row"><div>Final Total (list $${PRICE_LIST_PER} ea)</div><div>$${halfTotal}</div></div>
-              <div class="row em"><div>Due Oct 15</div><div>$${halfLater}</div></div>
-            </div>
-          </div>
-        </div>`;
-    }
+    <div class="total-card pop-in">
+      <div class="total-ico ico-half">🗓️</div>
+      <div>
+        <div class="total-title">Pay Half Now</div>
+        <div class="total-rows">
+          <div class="row"><div>List price (${count} × $${PRICE_LIST_PER})</div><div>$${halfListTotal}</div></div>
+          ${sibling ? `<div class="row"><div>Sibling discount</div><div>−$${SIBLING_DISCOUNT}</div></div>`:''}
+          <div class="row"><div>Total after discount</div><div>$${halfTotalAfterDiscount}</div></div>
+          <div class="row em"><div>Due Now (50%)</div><div>$${halfNow}</div></div>
+          <div class="row em"><div>Due Oct 15 (50%)</div><div>$${halfLater}</div></div>
+        </div>
+      </div>
+    </div>`;
+}
 
     /* ====== BILLING ====== */
 async function loadBilling() {
@@ -956,14 +967,21 @@ function renderBilling(payments) {
   tbody.innerHTML = payments.map(p => {
     const date = new Date(p.created_at).toLocaleDateString();
     const amount = `$${p.amount}`;
-    const status = p.event_type === 'Pay in Full' ? 
-      '<span style="color:var(--ok)">Paid</span>' : 
-      '<span style="color:#f59e0b">Partial (Balance due Oct 15)</span>';
+    
+    // Better status display based on event_type
+    let status = '';
+    if (p.event_type === 'Pay in Full') {
+      status = '<span style="color:var(--ok)">✓ Paid in Full</span>';
+    } else if (p.event_type === 'Pay Half Now') {
+      status = '<span style="color:#f59e0b">⏳ Partial - $360 due Oct 15</span>';
+    } else {
+      status = '<span style="color:var(--muted)">Processed</span>';
+    }
     
     return `
       <tr>
         <td style="padding:.75rem;border-bottom:1px solid var(--line)">${date}</td>
-        <td style="padding:.75rem;border-bottom:1px solid var(--line)">${p.studentName}</td>
+        <td style="padding:.75rem;border-bottom:1px solid var(--line)">${p.studentName || 'Multiple'}</td>
         <td style="padding:.75rem;border-bottom:1px solid var(--line)">${p.event_type}</td>
         <td style="padding:.75rem;border-bottom:1px solid var(--line)">${amount}</td>
         <td style="padding:.75rem;border-bottom:1px solid var(--line)">${status}</td>
