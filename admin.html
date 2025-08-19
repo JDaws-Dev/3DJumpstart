@@ -1,358 +1,588 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>3D Jumpstart Admin — Simplified</title>
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.39.3/dist/umd/supabase.min.js"></script>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-  <style>
-    *{margin:0;padding:0;box-sizing:border-box}
-    body{font-family:'Inter',-apple-system,BlinkMacSystemFont,'Segoe UI',system-ui,sans-serif;line-height:1.6;color:#111827;background:#f9fafb}
-    .container{max-width:1400px;margin:0 auto;padding:0 1rem}
-    .admin-header{background:#111827;color:#fff;padding:1rem 0;box-shadow:0 2px 4px rgba(0,0,0,.1)}
-    .header-content{display:flex;align-items:center;justify-content:space-between}
-    .logo{font-size:1.25rem;font-weight:700}
-    .dashboard-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:1.25rem;margin:1.25rem 0}
-    .stat-card{background:#fff;padding:1.25rem;border-radius:.75rem;box-shadow:0 1px 3px rgba(0,0,0,.1)}
-    .stat-title{font-size:.8rem;color:#6b7280;margin-bottom:.35rem;font-weight:600;text-transform:uppercase;letter-spacing:.05em}
-    .stat-value{font-size:1.75rem;font-weight:700;color:#111827}
-    .stat-detail{color:#6b7280;font-size:.85rem;margin-top:.15rem}
-    .tabs{display:flex;gap:1rem;margin-bottom:1.25rem;border-bottom:2px solid #e2e8f0}
-    .tab{padding:.6rem 1rem;background:none;border:none;font-weight:600;color:#64748b;cursor:pointer;border-bottom:2px solid transparent;margin-bottom:-2px}
-    .tab.active{color:#ea580c;border-bottom-color:#ea580c}
-    .tab-content{display:none}
-    .tab-content.active{display:block}
-    .data-section{background:#fff;border-radius:.75rem;padding:1rem;margin-bottom:1.25rem;box-shadow:0 1px 3px rgba(0,0,0,.08)}
-    table{width:100%;border-collapse:collapse}
-    th{text-align:left;padding:.65rem;background:#f9fafb;border-bottom:1px solid #e5e7eb;font-weight:600;color:#374151}
-    td{padding:.65rem;border-bottom:1px solid #e5e7eb}
-    tr:hover{background:#f9fafb}
-    .filter-bar{display:flex;gap:.75rem;margin-bottom:.75rem;align-items:center;flex-wrap:wrap}
-    select,input[type="search"]{padding:.45rem .6rem;border:1px solid #e2e8f0;border-radius:8px;font-family:inherit}
-    .btn{padding:.5rem .9rem;border-radius:.5rem;font-weight:600;cursor:pointer;border:none}
-    .btn-primary{background:#3b82f6;color:#fff}
-    .money{font-family:'Courier New',monospace;font-weight:700}
-    .success{color:#16a34a}.warning{color:#f59e0b}
-    .spotline{margin-left:auto;font-weight:700}
-    .muted{color:#6b7280}
-    a{color:#2563eb;text-decoration:none}
-    a:hover{text-decoration:underline}
-  </style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Dashboard - 3D Jumpstart</title>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        
+        body {
+            font-family: 'Inter', system-ui, -apple-system, sans-serif;
+            background: #f8fafc;
+            color: #0f172a;
+            line-height: 1.6;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 1rem;
+        }
+        
+        /* Header */
+        .header {
+            background: white;
+            padding: 1rem 0;
+            border-bottom: 1px solid #e2e8f0;
+            margin-bottom: 2rem;
+        }
+        
+        .header-content {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 1rem;
+        }
+        
+        .logo {
+            font-size: 1.5rem;
+            font-weight: 800;
+            color: #ea580c;
+        }
+        
+        .logout-btn {
+            background: #ef4444;
+            color: white;
+            border: none;
+            padding: 0.5rem 1rem;
+            border-radius: 0.5rem;
+            cursor: pointer;
+            font-weight: 600;
+        }
+        
+        /* Stats Cards */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 1rem;
+            margin-bottom: 2rem;
+        }
+        
+        .stat-card {
+            background: white;
+            padding: 1.5rem;
+            border-radius: 1rem;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            border-left: 4px solid #ea580c;
+        }
+        
+        .stat-title {
+            color: #64748b;
+            font-size: 0.875rem;
+            margin-bottom: 0.5rem;
+        }
+        
+        .stat-value {
+            font-size: 2rem;
+            font-weight: 800;
+            color: #0f172a;
+        }
+        
+        /* Sections */
+        .section {
+            background: white;
+            border-radius: 1rem;
+            padding: 1.5rem;
+            margin-bottom: 2rem;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+        
+        .section-title {
+            font-size: 1.5rem;
+            font-weight: 700;
+            margin-bottom: 1rem;
+            color: #0f172a;
+        }
+        
+        /* Tables */
+        .table-container {
+            overflow-x: auto;
+            margin-top: 1rem;
+        }
+        
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            min-width: 600px;
+        }
+        
+        th, td {
+            text-align: left;
+            padding: 0.75rem;
+            border-bottom: 1px solid #e2e8f0;
+        }
+        
+        th {
+            background: #f8fafc;
+            font-weight: 600;
+            color: #374151;
+        }
+        
+        tr:hover {
+            background: #f8fafc;
+        }
+        
+        /* Status badges */
+        .status-badge {
+            display: inline-block;
+            padding: 0.25rem 0.75rem;
+            border-radius: 999px;
+            font-size: 0.75rem;
+            font-weight: 600;
+        }
+        
+        .status-enrolled {
+            background: #dcfce7;
+            color: #166534;
+        }
+        
+        .status-pending {
+            background: #fef3c7;
+            color: #92400e;
+        }
+        
+        .status-cart {
+            background: #e0e7ff;
+            color: #3730a3;
+        }
+        
+        /* Buttons */
+        .btn {
+            display: inline-block;
+            padding: 0.5rem 1rem;
+            border-radius: 0.5rem;
+            text-decoration: none;
+            font-weight: 600;
+            border: none;
+            cursor: pointer;
+            font-size: 0.875rem;
+        }
+        
+        .btn-primary {
+            background: #ea580c;
+            color: white;
+        }
+        
+        .btn-secondary {
+            background: #6b7280;
+            color: white;
+        }
+        
+        .btn-success {
+            background: #16a34a;
+            color: white;
+        }
+        
+        .loading {
+            color: #6b7280;
+            font-style: italic;
+            text-align: center;
+            padding: 2rem;
+        }
+        
+        .error {
+            color: #ef4444;
+            background: #fef2f2;
+            padding: 1rem;
+            border-radius: 0.5rem;
+            border: 1px solid #fecaca;
+        }
+        
+        /* Mobile Responsive */
+        @media (max-width: 768px) {
+            .container {
+                padding: 0.5rem;
+            }
+            
+            .header-content {
+                flex-direction: column;
+                text-align: center;
+            }
+            
+            .stats-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .section {
+                padding: 1rem;
+            }
+            
+            .section-title {
+                font-size: 1.25rem;
+            }
+            
+            .table-container {
+                font-size: 0.875rem;
+            }
+            
+            th, td {
+                padding: 0.5rem;
+            }
+            
+            table {
+                min-width: 500px;
+            }
+            
+            .stat-value {
+                font-size: 1.5rem;
+            }
+        }
+        
+        @media (max-width: 480px) {
+            .container {
+                padding: 0.25rem;
+            }
+            
+            .section {
+                padding: 0.75rem;
+            }
+            
+            .section-title {
+                font-size: 1.125rem;
+            }
+            
+            table {
+                min-width: 400px;
+            }
+            
+            th, td {
+                padding: 0.375rem;
+                font-size: 0.75rem;
+            }
+            
+            .status-badge {
+                font-size: 0.625rem;
+                padding: 0.125rem 0.5rem;
+            }
+            
+            .btn {
+                padding: 0.375rem 0.75rem;
+                font-size: 0.75rem;
+            }
+        }
+    </style>
 </head>
 <body>
-  <header class="admin-header">
+    <!-- Header -->
+    <header class="header">
+        <div class="container">
+            <div class="header-content">
+                <div class="logo">3D Jumpstart Admin</div>
+                <button class="logout-btn" onclick="logout()">Logout</button>
+            </div>
+        </div>
+    </header>
+
     <div class="container">
-      <div class="header-content">
-        <div class="logo">🎯 3D Jumpstart Admin</div>
-        <div><span id="admin-email" style="margin-right:1rem">Loading...</span>
-          <button class="btn" onclick="logout()">Logout</button></div>
-      </div>
+        <!-- Stats Overview -->
+        <div class="stats-grid">
+            <div class="stat-card">
+                <div class="stat-title">Total Revenue</div>
+                <div class="stat-value" id="totalRevenue">$0</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-title">Outstanding Balance</div>
+                <div class="stat-value" id="outstandingBalance">$0</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-title">Total Students</div>
+                <div class="stat-value" id="totalStudents">0</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-title">Active Enrollments</div>
+                <div class="stat-value" id="activeEnrollments">0</div>
+            </div>
+        </div>
+
+        <!-- Class Roster -->
+        <div class="section">
+            <h2 class="section-title">Class Roster</h2>
+            <div class="table-container">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Student</th>
+                            <th>Parent</th>
+                            <th>Grade</th>
+                            <th>Class Time</th>
+                            <th>Status</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="rosterTable">
+                        <tr>
+                            <td colspan="6" class="loading">Loading roster...</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- Payment History -->
+        <div class="section">
+            <h2 class="section-title">Recent Payments</h2>
+            <div class="table-container">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Date</th>
+                            <th>Student</th>
+                            <th>Parent</th>
+                            <th>Amount</th>
+                            <th>Type</th>
+                            <th>Status</th>
+                        </tr>
+                    </thead>
+                    <tbody id="paymentsTable">
+                        <tr>
+                            <td colspan="6" class="loading">Loading payments...</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- Export Options -->
+        <div class="section">
+            <h2 class="section-title">Export Data</h2>
+            <div style="display: flex; gap: 1rem; flex-wrap: wrap;">
+                <button class="btn btn-primary" onclick="exportRoster()">Export Roster (CSV)</button>
+                <button class="btn btn-secondary" onclick="exportPayments()">Export Payments (CSV)</button>
+            </div>
+        </div>
     </div>
-  </header>
 
-  <main class="container" id="main-content" style="display:none">
-    <div class="dashboard-grid">
-      <div class="stat-card">
-        <div class="stat-title">Total Revenue</div>
-        <div class="stat-value money success">$<span id="totalRevenue">0</span></div>
-        <div class="stat-detail">All payments received</div>
-      </div>
-      <div class="stat-card">
-        <div class="stat-title">Outstanding Balance</div>
-        <div class="stat-value money warning">$<span id="outstandingBalance">0</span></div>
-        <div class="stat-detail">Pending enrollments</div>
-      </div>
-      <div class="stat-card">
-        <div class="stat-title">Active Students</div>
-        <div class="stat-value"><span id="enrolledCount">0</span></div>
-        <div class="stat-detail">Enrolled + Pending</div>
-      </div>
-      <div class="stat-card">
-        <div class="stat-title">Available Spots</div>
-        <div class="stat-value"><span id="availableSpots">0</span></div>
-        <div class="stat-detail">All classes</div>
-      </div>
-    </div>
+    <script>
+        const SUPABASE_URL = 'https://hucjmggkasahwpjgnwia.supabase.co';
+        const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imh1Y2ptZ2drYXNhaHdwamdud2lhIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTQ2MTI2MDIsImV4cCI6MjA3MDE4ODYwMn0.hxFmoZexaKverih9crJfP9fjWItOTfC_6D_CM7hr_Rg';
+        
+        const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
-    <div class="tabs">
-      <button class="tab active" onclick="switchTab(event,'roster')">Class Roster</button>
-      <button class="tab" onclick="switchTab(event,'payments')">Payments</button>
-    </div>
+        let enrollments = [];
+        let students = [];
+        let parents = [];
+        let payments = [];
 
-    <!-- CLASS ROSTER -->
-    <div id="tab-roster" class="tab-content active">
-      <div class="filter-bar">
-        <select id="classSelect" title="Filter by class" onchange="renderRoster()">
-          <option value="">All Classes</option>
-        </select>
-        <input type="search" id="searchStudent" placeholder="Search students..." onkeyup="renderRoster()">
-        <button class="btn btn-primary" onclick="exportRoster()">Export CSV</button>
-        <div id="spotsLine" class="spotline">Spots left: <span id="spotsLeft">—</span> <span class="muted">(capacity 10)</span></div>
-      </div>
-      <div class="data-section">
-        <table>
-          <thead>
-            <tr>
-              <th>Student</th>
-              <th>First</th>
-              <th>Last</th>
-              <th>Grade</th>
-              <th>Age</th>
-              <th>Class Time</th>
-              <th>Parent</th>
-              <th>Parent Email</th>
-              <th>Parent Phone</th>
-              <th>Status</th>
-              <th>Special</th>
-            </tr>
-          </thead>
-          <tbody id="rosterTable"><tr><td colspan="11" style="text-align:center">Loading...</td></tr></tbody>
-        </table>
-      </div>
-    </div>
-
-    <!-- PAYMENTS -->
-    <div id="tab-payments" class="tab-content">
-      <div class="filter-bar">
-        <select id="paymentType" onchange="renderPayments()">
-          <option value="">All Types</option>
-          <option value="Pay in Full">Pay in Full</option>
-          <option value="Pay Half Now">Pay Half Now</option>
-        </select>
-        <span style="margin-left:auto">Total: <strong class="money success">$<span id="paymentTotal">0</span></strong></span>
-      </div>
-      <div class="data-section">
-        <table>
-          <thead>
-            <tr><th>Date</th><th>Parent</th><th>Student</th><th>Type</th><th>Amount</th><th>Balance Due</th><th>Stripe ID</th></tr>
-          </thead>
-          <tbody id="paymentsTable"><tr><td colspan="7" style="text-align:center">Loading...</td></tr></tbody>
-        </table>
-      </div>
-    </div>
-  </main>
-
-  <div id="auth-error" class="auth-error" style="display:none">
-    <h2>⛔ Admin Access Required</h2>
-    <p>You must be logged in as an administrator to view this page.</p>
-    <button class="btn btn-primary" onclick="window.location.href='login.html'">Go to Login</button>
-  </div>
-
-  <script>
-    // === CONFIG ===
-    const SUPABASE_URL = 'https://hucjmggkasahwpjgnwia.supabase.co';
-    const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imh1Y2ptZ2drYXNhaHdwamdud2lhIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTQ2MTI2MDIsImV4cCI6MjA3MDE4ODYwMn0.hxFmoZexaKverih9crJfP9fjWItOTfC_6D_CM7hr_Rg';
-    const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-    const ADMIN_EMAILS = ['jeremiah@3djumpstart.com']; // lowercase
-
-    // === STATE ===
-    let all = { enrollments:[], students:[], parents:[], payments:[] };
-    let classes = []; // [{id,label}]
-
-    document.addEventListener('DOMContentLoaded', init);
-    async function init(){
-      const { data:{session} } = await supabase.auth.getSession();
-      const email = (session && session.user && session.user.email || '').toLowerCase();
-      if(!session || !ADMIN_EMAILS.includes(email)){
-        document.getElementById('auth-error').style.display='block';
-        return;
-      }
-      document.getElementById('admin-email').textContent = email;
-      document.getElementById('main-content').style.display='block';
-      await fetchAll();
-      buildClassDropdown();
-      updateStats();
-      renderRoster();
-      renderPayments();
-    }
-
-    async function fetchAll(){
-      const [{data:enrs},{data:studs},{data:pars},{data:pays}] = await Promise.all([
-        supabase.from('enrollments').select('*').order('created_at',{ascending:false}),
-        supabase.from('students').select('*'),
-        supabase.from('parents').select('*'),
-        supabase.from('payments').select('*').order('created_at',{ascending:false})
-      ]);
-      all.enrollments = enrs || [];
-      all.students = studs || [];
-      all.parents = pars || [];
-      all.payments = pays || [];
-    }
-
-    function buildClassDropdown(){
-      const seen = new Map();
-      all.enrollments.forEach(e=>{
-        const key = `${e.class_period_id||''}|${e.class_time||''}`;
-        if(!seen.has(key)){
-          seen.set(key,{ id: e.class_period_id || '', label: e.class_time || '(No class time)' });
-        }
-      });
-      classes = Array.from(seen.values()).sort((a,b)=>a.label.localeCompare(b.label));
-      const sel = document.getElementById('classSelect');
-      classes.forEach(c=>{
-        const opt = document.createElement('option');
-        opt.value = c.id || `t:${c.label}`;
-        opt.textContent = c.label + (c.id ? '' : ' (no id)');
-        sel.appendChild(opt);
-      });
-    }
-
-    function updateStats(){
-      const totalRevenue = all.payments.reduce((s,p)=>s+(p.amount||0),0);
-      document.getElementById('totalRevenue').textContent = (totalRevenue||0).toFixed(0);
-      const outstanding = all.enrollments.filter(e=>e.status==='pending').reduce((s,e)=>s+(Number(e.balance_due)||0),0);
-      document.getElementById('outstandingBalance').textContent = (outstanding||0).toFixed(0);
-      const activeCount = all.enrollments.filter(e=>['enrolled','pending'].includes(e.status)).length;
-      document.getElementById('enrolledCount').textContent = activeCount;
-      const capacity = 20;
-      document.getElementById('availableSpots').textContent = Math.max(capacity - activeCount, 0);
-    }
-
-    function updateSpotsLeft(){
-      const sel = document.getElementById('classSelect').value;
-      const cap = 10;
-      let occupied = 0;
-      if(sel){
-        if(sel.startsWith('t:')){
-          const label = sel.slice(2);
-          occupied = all.enrollments.filter(e=>['enrolled','pending'].includes(e.status) && (e.class_time||'')===label).length;
-        }else{
-          occupied = all.enrollments.filter(e=>['enrolled','pending'].includes(e.status) && (e.class_period_id||'')===sel).length;
-        }
-      }else{
-        occupied = all.enrollments.filter(e=>['enrolled','pending'].includes(e.status)).length;
-      }
-      const left = Math.max(cap - occupied, 0);
-      document.getElementById('spotsLeft').textContent = left;
-    }
-
-    function renderRoster(){
-      const tbody = document.getElementById('rosterTable');
-      const sel = document.getElementById('classSelect').value;
-      const q = (document.getElementById('searchStudent').value||'').toLowerCase();
-      const active = all.enrollments.filter(e=>['enrolled','pending'].includes(e.status));
-      let list = active;
-      if(sel){
-        if(sel.startsWith('t:')){
-          const label = sel.slice(2);
-          list = list.filter(e=>(e.class_time||'')===label);
-        }else{
-          list = list.filter(e=>(e.class_period_id||'')===sel);
-        }
-      }
-      if(q){
-        list = list.filter(e=>{
-          const s = all.students.find(st=>st.id===e.student_id) || {};
-          const name = `${s.first_name||''} ${s.last_name||''}`.toLowerCase();
-          return name.includes(q);
+        // Check admin access on load
+        document.addEventListener('DOMContentLoaded', async () => {
+            await checkAdminAccess();
+            await loadDashboardData();
         });
-      }
-      updateSpotsLeft();
-      if(!list.length){
-        tbody.innerHTML = '<tr><td colspan="11" style="text-align:center">No students for this filter.</td></tr>';
-        return;
-      }
-      tbody.innerHTML = list.map(e=>{
-        const s = all.students.find(st=>st.id===e.student_id) || {};
-        const p = all.parents.find(pr=>pr.id===e.parent_id) || all.parents.find(pr=>pr.id===s.parent_id) || {};
-        const status = e.status==='enrolled' ? 'Enrolled' : 'Pending';
-        const emailCell = p.email ? `<a href="mailto:${p.email}">${p.email}</a>` : '-';
-        const phoneCell = p.phone ? `<a href="tel:${p.phone}">${p.phone}</a>` : '-';
-        return `<tr>
-          <td><strong>${s.first_name||''} ${s.last_name||''}</strong></td>
-          <td>${s.first_name||''}</td>
-          <td>${s.last_name||''}</td>
-          <td>${s.grade||'-'}</td>
-          <td>${s.age||'-'}</td>
-          <td>${e.class_time||'TBD'}</td>
-          <td>${p.name||'Unknown'}</td>
-          <td>${emailCell}</td>
-          <td>${phoneCell}</td>
-          <td>${status}</td>
-          <td>${s.special||'-'}</td>
-        </tr>`;
-      }).join('');
-    }
 
-    function renderPayments(){
-      const tbody = document.getElementById('paymentsTable');
-      const type = document.getElementById('paymentType').value;
-      let list = all.payments.slice();
-      if(type) list = list.filter(p=>p.event_type===type);
-      if(!list.length){
-        tbody.innerHTML = '<tr><td colspan="7" style="text-align:center">No payments found.</td></tr>';
-        document.getElementById('paymentTotal').textContent = '0';
-        return;
-      }
-      const total = list.reduce((s,p)=>s+(p.amount||0),0);
-      document.getElementById('paymentTotal').textContent = (total||0).toFixed(0);
-      tbody.innerHTML = list.map(p=>{
-        const enrollment = p.enrollment_id ? all.enrollments.find(e=>e.id===p.enrollment_id) : null;
-        const student = enrollment ? (all.students.find(s=>s.id===enrollment.student_id)||{}) : {};
-        const parent = (enrollment && all.parents.find(pr=>pr.id===enrollment.parent_id)) || all.parents.find(pr=>pr.id===p.parent_id) || {};
-        const balanceDue = enrollment ? (Number(enrollment.balance_due)||0) : (p.event_type==='Pay Half Now'?360:0);
-        const emailCell = parent.email ? `<a href="mailto:${parent.email}">${parent.email}</a>` : '-';
-        const phoneCell = parent.phone ? `<a href="tel:${parent.phone}">${parent.phone}</a>` : '-';
-        return `<tr>
-          <td>${p.created_at ? new Date(p.created_at).toLocaleDateString() : '-'}</td>
-          <td>${parent.name||'Unknown'}<br>${emailCell} &nbsp; ${phoneCell}</td>
-          <td>${student.first_name||''} ${student.last_name||''}</td>
-          <td>${p.event_type||'Payment'}</td>
-          <td class="money success">$${(p.amount||0).toFixed(0)}</td>
-          <td class="money ${balanceDue>0?'warning':''}">$${(balanceDue||0).toFixed(0)}</td>
-          <td style="font-size:.75rem">${(p.stripe_object_id||'').slice(0,20)}${p.stripe_object_id?'...':''}</td>
-        </tr>`;
-      }).join('');
-    }
+        async function checkAdminAccess() {
+            try {
+                const { data: { session } } = await supabase.auth.getSession();
+                
+                if (!session || session.user.email !== 'jeremiah@3djumpstart.com') {
+                    window.location.href = 'login.html';
+                    return;
+                }
+            } catch (error) {
+                console.error('Auth check failed:', error);
+                window.location.href = 'login.html';
+            }
+        }
 
-    function switchTab(e, tab){
-      document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
-      e.currentTarget.classList.add('active');
-      document.querySelectorAll('.tab-content').forEach(c=>c.classList.remove('active'));
-      document.getElementById('tab-'+tab).classList.add('active');
-    }
+        async function loadDashboardData() {
+            try {
+                // Load all data separately to avoid join issues
+                const [enrollmentsRes, studentsRes, parentsRes, paymentsRes] = await Promise.all([
+                    supabase.from('enrollments').select('*').order('created_at', { ascending: false }),
+                    supabase.from('students').select('*'),
+                    supabase.from('parents').select('*'),
+                    supabase.from('payments').select('*').order('created_at', { ascending: false })
+                ]);
 
-    // CSV export (filtered data, BOM, robust quoting)
-    function exportRoster(){
-      const sel = document.getElementById('classSelect').value;
-      const label = sel ? (sel.startsWith('t:') ? sel.slice(2) : (classes.find(c=>c.id===sel)?.label || 'class')) : 'all-classes';
-      const active = all.enrollments.filter(e=>['enrolled','pending'].includes(e.status));
-      let list = active;
-      if(sel){
-        if(sel.startsWith('t:')) list = list.filter(e=>(e.class_time||'')===label);
-        else list = list.filter(e=>(e.class_period_id||'')===sel);
-      }
-      if(!list.length){ alert('No rows to export for this filter.'); return; }
+                if (enrollmentsRes.error) throw enrollmentsRes.error;
+                if (studentsRes.error) throw studentsRes.error;
+                if (parentsRes.error) throw parentsRes.error;
+                if (paymentsRes.error) throw paymentsRes.error;
 
-      const headers = ['Student Full','First','Last','Grade','Age','Class Time','Parent Name','Parent Email','Parent Phone','Status','Special'];
-      const rows = list.map(e=>{
-        const s = all.students.find(st=>st.id===e.student_id) || {};
-        const p = all.parents.find(pr=>pr.id===e.parent_id) || all.parents.find(pr=>pr.id===s.parent_id) || {};
-        const status = e.status==='enrolled' ? 'Enrolled' : 'Pending';
-        return [
-          `${s.first_name||''} ${s.last_name||''}`.trim(),
-          s.first_name||'',
-          s.last_name||'',
-          s.grade||'',
-          s.age||'',
-          e.class_time||'',
-          p.name||'',
-          p.email||'',
-          p.phone||'',
-          status,
-          s.special||''
-        ];
-      });
+                enrollments = enrollmentsRes.data || [];
+                students = studentsRes.data || [];
+                parents = parentsRes.data || [];
+                payments = paymentsRes.data || [];
 
-      const esc = (v)=>`"${String(v).replace(/"/g,'""')}"`;
-      const csv = '\uFEFF' + [headers.map(esc).join(',')].concat(rows.map(r=>r.map(esc).join(','))).join('\n');
-      const blob = new Blob([csv],{type:'text/csv;charset=utf-8;'});
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement('a'); a.href=url; a.download=`roster_${label.replace(/\s+/g,'-').toLowerCase()}_${new Date().toISOString().slice(0,10)}.csv`; a.click();
-    }
+                updateStats();
+                renderRoster();
+                renderPayments();
 
-    async function logout(){ await supabase.auth.signOut(); window.location.href='login.html'; }
-  </script>
+            } catch (error) {
+                console.error('Failed to load dashboard data:', error);
+                document.body.innerHTML = `<div class="container"><div class="error">Failed to load admin data: ${error.message}</div></div>`;
+            }
+        }
+
+        function updateStats() {
+            // Calculate stats
+            const totalRevenue = payments.reduce((sum, p) => sum + (p.amount || 0), 0);
+            const pendingEnrollments = enrollments.filter(e => e.status === 'pending');
+            const outstandingBalance = pendingEnrollments.reduce((sum, e) => {
+                // Assuming $360 remaining for pending payments
+                return sum + 360;
+            }, 0);
+            const activeEnrollments = enrollments.filter(e => ['enrolled', 'pending'].includes(e.status));
+
+            document.getElementById('totalRevenue').textContent = `$${totalRevenue}`;
+            document.getElementById('outstandingBalance').textContent = `$${outstandingBalance}`;
+            document.getElementById('totalStudents').textContent = students.length;
+            document.getElementById('activeEnrollments').textContent = activeEnrollments.length;
+        }
+
+        function renderRoster() {
+            const tbody = document.getElementById('rosterTable');
+            const activeEnrollments = enrollments.filter(e => ['enrolled', 'pending'].includes(e.status));
+
+            if (activeEnrollments.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="6" style="text-align: center; color: #6b7280;">No active enrollments</td></tr>';
+                return;
+            }
+
+            tbody.innerHTML = activeEnrollments.map(enrollment => {
+                const student = students.find(s => s.id === enrollment.student_id);
+                const parent = parents.find(p => p.id === enrollment.parent_id);
+                
+                const studentName = student ? `${student.first_name} ${student.last_name}` : 'Unknown';
+                const parentName = parent ? parent.name : 'Unknown';
+                const grade = student ? student.grade : 'N/A';
+                
+                return `
+                    <tr>
+                        <td>${studentName}</td>
+                        <td>${parentName}</td>
+                        <td>${grade}</td>
+                        <td>${enrollment.class_time || 'TBD'}</td>
+                        <td><span class="status-badge status-${enrollment.status}">${enrollment.status}</span></td>
+                        <td>
+                            ${enrollment.status === 'pending' ? 
+                                `<button class="btn btn-success" onclick="markAsEnrolled('${enrollment.id}')">Mark Enrolled</button>` : 
+                                '<span style="color: #6b7280;">Complete</span>'
+                            }
+                        </td>
+                    </tr>
+                `;
+            }).join('');
+        }
+
+        function renderPayments() {
+            const tbody = document.getElementById('paymentsTable');
+
+            if (payments.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="6" style="text-align: center; color: #6b7280;">No payments yet</td></tr>';
+                return;
+            }
+
+            tbody.innerHTML = payments.slice(0, 20).map(payment => {
+                const enrollment = enrollments.find(e => e.id === payment.enrollment_id);
+                const student = enrollment ? students.find(s => s.id === enrollment.student_id) : null;
+                const parent = enrollment ? parents.find(p => p.id === enrollment.parent_id) : null;
+                
+                const studentName = student ? `${student.first_name} ${student.last_name}` : 'Unknown';
+                const parentName = parent ? parent.name : 'Unknown';
+                const date = new Date(payment.created_at).toLocaleDateString();
+                
+                return `
+                    <tr>
+                        <td>${date}</td>
+                        <td>${studentName}</td>
+                        <td>${parentName}</td>
+                        <td>$${payment.amount || 0}</td>
+                        <td>${payment.event_type || 'Payment'}</td>
+                        <td><span class="status-badge status-enrolled">Complete</span></td>
+                    </tr>
+                `;
+            }).join('');
+        }
+
+        async function markAsEnrolled(enrollmentId) {
+            try {
+                const { error } = await supabase
+                    .from('enrollments')
+                    .update({ status: 'enrolled' })
+                    .eq('id', enrollmentId);
+
+                if (error) throw error;
+
+                // Reload data
+                await loadDashboardData();
+                alert('Student marked as enrolled successfully!');
+            } catch (error) {
+                console.error('Error updating enrollment:', error);
+                alert('Failed to update enrollment status');
+            }
+        }
+
+        function exportRoster() {
+            const activeEnrollments = enrollments.filter(e => ['enrolled', 'pending'].includes(e.status));
+            const csvData = activeEnrollments.map(enrollment => {
+                const student = students.find(s => s.id === enrollment.student_id);
+                const parent = parents.find(p => p.id === enrollment.parent_id);
+                
+                return {
+                    'Student Name': student ? `${student.first_name} ${student.last_name}` : 'Unknown',
+                    'Parent Name': parent ? parent.name : 'Unknown',
+                    'Parent Email': parent ? parent.email : 'Unknown',
+                    'Grade': student ? student.grade : 'N/A',
+                    'Age': student ? student.age : 'N/A',
+                    'Class Time': enrollment.class_time || 'TBD',
+                    'Status': enrollment.status,
+                    'Special Notes': student ? student.special || '' : ''
+                };
+            });
+
+            downloadCSV(csvData, 'class-roster.csv');
+        }
+
+        function exportPayments() {
+            const csvData = payments.map(payment => {
+                const enrollment = enrollments.find(e => e.id === payment.enrollment_id);
+                const student = enrollment ? students.find(s => s.id === enrollment.student_id) : null;
+                const parent = enrollment ? parents.find(p => p.id === enrollment.parent_id) : null;
+                
+                return {
+                    'Date': new Date(payment.created_at).toLocaleDateString(),
+                    'Student Name': student ? `${student.first_name} ${student.last_name}` : 'Unknown',
+                    'Parent Name': parent ? parent.name : 'Unknown',
+                    'Amount': `$${payment.amount || 0}`,
+                    'Payment Type': payment.event_type || 'Payment',
+                    'Stripe ID': payment.stripe_object_id || ''
+                };
+            });
+
+            downloadCSV(csvData, 'payment-history.csv');
+        }
+
+        function downloadCSV(data, filename) {
+            if (data.length === 0) {
+                alert('No data to export');
+                return;
+            }
+
+            const headers = Object.keys(data[0]);
+            const csvContent = [
+                headers.join(','),
+                ...data.map(row => headers.map(header => `"${row[header] || ''}"`).join(','))
+            ].join('\n');
+
+            const blob = new Blob([csvContent], { type: 'text/csv' });
+            const url = window.URL.createObjectURL(blob);
+            const link = document.createElement('a');
+            link.href = url;
+            link.download = filename;
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+            window.URL.revokeObjectURL(url);
+        }
+
+        async function logout() {
+            await supabase.auth.signOut();
+            window.location.href = 'login.html';
+        }
+    </script>
 </body>
 </html>
+
