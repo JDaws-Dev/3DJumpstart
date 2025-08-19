@@ -181,6 +181,155 @@
       width:100%; max-width:680px; background:#fff; border-radius:20px; padding:18px;
       box-shadow:0 30px 80px rgba(2,8,23,.35); border:1px solid var(--line)
     }
+
+    /* Mobile Responsive Fixes for Portal */
+    @media (max-width: 768px) {
+      .container {
+        padding: 0 0.75rem;
+      }
+
+      .portal-header .header-content {
+        flex-wrap: wrap;
+        gap: 1rem;
+      }
+
+      .logo-image {
+        height: 5rem;
+      }
+
+      .portal-switch {
+        order: 3;
+        width: 100%;
+        justify-content: center;
+      }
+
+      .switch-btn {
+        min-width: 120px;
+        font-size: 0.875rem;
+        padding: 0.5rem 0.75rem;
+      }
+
+      .page-title {
+        font-size: 1.75rem;
+        margin: 1rem 0;
+      }
+
+      .tab-list {
+        overflow-x: auto;
+        padding-bottom: 0.5rem;
+      }
+
+      .tab-button {
+        white-space: nowrap;
+        flex-shrink: 0;
+        padding: 0.5rem 0.75rem;
+        font-size: 0.875rem;
+      }
+
+      .card {
+        padding: 1rem;
+        margin-bottom: 1rem;
+      }
+
+      .card-title {
+        font-size: 1.125rem;
+      }
+
+      /* Mobile-friendly tables */
+      .data-section table {
+        display: block;
+        overflow-x: auto;
+        white-space: nowrap;
+      }
+
+      /* Stack form layouts */
+      .grid-2 {
+        grid-template-columns: 1fr;
+        gap: 1rem;
+      }
+
+      /* Better touch targets for buttons */
+      .btn {
+        min-height: 44px;
+        padding: 0.75rem 1rem;
+      }
+
+      /* Improve modal on mobile */
+      .modal-backdrop {
+        padding: 1rem;
+      }
+
+      .modal {
+        max-width: calc(100vw - 2rem);
+        padding: 1.5rem;
+      }
+
+      /* Stack student actions vertically */
+      .student-actions {
+        flex-direction: column;
+        gap: 0.5rem;
+        align-items: stretch;
+      }
+
+      .student-actions .btn {
+        width: 100%;
+      }
+
+      /* Better cart display on mobile */
+      .totals-wrap {
+        grid-template-columns: 1fr;
+      }
+
+      /* Improve enrollment summary */
+      .enrollment-summary {
+        padding: 1rem;
+      }
+
+      .enrollment-item {
+        padding: 0.75rem 0;
+        font-size: 0.875rem;
+      }
+
+      /* Better status badges for mobile */
+      .status-badge {
+        display: block;
+        text-align: center;
+        margin-top: 0.5rem;
+      }
+    }
+
+    @media (max-width: 480px) {
+      .container {
+        padding: 0 0.5rem;
+      }
+
+      .page-title {
+        font-size: 1.5rem;
+      }
+
+      .card {
+        padding: 0.75rem;
+      }
+
+      .modal {
+        padding: 1rem;
+      }
+
+      .student-row {
+        flex-direction: column;
+        gap: 1rem;
+        align-items: stretch;
+      }
+
+      .student-meta {
+        font-size: 0.875rem;
+      }
+
+      /* Hide less critical information on very small screens */
+      .mobile-hide-small {
+        display: none;
+      }
+    }
   </style>
 </head>
 <body>
@@ -375,20 +524,22 @@
       <div class="card">
         <h2 class="card-title">Billing & Payments</h2>
         <div id="paymentBox"></div>
-        <table style="width:100%;border-collapse:collapse">
-          <thead>
-            <tr>
-              <th style="text-align:left;padding:.75rem;border-bottom:1px solid var(--line)">Date</th>
-              <th style="text-align:left;padding:.75rem;border-bottom:1px solid var(--line)">Student</th>
-              <th style="text-align:left;padding:.75rem;border-bottom:1px solid var(--line)">Description</th>
-              <th style="text-align:left;padding:.75rem;border-bottom:1px solid var(--line)">Amount</th>
-              <th style="text-align:left;padding:.75rem;border-bottom:1px solid var(--line)">Status</th>
-            </tr>
-          </thead>
-          <tbody id="billingTable">
-            <tr><td colspan="5" style="padding:.75rem;border-bottom:1px solid var(--line);text-align:center;color:var(--muted)">Loading payments...</td></tr>
-          </tbody>
-        </table>
+        <div class="data-section">
+          <table style="width:100%;border-collapse:collapse">
+            <thead>
+              <tr>
+                <th style="text-align:left;padding:.75rem;border-bottom:1px solid var(--line)">Date</th>
+                <th style="text-align:left;padding:.75rem;border-bottom:1px solid var(--line)">Student</th>
+                <th style="text-align:left;padding:.75rem;border-bottom:1px solid var(--line)">Description</th>
+                <th style="text-align:left;padding:.75rem;border-bottom:1px solid var(--line)">Amount</th>
+                <th style="text-align:left;padding:.75rem;border-bottom:1px solid var(--line)">Status</th>
+              </tr>
+            </thead>
+            <tbody id="billingTable">
+              <tr><td colspan="5" style="padding:.75rem;border-bottom:1px solid var(--line);text-align:center;color:var(--muted)">Loading payments...</td></tr>
+            </tbody>
+          </table>
+        </div>
       </div>
     </section>
 
