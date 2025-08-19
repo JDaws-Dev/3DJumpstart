@@ -1037,28 +1037,41 @@
           const period = e.target.value;
           if (!period) return;
           
-          const { data: student } = await sb.from('students').select('*').eq('id', studentId).single();
-          const allowed = allowedPeriodsForGrade(student.grade).map(p=>p.id);
-          
-          if (!allowed.includes(period)) {
-            alert(`Selected class period isn't available for grade ${student.grade}.`);
-            e.target.value = '';
-            return;
-          }
-          
-          const result = await sbUpsertEnrollment(student, period);
-          if(result) {
-            // Show added indicator briefly
-            const indicator = document.getElementById(`added-${studentId}`);
-            if (indicator) {
-              indicator.style.display = 'inline-block';
-              setTimeout(() => {
-                indicator.style.display = 'none';
-              }, 2000);
+          try {
+            const { data: student } = await sb.from('students').select('*').eq('id', studentId).single();
+            const allowed = allowedPeriodsForGrade(student.grade).map(p=>p.id);
+            
+            if (!allowed.includes(period)) {
+              alert(`Selected class period isn't available for grade ${student.grade}.`);
+              e.target.value = '';
+              return;
             }
             
-            toast('Added to cart');
-            await render();
+            const result = await sbUpsertEnrollment(student, period);
+            if(result) {
+              // Show added indicator briefly
+              const indicator = document.getElementById(`added-${studentId}`);
+              if (indicator) {
+                indicator.style.display = 'inline-block';
+                setTimeout(() => {
+                  indicator.style.display = 'none';
+                }, 2000);
+              }
+              
+              toast('Added to cart');
+              
+              // Force re-render to update payment section
+              await render();
+              
+              // Explicitly trigger payment card visibility update
+              const students = await sbListStudents();
+              const cartData = await sbListCart();
+              const enrollments = await sbListAllEnrollments();
+              updatePaymentCardVisibility(students, cartData, enrollments);
+            }
+          } catch (error) {
+            console.error('Error adding to cart:', error);
+            alert('Failed to add to cart. Please try again.');
           }
         });
       });
