@@ -146,6 +146,9 @@
             // Display session ID immediately
             document.getElementById('receiptId').textContent = sessionId.substring(0, 20) + '...';
 
+            // Wait 2 seconds before first check to let webhook process
+            await new Promise(resolve => setTimeout(resolve, 2000));
+
             try {
                 // Check for payment with this stripe_object_id
                 const { data: payment, error: payError } = await supabase
