@@ -526,6 +526,17 @@
     function bindUI(){
       document.querySelectorAll('.tab-button').forEach(btn=>{
         btn.addEventListener('click', () => {
+          // Check for class-info access
+          if(btn.dataset.tab === 'class-info') {
+            const hasEnrollments = allEnrollments.some(e => 
+              ['enrolled', 'pending'].includes(e.status)
+            );
+            if(!hasEnrollments) {
+              alert('Please enroll a student first to view class information.');
+              return;
+            }
+          }
+          
           document.querySelectorAll('.tab-button').forEach(b=>b.classList.remove('active'));
           btn.classList.add('active');
           document.querySelectorAll('.tab-content').forEach(c=>c.classList.remove('active'));
@@ -829,7 +840,10 @@
           `;
         } else {
           let options = `<option value="">Select time → Add to cart</option>`;
-          options += allowed.map(p=>`<option value="${p.id}">${p.time}</option>`).join('');
+          options += allowed.map(p => {
+            const gradeText = p.id === 'tue_430' ? ' (Grades 4-7)' : ' (Grades 8-12)';
+            return `<option value="${p.id}">${p.time}${gradeText}</option>`;
+          }).join('');
           
           enrollmentContent = `
             <div class="field" style="margin-top:.4rem;max-width:420px">
@@ -994,54 +1008,55 @@
     }
 
     /* ====== BILLING - FIXED VERSION ====== */
-async function loadBilling() {
-  try {
-    // Just get payments for this parent - no joins
-    const { data: payments, error } = await sb
-      .from('payments')
-      .select('*')
-      .eq('parent_id', currentUser.id)
-      .order('created_at', { ascending: false });
+    async function loadBilling() {
+      try {
+        // Just get payments for this parent - no joins
+        const { data: payments, error } = await sb
+          .from('payments')
+          .select('*')
+          .eq('parent_id', currentUser.id)
+          .order('created_at', { ascending: false });
 
-    if (error) {
-      console.error('Billing query error:', error);
-      renderBilling([]);
-      return;
+        if (error) {
+          console.error('Billing query error:', error);
+          renderBilling([]);
+          return;
+        }
+
+        // Get enrollments separately - no joins
+        const { data: enrollments } = await sb
+          .from('enrollments')
+          .select('*')
+          .eq('parent_id', currentUser.id);
+
+        // Get students separately
+        const { data: students } = await sb
+          .from('students')
+          .select('*')
+          .eq('parent_id', currentUser.id);
+
+        // Map payments to include student info manually
+        const paymentsWithDetails = payments?.map(p => {
+          const enrollment = enrollments?.find(e => e.id === p.enrollment_id);
+          const student = students?.find(s => s.id === enrollment?.student_id);
+          const studentName = student 
+            ? `${student.first_name} ${student.last_name}`
+            : 'Unknown';
+          
+          return {
+            ...p,
+            student_name: studentName,
+            class_time: enrollment?.class_time || 'N/A'
+          };
+        }) || [];
+
+        renderBilling(paymentsWithDetails);
+      } catch(err) {
+        console.error('Billing load error:', err);
+        renderBilling([]);
+      }
     }
 
-    // Get enrollments separately - no joins
-    const { data: enrollments } = await sb
-      .from('enrollments')
-      .select('*')
-      .eq('parent_id', currentUser.id);
-
-    // Get students separately
-    const { data: students } = await sb
-      .from('students')
-      .select('*')
-      .eq('parent_id', currentUser.id);
-
-    // Map payments to include student info manually
-    const paymentsWithDetails = payments?.map(p => {
-      const enrollment = enrollments?.find(e => e.id === p.enrollment_id);
-      const student = students?.find(s => s.id === enrollment?.student_id);
-      const studentName = student 
-        ? `${student.first_name} ${student.last_name}`
-        : 'Unknown';
-      
-      return {
-        ...p,
-        student_name: studentName,
-        class_time: enrollment?.class_time || 'N/A'
-      };
-    }) || [];
-
-    renderBilling(paymentsWithDetails);
-  } catch(err) {
-    console.error('Billing load error:', err);
-    renderBilling([]);
-  }
-}
     function renderBilling(payments) {
       const tbody = document.getElementById('billingTable');
       
@@ -1200,34 +1215,32 @@ async function loadBilling() {
         last_name:last, 
         age:age, 
         grade:grade, 
-        experience:exp, 
+        experience:exp,
         special:spec
-      };
+     };
 
-      await sbSaveStudent(payload);
-      closeModal();
-      await render();
-    }
+     await sbSaveStudent(payload);
+     closeModal();
+     await render();
+   }
 
-    // Global function for remove from cart
-    window.removeFromCart = async function(enrollmentId) {
-      if (!confirm('Remove from cart?')) return;
-      const { error } = await sb.from('enrollments').delete().eq('id', enrollmentId);
-      if (error) alert(error.message);
-      await render();
-    }
+   // Global function for remove from cart
+   window.removeFromCart = async function(enrollmentId) {
+     if (!confirm('Remove from cart?')) return;
+     const { error } = await sb.from('enrollments').delete().eq('id', enrollmentId);
+     if (error) alert(error.message);
+     await render();
+   }
 
-    // Global reference for openModal
-    window.openModal = openModal;
+   // Global reference for openModal
+   window.openModal = openModal;
 
-    /* ====== UTILS ====== */
-    function toast(msg, ok=true){
-      const t=document.getElementById('toast');
-      document.getElementById('toastIcon').textContent = ok?'✅':'✖️';
-      document.getElementById('toastMsg').textContent = msg;
-      t.
-
-        classList.remove('hide'); 
+   /* ====== UTILS ====== */
+   function toast(msg, ok=true){
+     const t=document.getElementById('toast');
+     document.getElementById('toastIcon').textContent = ok?'✅':'✖️';
+     document.getElementById('toastMsg').textContent = msg;
+     t.classList.remove('hide'); 
      t.classList.add('show');
      setTimeout(()=>{ 
        t.classList.add('hide'); 
