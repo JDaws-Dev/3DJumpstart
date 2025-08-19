@@ -487,6 +487,13 @@
 
         // Check if already logged in
         document.addEventListener('DOMContentLoaded', async () => {
+            // Check for password reset tokens and redirect to reset page
+            const urlParams = new URLSearchParams(window.location.search);
+            if (urlParams.get('type') === 'recovery') {
+                window.location.href = `reset-password.html${window.location.search}`;
+                return;
+            }
+
             const { data: { session } } = await supabase.auth.getSession();
             if (session) {
                 window.location.href = 'portal.html';
