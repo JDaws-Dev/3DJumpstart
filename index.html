@@ -239,22 +239,21 @@
             background: #fed7aa;
         }
 
-/* Fix for header button visibility */
-.nav-links .btn-primary {
-    background: white;
-    color: #ea580c;
-    border: 2px solid #ea580c;
-    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-}
+        /* Fix for header button visibility */
+        .nav-links .btn-primary {
+            background: white;
+            color: #ea580c;
+            border: 2px solid #ea580c;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
 
-.nav-links .btn-primary:hover {
-    background: #ea580c;
-    color: white;
-    transform: translateY(-1px);
-    box-shadow: 0 4px 6px rgba(234, 88, 12, 0.25);
-}
+        .nav-links .btn-primary:hover {
+            background: #ea580c;
+            color: white;
+            transform: translateY(-1px);
+            box-shadow: 0 4px 6px rgba(234, 88, 12, 0.25);
+        }
 
-        
         /* Hero Section */
         .hero {
             background: linear-gradient(135deg, #fed7aa 0%, #ffffff 100%);
@@ -592,6 +591,35 @@
                 flex-direction: column;
             }
 
+            .hero {
+                padding: 4rem 0;
+            }
+
+            .hero-badge {
+                font-size: 0.75rem;
+                padding: 0.5rem 1rem;
+                text-align: center;
+                margin-bottom: 1.5rem;
+            }
+
+            .hero p {
+                font-size: 1.125rem;
+                margin-bottom: 2rem;
+            }
+
+            .section {
+                padding: 4rem 0;
+            }
+
+            .section-title {
+                font-size: 2rem;
+            }
+
+            .section-subtitle {
+                font-size: 1.125rem;
+                margin-bottom: 3rem;
+            }
+
             .instructor-content {
                 grid-template-columns: 1fr;
                 gap: 2rem;
@@ -599,10 +627,26 @@
 
             .projects-grid {
                 grid-template-columns: 1fr;
+                gap: 1.5rem;
+            }
+
+            .project-card {
+                margin: 0 0.5rem;
             }
 
             .feature-grid {
                 grid-template-columns: 1fr;
+                gap: 1.5rem;
+            }
+
+            .location-highlight {
+                padding: 1rem;
+                margin: 1rem 0;
+            }
+
+            .hero-actions .btn {
+                width: 100%;
+                max-width: 300px;
             }
         }
 
@@ -610,6 +654,33 @@
             .hero-actions {
                 flex-direction: row;
                 justify-content: center;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .container {
+                padding: 0 0.75rem;
+            }
+
+            .hero h1 {
+                font-size: 2rem;
+                line-height: 1.2;
+            }
+
+            .hero p {
+                font-size: 1rem;
+            }
+
+            .section-title {
+                font-size: 1.75rem;
+            }
+
+            .feature-card {
+                padding: 1.5rem;
+            }
+
+            .project-info {
+                padding: 1rem;
             }
         }
     </style>
@@ -628,7 +699,7 @@
                         <li><a href="#projects">Projects</a></li>
                         <li><a href="#instructor">Instructor</a></li>
                         <li><a href="#pricing">Pricing</a></li>
-<li><a href="faq.html">FAQ</a></li>
+                        <li><a href="faq.html">FAQ</a></li>
                         <li><a href="login.html" class="btn btn-primary">Parent Login / Sign Up</a></li>
                     </ul>
                     
@@ -639,6 +710,7 @@
                         <a href="#projects" onclick="closeMobileMenu()">Projects</a>
                         <a href="#instructor" onclick="closeMobileMenu()">Instructor</a>
                         <a href="#pricing" onclick="closeMobileMenu()">Pricing</a>
+                        <a href="faq.html" onclick="closeMobileMenu()">FAQ</a>
                         <a href="login.html" class="btn btn-primary" style="margin-top: 0.5rem;">Sign Up / Login</a>
                     </div>
                 </nav>
@@ -697,40 +769,6 @@
                     <div style="display: flex; align-items: center; gap: 0.5rem;">
                         Professional Skills
                     </div>
-                </div>
-            </div>
-        </div>
-    </section>
-
-    <!-- Video Program Overview Section -->
-   <section class="section" style="background: #f9fafb; display: none;">
-        <div class="container">
-            <div class="badge">
-                How It Works
-            </div>
-            <h2 class="section-title">Learn About Our Program</h2>
-            <p class="section-subtitle">
-                Discover how students build professional 3D design skills through our progressive multi-level program
-            </p>
-            
-            <div style="max-width: 800px; margin: 0 auto;">
-                <div style="position: relative; width: 100%; height: 0; padding-bottom: 56.25%; /* 16:9 aspect ratio */">
-                    <iframe 
-                        id="intro-video"
-                        style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; border-radius: 1rem; box-shadow: 0 20px 40px rgba(0,0,0,0.1);"
-                        src="https://www.youtube.com/embed/qks9lAGC9Tc?autoplay=1&mute=1&si=y70Dm2n6SKYosXYZ&enablejsapi=1" 
-                        title="3D Jumpstart Program Overview" 
-                        frameborder="0" 
-                        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" 
-                        referrerpolicy="strict-origin-when-cross-origin" 
-                        allowfullscreen>
-                    </iframe>
-                </div>
-                
-                <div style="text-align: center; margin-top: 1.5rem;">
-                    <p style="color: #6b7280; font-size: 0.875rem;">
-                        <em>Video will auto-play when scrolled into view (muted). Click to unmute and control playback.</em>
-                    </p>
                 </div>
             </div>
         </div>
@@ -1036,36 +1074,6 @@
                 if (targetElement) {
                     targetElement.scrollIntoView({ behavior: 'smooth' });
                 }
-            }
-        });
-
-        // Auto-play video when scrolled into view (with delay)
-        document.addEventListener('DOMContentLoaded', function() {
-            const video = document.getElementById('intro-video');
-            const videoSection = video.closest('section');
-            
-            const observer = new IntersectionObserver((entries) => {
-                entries.forEach(entry => {
-                    if (entry.isIntersecting) {
-                        // Add a 2-second delay to give people time to unmute
-                        setTimeout(() => {
-                            const currentSrc = video.src;
-                            if (!currentSrc.includes('autoplay=1')) {
-                                // Add autoplay if not already present
-                                const separator = currentSrc.includes('?') ? '&' : '?';
-                                video.src = currentSrc + separator + 'autoplay=1&mute=1';
-                            }
-                        }, 2000);
-                        // Stop observing once triggered
-                        observer.unobserve(entry.target);
-                    }
-                });
-            }, {
-                threshold: 0.3 // Trigger when 30% of video section is visible
-            });
-
-            if (videoSection) {
-                observer.observe(videoSection);
             }
         });
 
