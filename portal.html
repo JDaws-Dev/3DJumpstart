@@ -210,15 +210,6 @@
         justify-content: center;
       }
 
-      .portal-nav {
-        order: 1;
-        gap: 0.75rem !important;
-      }
-
-      .portal-nav a {
-        font-size: 0.75rem !important;
-      }
-
       .switch-btn {
         min-width: 120px;
         font-size: 0.875rem;
@@ -370,10 +361,6 @@
         </div>
 
         <div class="user-cluster">
-          <nav class="portal-nav" style="display: flex; gap: 1rem; align-items: center;">
-            <a href="faq.html" style="color: #6b7280; text-decoration: none; font-weight: 500; font-size: 0.875rem;">FAQ</a>
-            <a href="index.html#contact" style="color: #6b7280; text-decoration: none; font-weight: 500; font-size: 0.875rem;">Contact</a>
-          </nav>
           <span id="parent-name" class="muted">Loading…</span>
           <button class="btn btn-secondary" id="logoutBtn" type="button">Logout</button>
         </div>
@@ -573,6 +560,12 @@
         <p>📧 <a style="color:#7c2d12; font-weight:900;" href="mailto:jeremiah@3djumpstart.com">jeremiah@3djumpstart.com</a></p>
         <p>📱 <a style="color:#7c2d12; font-weight:900;" href="tel:310-845-5702">310-845-5702</a></p>
       </div>
+      
+      <div class="card">
+        <h2 class="card-title">Frequently Asked Questions</h2>
+        <p style="margin-bottom: 1rem;">Find answers to common questions about classes, pricing, and policies.</p>
+        <a href="faq.html" class="btn btn-primary" target="_blank">View FAQ Page →</a>
+      </div>
     </section>
   </main>
 
@@ -692,7 +685,7 @@
 
     document.getElementById('logoutBtn').addEventListener('click', async () => {
       await sb.auth.signOut();
-      window.location.href = 'login.html';
+      window.location.href = 'index.html';
     });
 
     /* ====== UI & TABS ====== */
@@ -809,62 +802,96 @@
 
     /* ====== SUPABASE: ENROLLMENTS ====== */
     async function sbUpsertEnrollment(student, classPeriodId) {
-      // Check if student already has an active enrollment
-      const existingEnrollment = allEnrollments.find(e => 
-        e.student_id === student.id && 
-        (e.status === 'enrolled' || e.status === 'pending')
-      );
-      
-      if(existingEnrollment) {
-        alert(`${student.first_name} is already enrolled in ${existingEnrollment.class_time}. Contact us to make changes.`);
-        return null;
-      }
+      try {
+        // First, ensure the parent exists in the parents table
+        const { data: existingParent, error: parentCheckError } = await sb
+          .from('parents')
+          .select('id')
+          .eq('id', currentUser.id)
+          .maybeSingle();
 
-      // Check if already in cart
-      const existingCart = allEnrollments.find(e => 
-        e.student_id === student.id && 
-        e.status === 'cart'
-      );
+        if (parentCheckError) {
+          console.error('Error checking parent:', parentCheckError);
+          throw new Error('Failed to verify parent account');
+        }
 
-      if(existingCart) {
-        alert(`${student.first_name} is already in your cart.`);
-        return null;
-      }
+        if (!existingParent) {
+          // Create parent record if it doesn't exist
+          const { error: parentCreateError } = await sb
+            .from('parents')
+            .insert({
+              id: currentUser.id,
+              email: currentUser.email,
+              name: currentUser.user_metadata?.name || currentUser.email,
+              phone: currentUser.user_metadata?.phone || null
+            });
 
-      const p = periodById(classPeriodId);
-      const season = 'Fall 2025';
+          if (parentCreateError) {
+            console.error('Error creating parent:', parentCreateError);
+            throw new Error('Failed to create parent record');
+          }
+        }
 
-      // Look for existing cart enrollment
-      const { data: existing, error: findErr } = await sb
-        .from('enrollments')
-        .select('id')
-        .eq('student_id', student.id)
-        .eq('season', season)
-        .eq('status', 'cart')
-        .maybeSingle();
-      
-      if (findErr && findErr.code !== 'PGRST116') throw findErr;
+        // Check if student already has an active enrollment
+        const existingEnrollment = allEnrollments.find(e => 
+          e.student_id === student.id && 
+          (e.status === 'enrolled' || e.status === 'pending')
+        );
+        
+        if(existingEnrollment) {
+          alert(`${student.first_name} is already enrolled in ${existingEnrollment.class_time}. Contact us to make changes.`);
+          return null;
+        }
 
-      const base = {
-        parent_id: currentUser.id,
-        student_id: student.id,
-        level: 'Level 1',
-        season,
-        class_period_id: p?.id ?? null,
-        class_time: p?.time ?? null,
-        payment_plan: 'full',
-        amount_list: PRICE_LIST_PER,
-        status: 'cart'
-      };
+        // Check if already in cart
+        const existingCart = allEnrollments.find(e => 
+          e.student_id === student.id && 
+          e.status === 'cart'
+        );
 
-      if (existing?.id) {
-        const { error: upErr } = await sb.from('enrollments').update(base).eq('id', existing.id);
-        if (upErr) throw upErr;
-        return { id: existing.id, ...base };
-      } else {
-        const { data, error: insErr } = await sb.from('enrollments').insert(base).select().single();
-        if (insErr) throw insErr;
-        return data;
+        if(existingCart) {
+          alert(`${student.first_name} is already in your cart.`);
+          return null;
+        }
+
+        const p = periodById(classPeriodId);
+        const season = 'Fall 2025';
+
+        // Look for existing cart enrollment
+        const { data: existing, error: findErr } = await sb
+          .from('enrollments')
+          .select('id')
+          .eq('student_id', student.id)
+          .eq('season', season)
+          .eq('status', 'cart')
+          .maybeSingle();
+        
+        if (findErr && findErr.code !== 'PGRST116') throw findErr;
+
+        const base = {
+          parent_id: currentUser.id,
+          student_id: student.id,
+          level: 'Level 1',
+          season,
+          class_period_id: p?.id ?? null,
+          class_time: p?.time ?? null,
+          payment_plan: 'full',
+          amount_list: PRICE_LIST_PER,
+          status: 'cart'
+        };
+
+        if (existing?.id) {
+          const { error: upErr } = await sb.from('enrollments').update(base).eq('id', existing.id);
+          if (upErr) throw upErr;
+          return { id: existing.id, ...base };
+        } else {
+          const { data, error: insErr } = await sb.from('enrollments').insert(base).select().single();
+          if (insErr) throw insErr;
+          return data;
+        }
+      } catch (error) {
+        console.error('Enrollment error:', error);
+        throw error;
       }
     }
 
@@ -946,8 +973,12 @@
       summaryDiv.style.display = 'block';
       listDiv.innerHTML = activeEnrollments.map(e => {
         const student = students.find(s => s.id === e.student_id);
-        const statusText = e.status === 'enrolled' ? '✓ Enrolled' : '⏳ Pending (Pay by Oct 15)';
-        const statusClass = e.status === 'enrolled' ? 'status-enrolled' : 'status-pending';
+        const statusText = e.status === 'enrolled' ? '✓ Enrolled' : 
+                          e.status === 'pending' ? '✓ Enrolled - Balance Due Oct 15' : 
+                          '⏳ Pending';
+        const statusClass = e.status === 'enrolled' ? 'status-enrolled' : 
+                           e.status === 'pending' ? 'status-balance-due' : 
+                           'status-pending';
         
         return `
           <div class="enrollment-item">
@@ -997,6 +1028,10 @@
               <div class="label">Enrolled in Level 1</div>
               <div style="padding:10px;background:#f9fafb;border-radius:8px;margin-top:4px">
                 <strong>${enrollment.class_time}</strong> ${statusBadge}
+                ${enrollment.status === 'pending' ? 
+                  '<div style="margin-top:8px;padding:8px;background:#dbeafe;border-radius:6px;font-size:0.875rem;color:#1e40af;"><strong>Balance Due:</strong> $360 by October 15, 2025</div>' : 
+                  ''
+                }
               </div>
               <div class="muted" style="margin-top:8px;font-size:0.875rem">
                 Contact jeremiah@3djumpstart.com for any changes
