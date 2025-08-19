@@ -203,6 +203,22 @@
         justify-content: center;
       }
 
+      .user-cluster {
+        order: 2;
+        flex-wrap: wrap;
+        gap: 0.5rem;
+        justify-content: center;
+      }
+
+      .portal-nav {
+        order: 1;
+        gap: 0.75rem !important;
+      }
+
+      .portal-nav a {
+        font-size: 0.75rem !important;
+      }
+
       .switch-btn {
         min-width: 120px;
         font-size: 0.875rem;
@@ -344,7 +360,9 @@
     <div class="container">
       <div class="header-content">
         <div class="logo-wrap">
-          <img src="https://raw.githubusercontent.com/JDaws-Dev/3DJumpstart/main/3d-jumpstart-logo.png" alt="3D Jumpstart" class="logo-image" />
+          <a href="index.html" style="text-decoration: none;">
+            <img src="https://raw.githubusercontent.com/JDaws-Dev/3DJumpstart/main/3d-jumpstart-logo.png" alt="3D Jumpstart" class="logo-image" />
+          </a>
           <div class="portal-switch">
             <a href="portal.html" class="switch-btn active">Parent Portal</a>
             <a href="student-portal.html" class="switch-btn">Student Portal</a>
@@ -352,6 +370,10 @@
         </div>
 
         <div class="user-cluster">
+          <nav class="portal-nav" style="display: flex; gap: 1rem; align-items: center;">
+            <a href="faq.html" style="color: #6b7280; text-decoration: none; font-weight: 500; font-size: 0.875rem;">FAQ</a>
+            <a href="index.html#contact" style="color: #6b7280; text-decoration: none; font-weight: 500; font-size: 0.875rem;">Contact</a>
+          </nav>
           <span id="parent-name" class="muted">Loading…</span>
           <button class="btn btn-secondary" id="logoutBtn" type="button">Logout</button>
         </div>
