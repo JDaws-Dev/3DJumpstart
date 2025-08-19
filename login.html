@@ -250,16 +250,6 @@
             display: none !important;
         }
 
-        /* Password Reset Specific Styles */
-        .password-requirements {
-            background: #f3f4f6;
-            padding: 1rem;
-            border-radius: 0.5rem;
-            margin-top: 0.5rem;
-            font-size: 0.875rem;
-            color: #6b7280;
-        }
-
         /* Mobile Responsive */
         @media (max-width: 768px) {
             body {
@@ -346,7 +336,7 @@
                     </div>
 
                     <div class="forgot-password">
-                        <a href="#" onclick="showForgotPassword(event)">Forgot password?</a>
+                        <a href="reset-password.html">Forgot password?</a>
                     </div>
 
                     <button type="submit" class="btn btn-primary">Sign In</button>
@@ -413,29 +403,6 @@
                 <div class="toggle-link">
                     Remember your password? <a href="#" onclick="toggleForm('login')">Sign In</a>
                 </div>
-            </div>
-
-            <!-- Password Reset Form (NEW) -->
-            <div id="password-reset-form-container" class="hidden">
-                <h1 class="form-title">Set New Password</h1>
-                <p class="form-subtitle">Enter your new password below</p>
-
-                <form id="password-reset-form">
-                    <div class="form-group">
-                        <label for="new-password" class="form-label">New Password</label>
-                        <input type="password" id="new-password" class="form-input" required placeholder="Enter new password">
-                        <div class="password-requirements">
-                            Password must be at least 6 characters long
-                        </div>
-                    </div>
-
-                    <div class="form-group">
-                        <label for="confirm-new-password" class="form-label">Confirm New Password</label>
-                        <input type="password" id="confirm-new-password" class="form-input" required placeholder="Confirm new password">
-                    </div>
-
-                    <button type="submit" class="btn btn-primary">Update Password</button>
-                </form>
             </div>
         </div>
 
@@ -518,38 +485,11 @@
             }
         }
 
-        // Store reset tokens globally for later use
-        let resetTokens = null;
-
-        // Check for password reset on page load
+        // Check if already logged in
         document.addEventListener('DOMContentLoaded', async () => {
-            // Check URL parameters for password reset
-            const urlParams = new URLSearchParams(window.location.search);
-            const accessToken = urlParams.get('access_token');
-            const refreshToken = urlParams.get('refresh_token');
-            const type = urlParams.get('type');
-
-            if (type === 'recovery' && accessToken && refreshToken) {
-                // User is coming from password reset email
-                // Store tokens but DON'T set session yet
-                resetTokens = {
-                    access_token: accessToken,
-                    refresh_token: refreshToken
-                };
-
-                // Show password reset form immediately
-                showPasswordResetForm();
-                showMessage('Please enter your new password below', 'success');
-                
-                // Clean up URL
-                window.history.replaceState({}, document.title, window.location.pathname);
-                
-            } else {
-                // Normal page load - check if already logged in
-                const { data: { session } } = await supabase.auth.getSession();
-                if (session) {
-                    window.location.href = 'portal.html';
-                }
+            const { data: { session } } = await supabase.auth.getSession();
+            if (session) {
+                window.location.href = 'portal.html';
             }
         });
 
@@ -558,7 +498,6 @@
             document.getElementById('login-form-container').classList.add('hidden');
             document.getElementById('register-form-container').classList.add('hidden');
             document.getElementById('forgot-form-container').classList.add('hidden');
-            document.getElementById('password-reset-form-container').classList.add('hidden');
             document.getElementById('message-area').innerHTML = '';
 
             if (formType === 'login') {
@@ -567,18 +506,12 @@
                 document.getElementById('register-form-container').classList.remove('hidden');
             } else if (formType === 'forgot') {
                 document.getElementById('forgot-form-container').classList.remove('hidden');
-            } else if (formType === 'reset') {
-                document.getElementById('password-reset-form-container').classList.remove('hidden');
             }
         }
 
         function showForgotPassword(event) {
             event.preventDefault();
             toggleForm('forgot');
-        }
-
-        function showPasswordResetForm() {
-            toggleForm('reset');
         }
 
         // Login form handler
@@ -730,7 +663,7 @@
                 submitBtn.disabled = true;
 
                 const { error } = await supabase.auth.resetPasswordForEmail(email, {
-                    redirectTo: `${window.location.origin}/login.html`
+                    redirectTo: `${window.location.origin}/reset-password.html`
                 });
 
                 if (error) throw error;
@@ -743,70 +676,6 @@
             } catch (error) {
                 console.error('Reset error:', error);
                 showMessage(error.message || 'Failed to send reset email', 'error');
-            } finally {
-                submitBtn.classList.remove('loading');
-                submitBtn.disabled = false;
-            }
-        });
-
-        // Password reset form handler (UPDATED)
-        document.getElementById('password-reset-form').addEventListener('submit', async (e) => {
-            e.preventDefault();
-            
-            const newPassword = document.getElementById('new-password').value;
-            const confirmPassword = document.getElementById('confirm-new-password').value;
-            const submitBtn = e.target.querySelector('button[type="submit"]');
-
-            if (newPassword !== confirmPassword) {
-                showMessage('Passwords do not match', 'error');
-                return;
-            }
-
-            if (newPassword.length < 6) {
-                showMessage('Password must be at least 6 characters', 'error');
-                return;
-            }
-
-            if (!resetTokens) {
-                showMessage('Reset session expired. Please request a new reset link.', 'error');
-                return;
-            }
-
-            try {
-                submitBtn.classList.add('loading');
-                submitBtn.disabled = true;
-
-                // First, set the session with the reset tokens
-                const { data: sessionData, error: sessionError } = await supabase.auth.setSession({
-                    access_token: resetTokens.access_token,
-                    refresh_token: resetTokens.refresh_token
-                });
-
-                if (sessionError) throw sessionError;
-
-                // Then update the password
-                const { error: updateError } = await supabase.auth.updateUser({
-                    password: newPassword
-                });
-
-                if (updateError) throw updateError;
-
-                showMessage('Password updated successfully! Redirecting to portal...', 'success');
-                
-                // Clear reset tokens
-                resetTokens = null;
-                
-                setTimeout(() => {
-                    window.location.href = 'portal.html';
-                }, 2000);
-
-            } catch (error) {
-                console.error('Password update error:', error);
-                if (error.message.includes('session_not_found') || error.message.includes('invalid_grant')) {
-                    showMessage('Reset link has expired. Please request a new one.', 'error');
-                } else {
-                    showMessage(error.message || 'Failed to update password', 'error');
-                }
             } finally {
                 submitBtn.classList.remove('loading');
                 submitBtn.disabled = false;
