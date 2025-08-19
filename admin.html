@@ -1,358 +1,963 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>3D Jumpstart Admin — Simplified</title>
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.39.3/dist/umd/supabase.min.js"></script>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-  <style>
-    *{margin:0;padding:0;box-sizing:border-box}
-    body{font-family:'Inter',-apple-system,BlinkMacSystemFont,'Segoe UI',system-ui,sans-serif;line-height:1.6;color:#111827;background:#f9fafb}
-    .container{max-width:1400px;margin:0 auto;padding:0 1rem}
-    .admin-header{background:#111827;color:#fff;padding:1rem 0;box-shadow:0 2px 4px rgba(0,0,0,.1)}
-    .header-content{display:flex;align-items:center;justify-content:space-between}
-    .logo{font-size:1.25rem;font-weight:700}
-    .dashboard-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:1.25rem;margin:1.25rem 0}
-    .stat-card{background:#fff;padding:1.25rem;border-radius:.75rem;box-shadow:0 1px 3px rgba(0,0,0,.1)}
-    .stat-title{font-size:.8rem;color:#6b7280;margin-bottom:.35rem;font-weight:600;text-transform:uppercase;letter-spacing:.05em}
-    .stat-value{font-size:1.75rem;font-weight:700;color:#111827}
-    .stat-detail{color:#6b7280;font-size:.85rem;margin-top:.15rem}
-    .tabs{display:flex;gap:1rem;margin-bottom:1.25rem;border-bottom:2px solid #e2e8f0}
-    .tab{padding:.6rem 1rem;background:none;border:none;font-weight:600;color:#64748b;cursor:pointer;border-bottom:2px solid transparent;margin-bottom:-2px}
-    .tab.active{color:#ea580c;border-bottom-color:#ea580c}
-    .tab-content{display:none}
-    .tab-content.active{display:block}
-    .data-section{background:#fff;border-radius:.75rem;padding:1rem;margin-bottom:1.25rem;box-shadow:0 1px 3px rgba(0,0,0,.08)}
-    table{width:100%;border-collapse:collapse}
-    th{text-align:left;padding:.65rem;background:#f9fafb;border-bottom:1px solid #e5e7eb;font-weight:600;color:#374151}
-    td{padding:.65rem;border-bottom:1px solid #e5e7eb}
-    tr:hover{background:#f9fafb}
-    .filter-bar{display:flex;gap:.75rem;margin-bottom:.75rem;align-items:center;flex-wrap:wrap}
-    select,input[type="search"]{padding:.45rem .6rem;border:1px solid #e2e8f0;border-radius:8px;font-family:inherit}
-    .btn{padding:.5rem .9rem;border-radius:.5rem;font-weight:600;cursor:pointer;border:none}
-    .btn-primary{background:#3b82f6;color:#fff}
-    .money{font-family:'Courier New',monospace;font-weight:700}
-    .success{color:#16a34a}.warning{color:#f59e0b}
-    .spotline{margin-left:auto;font-weight:700}
-    .muted{color:#6b7280}
-    a{color:#2563eb;text-decoration:none}
-    a:hover{text-decoration:underline}
-  </style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Dashboard - 3D Jumpstart</title>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.39.3/dist/umd/supabase.min.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
+            line-height: 1.6;
+            color: #111827;
+            background: #f9fafb;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 0 1rem;
+        }
+
+        /* Header */
+        .admin-header {
+            background: #111827;
+            color: white;
+            padding: 1rem 0;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+
+        .header-content {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            flex-wrap: wrap;
+            gap: 1rem;
+        }
+
+        .logo {
+            font-size: 1.5rem;
+            font-weight: 700;
+        }
+
+        /* Dashboard Grid */
+        .dashboard-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 1.5rem;
+            margin: 2rem 0;
+        }
+
+        .stat-card {
+            background: white;
+            padding: 1.5rem;
+            border-radius: 0.5rem;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+        }
+
+        .stat-title {
+            font-size: 0.875rem;
+            color: #6b7280;
+            margin-bottom: 0.5rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+
+        .stat-value {
+            font-size: 2rem;
+            font-weight: 700;
+            color: #111827;
+        }
+
+        .stat-detail {
+            color: #6b7280;
+            font-size: 0.875rem;
+            margin-top: 0.25rem;
+        }
+
+        /* Tabs */
+        .tabs {
+            display: flex;
+            gap: 0.5rem;
+            margin-bottom: 2rem;
+            border-bottom: 2px solid #e2e8f0;
+            overflow-x: auto;
+            padding-bottom: 0.5rem;
+        }
+
+        .tab {
+            padding: 0.75rem 1.5rem;
+            background: none;
+            border: none;
+            font-weight: 600;
+            color: #64748b;
+            cursor: pointer;
+            border-bottom: 2px solid transparent;
+            margin-bottom: -2px;
+            transition: all 0.2s;
+            white-space: nowrap;
+            flex-shrink: 0;
+        }
+
+        .tab:hover {
+            color: #0f172a;
+        }
+
+        .tab.active {
+            color: #ea580c;
+            border-bottom-color: #ea580c;
+        }
+
+        .tab-content {
+            display: none;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        /* Tables */
+        .data-section {
+            background: white;
+            border-radius: 0.5rem;
+            padding: 1.5rem;
+            margin-bottom: 2rem;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+            overflow-x: auto;
+        }
+
+        .section-title {
+            font-size: 1.25rem;
+            font-weight: 700;
+            margin-bottom: 1rem;
+            color: #111827;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            min-width: 600px;
+        }
+
+        th {
+            text-align: left;
+            padding: 0.75rem;
+            background: #f9fafb;
+            border-bottom: 1px solid #e5e7eb;
+            font-weight: 600;
+            color: #374151;
+            font-size: 0.875rem;
+        }
+
+        td {
+            padding: 0.75rem;
+            border-bottom: 1px solid #e5e7eb;
+            font-size: 0.875rem;
+        }
+
+        tr:hover {
+            background: #f9fafb;
+        }
+
+        /* Filter Bar */
+        .filter-bar {
+            display: flex;
+            gap: 1rem;
+            margin-bottom: 1rem;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+
+        select, input[type="search"] {
+            padding: 0.5rem;
+            border: 1px solid #e2e8f0;
+            border-radius: 6px;
+            font-family: inherit;
+            font-size: 0.875rem;
+        }
+
+        /* Buttons */
+        .btn {
+            padding: 0.5rem 1rem;
+            border-radius: 0.375rem;
+            font-weight: 500;
+            cursor: pointer;
+            border: none;
+            transition: all 0.2s;
+            font-size: 0.875rem;
+        }
+
+        .btn-primary {
+            background: #3b82f6;
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background: #2563eb;
+        }
+
+        .btn-danger {
+            background: #ef4444;
+            color: white;
+        }
+
+        .btn-secondary {
+            background: #6b7280;
+            color: white;
+        }
+
+        /* Loading State */
+        .loading {
+            text-align: center;
+            padding: 2rem;
+            color: #6b7280;
+        }
+
+        /* Error State */
+        .error-message {
+            background: #fee2e2;
+            color: #dc2626;
+            padding: 1rem;
+            border-radius: 0.5rem;
+            margin: 1rem 0;
+        }
+
+        /* Auth Error */
+        .auth-error {
+            max-width: 500px;
+            margin: 5rem auto;
+            padding: 2rem;
+            background: white;
+            border-radius: 0.5rem;
+            text-align: center;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+        }
+
+        .auth-error h2 {
+            color: #dc2626;
+            margin-bottom: 1rem;
+        }
+
+        /* Status badges */
+        .badge {
+            display: inline-block;
+            padding: 0.25rem 0.75rem;
+            border-radius: 9999px;
+            font-size: 0.75rem;
+            font-weight: 600;
+        }
+
+        .badge-success, .badge-enrolled {
+            background: #dcfce7;
+            color: #15803d;
+        }
+
+        .badge-warning, .badge-pending {
+            background: #fef3c7;
+            color: #92400e;
+        }
+
+        .badge-info, .badge-cart {
+            background: #dbeafe;
+            color: #1e40af;
+        }
+
+        .money {
+            font-family: 'Courier New', monospace;
+            font-weight: 600;
+        }
+
+        .success { color: #16a34a; }
+        .warning { color: #f59e0b; }
+        .danger { color: #dc2626; }
+
+        /* Mobile Responsive */
+        @media (max-width: 768px) {
+            .container {
+                padding: 0 0.5rem;
+            }
+
+            .dashboard-grid {
+                grid-template-columns: 1fr;
+                gap: 1rem;
+                margin: 1rem 0;
+            }
+
+            .stat-card {
+                padding: 1rem;
+            }
+
+            .stat-value {
+                font-size: 1.75rem;
+            }
+
+            .logo {
+                font-size: 1.25rem;
+            }
+
+            .header-content {
+                text-align: center;
+            }
+
+            .tabs {
+                gap: 0.25rem;
+                margin-bottom: 1rem;
+            }
+
+            .tab {
+                padding: 0.5rem 1rem;
+                font-size: 0.875rem;
+            }
+
+            .data-section {
+                padding: 1rem;
+                margin-bottom: 1rem;
+            }
+
+            .filter-bar {
+                flex-direction: column;
+                align-items: stretch;
+                gap: 0.5rem;
+            }
+
+            .filter-bar select,
+            .filter-bar input {
+                width: 100%;
+            }
+
+            table {
+                font-size: 0.75rem;
+            }
+
+            th, td {
+                padding: 0.5rem 0.25rem;
+            }
+
+            .btn {
+                padding: 0.375rem 0.75rem;
+                font-size: 0.75rem;
+            }
+
+            /* Hide less important columns on mobile */
+            .mobile-hide {
+                display: none;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .container {
+                padding: 0 0.25rem;
+            }
+
+            .stat-card {
+                padding: 0.75rem;
+            }
+
+            .stat-title {
+                font-size: 0.75rem;
+            }
+
+            .stat-value {
+                font-size: 1.5rem;
+            }
+
+            .data-section {
+                padding: 0.75rem;
+            }
+
+            table {
+                font-size: 0.7rem;
+                min-width: 500px;
+            }
+
+            th, td {
+                padding: 0.375rem 0.25rem;
+            }
+        }
+
+        /* Table scroll indicator */
+        .table-scroll {
+            position: relative;
+        }
+
+        .table-scroll::after {
+            content: '← Scroll to see more →';
+            position: absolute;
+            bottom: 0;
+            right: 0;
+            background: #ea580c;
+            color: white;
+            padding: 0.25rem 0.5rem;
+            font-size: 0.75rem;
+            border-radius: 0.25rem 0 0 0;
+            display: none;
+        }
+
+        @media (max-width: 768px) {
+            .table-scroll::after {
+                display: block;
+            }
+        }
+    </style>
 </head>
 <body>
-  <header class="admin-header">
-    <div class="container">
-      <div class="header-content">
-        <div class="logo">3D Jumpstart Admin</div>
-        <div><span id="admin-email" style="margin-right:1rem">Loading...</span>
-          <button class="btn" onclick="logout()">Logout</button></div>
-      </div>
+    <!-- Header -->
+    <header class="admin-header">
+        <div class="container">
+            <div class="header-content">
+                <div class="logo">🎯 3D Jumpstart Admin</div>
+                <div>
+                    <span id="admin-email" style="margin-right: 1rem; font-size: 0.875rem;">Loading...</span>
+                    <button class="btn btn-secondary" onclick="logout()">Logout</button>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <main class="container" id="main-content" style="display: none;">
+        <!-- Stats Grid -->
+        <div class="dashboard-grid">
+            <div class="stat-card">
+                <div class="stat-title">Total Revenue</div>
+                <div class="stat-value money success">$<span id="totalRevenue">0</span></div>
+                <div class="stat-detail">All payments received</div>
+            </div>
+            
+            <div class="stat-card">
+                <div class="stat-title">Outstanding Balance</div>
+                <div class="stat-value money warning">$<span id="outstandingBalance">0</span></div>
+                <div class="stat-detail">Due October 15</div>
+            </div>
+            
+            <div class="stat-card">
+                <div class="stat-title">Enrolled Students</div>
+                <div class="stat-value"><span id="enrolledCount">0</span></div>
+                <div class="stat-detail">Active enrollments</div>
+            </div>
+            
+            <div class="stat-card">
+                <div class="stat-title">Available Spots</div>
+                <div class="stat-value"><span id="availableSpots">0</span></div>
+                <div class="stat-detail">Across all classes</div>
+            </div>
+        </div>
+
+        <!-- Tabs -->
+        <div class="tabs">
+            <button class="tab active" onclick="switchTab('roster')">Roster</button>
+            <button class="tab" onclick="switchTab('payments')">Payments</button>
+            <button class="tab" onclick="switchTab('enrollments')">Enrollments</button>
+            <button class="tab" onclick="switchTab('parents')">Parents</button>
+        </div>
+
+        <!-- Roster Tab -->
+        <div id="tab-roster" class="tab-content active">
+            <div class="filter-bar">
+                <select id="classFilter" onchange="filterRoster()">
+                    <option value="">All Classes</option>
+                    <option value="Tuesday 4:30-5:30">Tuesday 4:30-5:30 (Grades 4-7)</option>
+                    <option value="Tuesday 5:30-6:30">Tuesday 5:30-6:30 (Grades 8-12)</option>
+                </select>
+                <input type="search" id="searchStudent" placeholder="Search students..." onkeyup="filterRoster()">
+                <button class="btn btn-primary" onclick="exportRoster()">Export CSV</button>
+            </div>
+            
+            <div class="data-section table-scroll">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Student</th>
+                            <th>Grade</th>
+                            <th class="mobile-hide">Age</th>
+                            <th>Class Time</th>
+                            <th class="mobile-hide">Parent</th>
+                            <th class="mobile-hide">Contact</th>
+                            <th>Status</th>
+                            <th class="mobile-hide">Notes</th>
+                        </tr>
+                    </thead>
+                    <tbody id="rosterTable">
+                        <tr><td colspan="8" style="text-align: center;">Loading...</td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- Payments Tab -->
+        <div id="tab-payments" class="tab-content">
+            <div class="filter-bar">
+                <select id="paymentFilter" onchange="loadPayments()">
+                    <option value="">All Payments</option>
+                    <option value="Pay in Full">Pay in Full</option>
+                    <option value="Pay Half Now">Pay Half Now</option>
+                </select>
+                <span style="margin-left: auto;">
+                    Total: <strong class="money success">$<span id="paymentTotal">0</span></strong>
+                </span>
+            </div>
+            
+            <div class="data-section table-scroll">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Date</th>
+                            <th class="mobile-hide">Parent</th>
+                            <th>Student(s)</th>
+                            <th>Type</th>
+                            <th>Amount</th>
+                            <th class="mobile-hide">Balance Due</th>
+                            <th class="mobile-hide">Stripe ID</th>
+                        </tr>
+                    </thead>
+                    <tbody id="paymentsTable">
+                        <tr><td colspan="7" style="text-align: center;">Loading...</td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- Enrollments Tab -->
+        <div id="tab-enrollments" class="tab-content">
+            <div class="filter-bar">
+                <select id="statusFilter" onchange="loadEnrollments()">
+                    <option value="">All Statuses</option>
+                    <option value="enrolled">Enrolled</option>
+                    <option value="pending">Pending Payment</option>
+                    <option value="cart">In Cart</option>
+                </select>
+            </div>
+            
+            <div class="data-section table-scroll">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Student</th>
+                            <th class="mobile-hide">Parent</th>
+                            <th>Class</th>
+                            <th>Status</th>
+                            <th class="mobile-hide">Paid Date</th>
+                            <th>Balance Due</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="enrollmentsTable">
+                        <tr><td colspan="7" style="text-align: center;">Loading...</td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- Parents Tab -->
+        <div id="tab-parents" class="tab-content">
+            <div class="filter-bar">
+                <input type="search" id="searchParent" placeholder="Search parents..." onkeyup="filterParents()">
+            </div>
+            
+            <div class="data-section table-scroll">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Parent Name</th>
+                            <th>Email</th>
+                            <th class="mobile-hide">Phone</th>
+                            <th class="mobile-hide">Students</th>
+                            <th>Total Paid</th>
+                            <th>Balance Due</th>
+                        </tr>
+                    </thead>
+                    <tbody id="parentsTable">
+                        <tr><td colspan="6" style="text-align: center;">Loading...</td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </main>
+
+    <!-- Auth Error (hidden by default) -->
+    <div id="auth-error" class="auth-error" style="display: none;">
+        <h2>⛔ Admin Access Required</h2>
+        <p style="margin-bottom: 1.5rem;">You must be logged in as an administrator to view this page.</p>
+        <p>Admin email: jeremiah@3djumpstart.com</p>
+        <button class="btn btn-primary" onclick="window.location.href='login.html'">Go to Login</button>
     </div>
-  </header>
 
-  <main class="container" id="main-content" style="display:none">
-    <div class="dashboard-grid">
-      <div class="stat-card">
-        <div class="stat-title">Total Revenue</div>
-        <div class="stat-value money success">$<span id="totalRevenue">0</span></div>
-        <div class="stat-detail">All payments received</div>
-      </div>
-      <div class="stat-card">
-        <div class="stat-title">Outstanding Balance</div>
-        <div class="stat-value money warning">$<span id="outstandingBalance">0</span></div>
-        <div class="stat-detail">Pending enrollments</div>
-      </div>
-      <div class="stat-card">
-        <div class="stat-title">Active Students</div>
-        <div class="stat-value"><span id="enrolledCount">0</span></div>
-        <div class="stat-detail">Enrolled + Pending</div>
-      </div>
-      <div class="stat-card">
-        <div class="stat-title">Available Spots</div>
-        <div class="stat-value"><span id="availableSpots">0</span></div>
-        <div class="stat-detail">All classes</div>
-      </div>
-    </div>
+    <script>
+        // Configuration
+        const SUPABASE_URL = 'https://hucjmggkasahwpjgnwia.supabase.co';
+        const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imh1Y2ptZ2drYXNhaHdwamdud2lhIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTQ2MTI2MDIsImV4cCI6MjA3MDE4ODYwMn0.hxFmoZexaKverih9crJfP9fjWItOTfC_6D_CM7hr_Rg';
+        
+        const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
-    <div class="tabs">
-      <button class="tab active" onclick="switchTab(event,'roster')">Class Roster</button>
-      <button class="tab" onclick="switchTab(event,'payments')">Payments</button>
-    </div>
+        // Admin emails (add yours here)
+        const ADMIN_EMAILS = ['jeremiah@3djumpstart.com'];
+        
+        let currentUser = null;
+        let allData = {
+            enrollments: [],
+            payments: [],
+            students: [],
+            parents: []
+        };
 
-    <!-- CLASS ROSTER -->
-    <div id="tab-roster" class="tab-content active">
-      <div class="filter-bar">
-        <select id="classSelect" title="Filter by class" onchange="renderRoster()">
-          <option value="">All Classes</option>
-        </select>
-        <input type="search" id="searchStudent" placeholder="Search students..." onkeyup="renderRoster()">
-        <button class="btn btn-primary" onclick="exportRoster()">Export CSV</button>
-        <div id="spotsLine" class="spotline">Spots left: <span id="spotsLeft">—</span> <span class="muted">(capacity 10)</span></div>
-      </div>
-      <div class="data-section">
-        <table>
-          <thead>
-            <tr>
-              <th>Student</th>
-              <th>First</th>
-              <th>Last</th>
-              <th>Grade</th>
-              <th>Age</th>
-              <th>Class Time</th>
-              <th>Parent</th>
-              <th>Parent Email</th>
-              <th>Parent Phone</th>
-              <th>Status</th>
-              <th>Special</th>
-            </tr>
-          </thead>
-          <tbody id="rosterTable"><tr><td colspan="11" style="text-align:center">Loading...</td></tr></tbody>
-        </table>
-      </div>
-    </div>
-
-    <!-- PAYMENTS -->
-    <div id="tab-payments" class="tab-content">
-      <div class="filter-bar">
-        <select id="paymentType" onchange="renderPayments()">
-          <option value="">All Types</option>
-          <option value="Pay in Full">Pay in Full</option>
-          <option value="Pay Half Now">Pay Half Now</option>
-        </select>
-        <span style="margin-left:auto">Total: <strong class="money success">$<span id="paymentTotal">0</span></strong></span>
-      </div>
-      <div class="data-section">
-        <table>
-          <thead>
-            <tr><th>Date</th><th>Parent</th><th>Student</th><th>Type</th><th>Amount</th><th>Balance Due</th><th>Stripe ID</th></tr>
-          </thead>
-          <tbody id="paymentsTable"><tr><td colspan="7" style="text-align:center">Loading...</td></tr></tbody>
-        </table>
-      </div>
-    </div>
-  </main>
-
-  <div id="auth-error" class="auth-error" style="display:none">
-    <h2>⛔ Admin Access Required</h2>
-    <p>You must be logged in as an administrator to view this page.</p>
-    <button class="btn btn-primary" onclick="window.location.href='login.html'">Go to Login</button>
-  </div>
-
-  <script>
-    // === CONFIG ===
-    const SUPABASE_URL = 'https://hucjmggkasahwpjgnwia.supabase.co';
-    const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imh1Y2ptZ2drYXNhaHdwamdud2lhIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTQ2MTI2MDIsImV4cCI6MjA3MDE4ODYwMn0.hxFmoZexaKverih9crJfP9fjWItOTfC_6D_CM7hr_Rg';
-    const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-    const ADMIN_EMAILS = ['jeremiah@3djumpstart.com']; // lowercase
-
-    // === STATE ===
-    let all = { enrollments:[], students:[], parents:[], payments:[] };
-    let classes = []; // [{id,label}]
-
-    document.addEventListener('DOMContentLoaded', init);
-    async function init(){
-      const { data:{session} } = await supabase.auth.getSession();
-      const email = (session && session.user && session.user.email || '').toLowerCase();
-      if(!session || !ADMIN_EMAILS.includes(email)){
-        document.getElementById('auth-error').style.display='block';
-        return;
-      }
-      document.getElementById('admin-email').textContent = email;
-      document.getElementById('main-content').style.display='block';
-      await fetchAll();
-      buildClassDropdown();
-      updateStats();
-      renderRoster();
-      renderPayments();
-    }
-
-    async function fetchAll(){
-      const [{data:enrs},{data:studs},{data:pars},{data:pays}] = await Promise.all([
-        supabase.from('enrollments').select('*').order('created_at',{ascending:false}),
-        supabase.from('students').select('*'),
-        supabase.from('parents').select('*'),
-        supabase.from('payments').select('*').order('created_at',{ascending:false})
-      ]);
-      all.enrollments = enrs || [];
-      all.students = studs || [];
-      all.parents = pars || [];
-      all.payments = pays || [];
-    }
-
-    function buildClassDropdown(){
-      const seen = new Map();
-      all.enrollments.forEach(e=>{
-        const key = `${e.class_period_id||''}|${e.class_time||''}`;
-        if(!seen.has(key)){
-          seen.set(key,{ id: e.class_period_id || '', label: e.class_time || '(No class time)' });
-        }
-      });
-      classes = Array.from(seen.values()).sort((a,b)=>a.label.localeCompare(b.label));
-      const sel = document.getElementById('classSelect');
-      classes.forEach(c=>{
-        const opt = document.createElement('option');
-        opt.value = c.id || `t:${c.label}`;
-        opt.textContent = c.label + (c.id ? '' : ' (no id)');
-        sel.appendChild(opt);
-      });
-    }
-
-    function updateStats(){
-      const totalRevenue = all.payments.reduce((s,p)=>s+(p.amount||0),0);
-      document.getElementById('totalRevenue').textContent = (totalRevenue||0).toFixed(0);
-      const outstanding = all.enrollments.filter(e=>e.status==='pending').reduce((s,e)=>s+(Number(e.balance_due)||0),0);
-      document.getElementById('outstandingBalance').textContent = (outstanding||0).toFixed(0);
-      const activeCount = all.enrollments.filter(e=>['enrolled','pending'].includes(e.status)).length;
-      document.getElementById('enrolledCount').textContent = activeCount;
-      const capacity = 20;
-      document.getElementById('availableSpots').textContent = Math.max(capacity - activeCount, 0);
-    }
-
-    function updateSpotsLeft(){
-      const sel = document.getElementById('classSelect').value;
-      const cap = 10;
-      let occupied = 0;
-      if(sel){
-        if(sel.startsWith('t:')){
-          const label = sel.slice(2);
-          occupied = all.enrollments.filter(e=>['enrolled','pending'].includes(e.status) && (e.class_time||'')===label).length;
-        }else{
-          occupied = all.enrollments.filter(e=>['enrolled','pending'].includes(e.status) && (e.class_period_id||'')===sel).length;
-        }
-      }else{
-        occupied = all.enrollments.filter(e=>['enrolled','pending'].includes(e.status)).length;
-      }
-      const left = Math.max(cap - occupied, 0);
-      document.getElementById('spotsLeft').textContent = left;
-    }
-
-    function renderRoster(){
-      const tbody = document.getElementById('rosterTable');
-      const sel = document.getElementById('classSelect').value;
-      const q = (document.getElementById('searchStudent').value||'').toLowerCase();
-      const active = all.enrollments.filter(e=>['enrolled','pending'].includes(e.status));
-      let list = active;
-      if(sel){
-        if(sel.startsWith('t:')){
-          const label = sel.slice(2);
-          list = list.filter(e=>(e.class_time||'')===label);
-        }else{
-          list = list.filter(e=>(e.class_period_id||'')===sel);
-        }
-      }
-      if(q){
-        list = list.filter(e=>{
-          const s = all.students.find(st=>st.id===e.student_id) || {};
-          const name = `${s.first_name||''} ${s.last_name||''}`.toLowerCase();
-          return name.includes(q);
+        // Initialize
+        document.addEventListener('DOMContentLoaded', async () => {
+            await checkAuth();
         });
-      }
-      updateSpotsLeft();
-      if(!list.length){
-        tbody.innerHTML = '<tr><td colspan="11" style="text-align:center">No students for this filter.</td></tr>';
-        return;
-      }
-      tbody.innerHTML = list.map(e=>{
-        const s = all.students.find(st=>st.id===e.student_id) || {};
-        const p = all.parents.find(pr=>pr.id===e.parent_id) || all.parents.find(pr=>pr.id===s.parent_id) || {};
-        const status = e.status==='enrolled' ? 'Enrolled' : 'Pending';
-        const emailCell = p.email ? `<a href="mailto:${p.email}">${p.email}</a>` : '-';
-        const phoneCell = p.phone ? `<a href="tel:${p.phone}">${p.phone}</a>` : '-';
-        return `<tr>
-          <td><strong>${s.first_name||''} ${s.last_name||''}</strong></td>
-          <td>${s.first_name||''}</td>
-          <td>${s.last_name||''}</td>
-          <td>${s.grade||'-'}</td>
-          <td>${s.age||'-'}</td>
-          <td>${e.class_time||'TBD'}</td>
-          <td>${p.name||'Unknown'}</td>
-          <td>${emailCell}</td>
-          <td>${phoneCell}</td>
-          <td>${status}</td>
-          <td>${s.special||'-'}</td>
-        </tr>`;
-      }).join('');
-    }
 
-    function renderPayments(){
-      const tbody = document.getElementById('paymentsTable');
-      const type = document.getElementById('paymentType').value;
-      let list = all.payments.slice();
-      if(type) list = list.filter(p=>p.event_type===type);
-      if(!list.length){
-        tbody.innerHTML = '<tr><td colspan="7" style="text-align:center">No payments found.</td></tr>';
-        document.getElementById('paymentTotal').textContent = '0';
-        return;
-      }
-      const total = list.reduce((s,p)=>s+(p.amount||0),0);
-      document.getElementById('paymentTotal').textContent = (total||0).toFixed(0);
-      tbody.innerHTML = list.map(p=>{
-        const enrollment = p.enrollment_id ? all.enrollments.find(e=>e.id===p.enrollment_id) : null;
-        const student = enrollment ? (all.students.find(s=>s.id===enrollment.student_id)||{}) : {};
-        const parent = (enrollment && all.parents.find(pr=>pr.id===enrollment.parent_id)) || all.parents.find(pr=>pr.id===p.parent_id) || {};
-        const balanceDue = enrollment ? (Number(enrollment.balance_due)||0) : (p.event_type==='Pay Half Now'?360:0);
-        const emailCell = parent.email ? `<a href="mailto:${parent.email}">${parent.email}</a>` : '-';
-        const phoneCell = parent.phone ? `<a href="tel:${parent.phone}">${parent.phone}</a>` : '-';
-        return `<tr>
-          <td>${p.created_at ? new Date(p.created_at).toLocaleDateString() : '-'}</td>
-          <td>${parent.name||'Unknown'}<br>${emailCell} &nbsp; ${phoneCell}</td>
-          <td>${student.first_name||''} ${student.last_name||''}</td>
-          <td>${p.event_type||'Payment'}</td>
-          <td class="money success">$${(p.amount||0).toFixed(0)}</td>
-          <td class="money ${balanceDue>0?'warning':''}">$${(balanceDue||0).toFixed(0)}</td>
-          <td style="font-size:.75rem">${(p.stripe_object_id||'').slice(0,20)}${p.stripe_object_id?'...':''}</td>
-        </tr>`;
-      }).join('');
-    }
+        async function checkAuth() {
+            try {
+                // Check if user is logged in
+                const { data: { session }, error: sessionError } = await supabase.auth.getSession();
+                
+                if (sessionError || !session) {
+                    showAuthError('Not logged in');
+                    return;
+                }
 
-    function switchTab(e, tab){
-      document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
-      e.currentTarget.classList.add('active');
-      document.querySelectorAll('.tab-content').forEach(c=>c.classList.remove('active'));
-      document.getElementById('tab-'+tab).classList.add('active');
-    }
+                currentUser = session.user;
+                
+                // Check if user is admin using simple email check
+                if (!ADMIN_EMAILS.includes(currentUser.email)) {
+                    showAuthError('Not an admin');
+                    return;
+                }
 
-    // CSV export (filtered data, BOM, robust quoting)
-    function exportRoster(){
-      const sel = document.getElementById('classSelect').value;
-      const label = sel ? (sel.startsWith('t:') ? sel.slice(2) : (classes.find(c=>c.id===sel)?.label || 'class')) : 'all-classes';
-      const active = all.enrollments.filter(e=>['enrolled','pending'].includes(e.status));
-      let list = active;
-      if(sel){
-        if(sel.startsWith('t:')) list = list.filter(e=>(e.class_time||'')===label);
-        else list = list.filter(e=>(e.class_period_id||'')===sel);
-      }
-      if(!list.length){ alert('No rows to export for this filter.'); return; }
+                // User is authenticated and is admin
+                document.getElementById('admin-email').textContent = currentUser.email;
+                document.getElementById('main-content').style.display = 'block';
+                await loadAllData();
 
-      const headers = ['Student Full','First','Last','Grade','Age','Class Time','Parent Name','Parent Email','Parent Phone','Status','Special'];
-      const rows = list.map(e=>{
-        const s = all.students.find(st=>st.id===e.student_id) || {};
-        const p = all.parents.find(pr=>pr.id===e.parent_id) || all.parents.find(pr=>pr.id===s.parent_id) || {};
-        const status = e.status==='enrolled' ? 'Enrolled' : 'Pending';
-        return [
-          `${s.first_name||''} ${s.last_name||''}`.trim(),
-          s.first_name||'',
-          s.last_name||'',
-          s.grade||'',
-          s.age||'',
-          e.class_time||'',
-          p.name||'',
-          p.email||'',
-          p.phone||'',
-          status,
-          s.special||''
-        ];
-      });
+            } catch (error) {
+                console.error('Auth error:', error);
+                showAuthError('Authentication error');
+            }
+        }
 
-      const esc = (v)=>`"${String(v).replace(/"/g,'""')}"`;
-      const csv = '\uFEFF' + [headers.map(esc).join(',')].concat(rows.map(r=>r.map(esc).join(','))).join('\n');
-      const blob = new Blob([csv],{type:'text/csv;charset=utf-8;'});
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement('a'); a.href=url; a.download=`roster_${label.replace(/\s+/g,'-').toLowerCase()}_${new Date().toISOString().slice(0,10)}.csv`; a.click();
-    }
+        function showAuthError(message) {
+            document.getElementById('main-content').style.display = 'none';
+            document.getElementById('auth-error').style.display = 'block';
+            console.error('Auth error:', message);
+        }
 
-    async function logout(){ await supabase.auth.signOut(); window.location.href='login.html'; }
-  </script>
+        async function loadAllData() {
+            try {
+                // Load enrollments with student and parent data by fetching separately and joining manually
+                const { data: enrollments, error: enrollErr } = await supabase
+                    .from('enrollments')
+                    .select('*')
+                    .order('created_at', { ascending: false });
+
+                if (enrollErr) throw enrollErr;
+                allData.enrollments = enrollments || [];
+
+                // Load students
+                const { data: students, error: studErr } = await supabase
+                    .from('students')
+                    .select('*');
+
+                if (studErr) throw studErr;
+                allData.students = students || [];
+
+                // Load parents
+                const { data: parents, error: parErr } = await supabase
+                    .from('parents')
+                    .select('*');
+
+                if (parErr) throw parErr;
+                allData.parents = parents || [];
+
+                // Load payments
+                const { data: payments, error: payErr } = await supabase
+                    .from('payments')
+                    .select('*')
+                    .order('created_at', { ascending: false });
+
+                if (payErr) throw payErr;
+                allData.payments = payments || [];
+
+                // Calculate stats
+                updateStats();
+                
+                // Load initial views
+                loadRoster();
+                loadPayments();
+                loadEnrollments();
+                loadParents();
+            } catch (error) {
+                console.error('Data load error:', error);
+            }
+        }
+
+        function updateStats() {
+            // Calculate total revenue
+            const totalRevenue = allData.payments.reduce((sum, p) => sum + (p.amount || 0), 0);
+            document.getElementById('totalRevenue').textContent = totalRevenue.toFixed(0);
+
+            // Calculate outstanding balance (pending enrollments)
+            const pendingEnrollments = allData.enrollments.filter(e => e.status === 'pending');
+            const outstandingBalance = pendingEnrollments.length * 360; // $360 per pending enrollment
+            document.getElementById('outstandingBalance').textContent = outstandingBalance.toFixed(0);
+
+            // Count enrolled students
+            const enrolledCount = allData.enrollments.filter(e => 
+                e.status === 'enrolled' || e.status === 'pending'
+            ).length;
+            document.getElementById('enrolledCount').textContent = enrolledCount;
+
+            // Calculate available spots (10 per class, 2 classes = 20 total)
+            const availableSpots = 20 - enrolledCount;
+            document.getElementById('availableSpots').textContent = availableSpots;
+        }
+
+        function loadRoster() {
+            const tbody = document.getElementById('rosterTable');
+            const activeEnrollments = allData.enrollments.filter(e => 
+                e.status === 'enrolled' || e.status === 'pending'
+            );
+
+            if (activeEnrollments.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="8" style="text-align: center;">No enrolled students yet</td></tr>';
+                return;
+            }
+
+            tbody.innerHTML = activeEnrollments.map(e => {
+                const student = allData.students.find(s => s.id === e.student_id) || {};
+                const parent = allData.parents.find(p => p.id === e.parent_id) || {};
+                
+                const statusBadge = e.status === 'enrolled' ? 
+                    '<span class="badge badge-enrolled">Enrolled</span>' : 
+                    '<span class="badge badge-pending">Pending</span>';
+
+                return `
+                    <tr>
+                        <td><strong>${student.first_name || ''} ${student.last_name || ''}</strong></td>
+                        <td>${student.grade || '-'}</td>
+                        <td class="mobile-hide">${student.age || '-'}</td>
+                        <td>${e.class_time || 'TBD'}</td>
+                        <td class="mobile-hide">${parent.name || 'Unknown'}</td>
+                        <td class="mobile-hide">${parent.email || 'No email'}<br><small>${parent.phone || 'No phone'}</small></td>
+                        <td>${statusBadge}</td>
+                        <td class="mobile-hide">${student.special || '-'}</td>
+                    </tr>
+                `;
+            }).join('');
+        }
+
+        function filterRoster() {
+            const classFilter = document.getElementById('classFilter').value.toLowerCase();
+            const searchTerm = document.getElementById('searchStudent').value.toLowerCase();
+            
+            const tbody = document.getElementById('rosterTable');
+            const rows = tbody.getElementsByTagName('tr');
+            
+            for (let row of rows) {
+                if (row.cells.length < 4) continue; // Skip header/empty rows
+                
+                const classTime = row.cells[3]?.textContent.toLowerCase() || '';
+                const studentName = row.cells[0]?.textContent.toLowerCase() || '';
+                
+                const matchesClass = !classFilter || classTime.includes(classFilter);
+                const matchesSearch = !searchTerm || studentName.includes(searchTerm);
+                
+                row.style.display = matchesClass && matchesSearch ? '' : 'none';
+            }
+        }
+
+        function loadPayments() {
+            const tbody = document.getElementById('paymentsTable');
+            const filter = document.getElementById('paymentFilter')?.value || '';
+            
+            let filtered = allData.payments;
+            if (filter) {
+                filtered = filtered.filter(p => p.event_type === filter);
+            }
+
+            if (filtered.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="7" style="text-align: center;">No payments found</td></tr>';
+                document.getElementById('paymentTotal').textContent = '0';
+                return;
+            }
+
+            // Calculate total
+            const total = filtered.reduce((sum, p) => sum + (p.amount || 0), 0);
+            document.getElementById('paymentTotal').textContent = total.toFixed(0);
+
+            tbody.innerHTML = filtered.map(p => {
+                const date = new Date(p.created_at).toLocaleDateString();
+                
+                // Find related enrollment and parent info
+                const enrollment = allData.enrollments.find(e => e.id === p.enrollment_id);
+                const student = enrollment ? allData.students.find(s => s.id === enrollment.student_id) || {} : {};
+                const parent = enrollment ? allData.parents.find(pr => pr.id === enrollment.parent_id) || {} : {};
+                
+                const balanceDue = p.event_type === 'Pay Half Now' ? 360 : 0;
+
+                return `
+                    <tr>
+                        <td>${date}</td>
+                        <td class="mobile-hide">${parent.name || 'Unknown'}</td>
+                        <td>${student.first_name || ''} ${student.last_name || ''}</td>
+                        <td>${p.event_type || 'Payment'}</td>
+                        <td class="money success">$${p.amount || 0}</td>
+                        <td class="mobile-hide money ${balanceDue > 0 ? 'warning' : ''}">$${balanceDue}</td>
+                        <td class="mobile-hide" style="font-size: 0.75rem;">${p.stripe_object_id?.substring(0, 15) || ''}...</td>
+                    </tr>
+                `;
+            }).join('');
+        }
+
+        function loadEnrollments() {
+            const tbody = document.getElementById('enrollmentsTable');
+            const filter = document.getElementById('statusFilter')?.value || '';
+            
+            let filtered = allData.enrollments;
+            if (filter) {
+                filtered = filtered.filter(e => e.status === filter);
+            }
+
+            if (filtered.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="7" style="text-align: center;">No enrollments found</td></tr>';
+                return;
+            }
+
+            tbody.innerHTML = filtered.map(e => {
+                const student = allData.students.find(s => s.id === e.student_id) || {};
+                const parent = allData.parents.find(p => p.id === e.parent_id) || {};
+                const statusBadge = {
+                    'enrolled': '<span class="badge badge-enrolled">Enrolled</span>',
+                    'pending': '<span class="badge badge-pending">Pending</span>',
+                    'cart': '<span class="badge badge-cart">In Cart</span>'
+                }[e.status] || e.status;
+
+                const paidDate = e.paid_at ? new Date(e.paid_at).toLocaleDateString() : '-';
+                const balanceDue = e.status === 'pending' ? 360 : 0;
+
+                return `
+                    <tr>
+                        <td>${student.first_name || ''} ${student.last_name || ''}</td>
+                        <td class="mobile-hide">${parent.name || 'N/A'}</td>
+                        <td>${e.class_time || 'Not selected'}</td>
+                        <td>${statusBadge}</td>
+                        <td class="mobile-hide">${paidDate}</td>
+                        <td class="money ${balanceDue > 0 ? 'warning' : ''}">$${balanceDue}</td>
+                        <td>
+                            ${e.status === 'pending' ? 
+                                `<button class="btn btn-secondary" onclick="markPaid('${e.id}')">Mark Paid</button>` : 
+                                '-'
+                            }
+                        </td>
+                    </tr>
+                `;
+            }).join('');
+        }
+
+        function loadParents() {
+            const tbody = document.getElementById('parentsTable');
+            
+            if (allData.parents.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="6" style="text-align: center;">No parents found</td></tr>';
+                return;
+            }
+
+            tbody.innerHTML = allData.parents.map(parent => {
+                // Get this parent's students
+                const students = allData.students.filter(s => s.parent_id === parent.id);
+                const studentNames = students.map(s => `${s.first_name} ${s.last_name}`).join(', ');
+                
+                // Calculate total paid and balance due
+                const parentEnrollments = allData.enrollments.filter(e => e.parent_id === parent.id);
+                const parentPayments = allData.payments.filter(p => {
+                    const enrollment = allData.enrollments.find(e => e.id === p.enrollment_id);
+                    return enrollment?.parent_id === parent.id;
+                });
+                
+                const totalPaid = parentPayments.reduce((sum, p) => sum + (p.amount || 0), 0);
+                const pendingEnrollments = parentEnrollments.filter(e => e.status === 'pending');
+                const balanceDue = pendingEnrollments.length * 360;
+
+                return `
+                    <tr>
+                        <td>${parent.name || 'N/A'}</td>
+                        <td>${parent.email}</td>
+                        <td class="mobile-hide">${parent.phone || '-'}</td>
+                        <td class="mobile-hide">${studentNames || '-'}</td>
+                        <td class="money success">$${totalPaid}</td>
+                        <td class="money ${balanceDue > 0 ? 'warning' : ''}">$${balanceDue}</td>
+                    </tr>
+                `;
+            }).join('');
+        }
+
+        function filterParents() {
+            const searchTerm = document.getElementById('searchParent').value.toLowerCase();
+            const tbody = document.getElementById('parentsTable');
+            const rows = tbody.getElementsByTagName('tr');
+            
+            for (let row of rows) {
+                const text = row.textContent.toLowerCase();
+                row.style.display = !searchTerm || text.includes(searchTerm) ? '' : 'none';
+            }
+        }
+
+        function switchTab(tab) {
+            // Update tab buttons
+            document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+            event.target.classList.add('active');
+            
+            // Update content
+            document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+            document.getElementById(`tab-${tab}`).classList.add('active');
+        }
+
+        async function markPaid(enrollmentId) {
+            if (!confirm('Mark this enrollment as fully paid?')) return;
+            
+            const { error } = await supabase
+                .from('enrollments')
+                .update({ status: 'enrolled' })
+                .eq('id', enrollmentId);
+            
+            if (error) {
+                alert('Error updating enrollment: ' + error.message);
+            } else {
+                await loadAllData();
+            }
+        }
+
+        function exportRoster() {
+            const activeEnrollments = allData.enrollments.filter(e => 
+                e.status === 'enrolled' || e.status === 'pending'
+            );
+
+            let csv = 'Student Name,Grade,Age,Class Time,Parent Name,Parent Email,Parent Phone,Status,Special Notes\n';
+            
+            activeEnrollments.forEach(e => {
+                const s = allData.students.find(st => st.id === e.student_id) || {};
+                const p = allData.parents.find(pr => pr.id === e.parent_id) || {};
+                csv += `"${s.first_name} ${s.last_name}",${s.grade},${s.age},"${e.class_time}","${p.name}","${p.email}","${p.phone || ''}",${e.status},"${s.special || ''}"\n`;
+            });
+
+            const blob = new Blob([csv], { type: 'text/csv' });
+            const url = window.URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `roster-${new Date().toISOString().split('T')[0]}.csv`;
+            a.click();
+        }
+
+        async function logout() {
+            await supabase.auth.signOut();
+            window.location.href = 'login.html';
+        }
+    </script>
 </body>
 </html>
