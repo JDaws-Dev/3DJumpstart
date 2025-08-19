@@ -91,6 +91,48 @@
             font-weight: 600;
         }
 
+        .mobile-menu-toggle {
+            display: none;
+            background: none;
+            border: none;
+            font-size: 1.5rem;
+            color: #6b7280;
+            cursor: pointer;
+            padding: 0.5rem;
+        }
+
+        .mobile-menu {
+            display: none;
+            position: absolute;
+            top: 100%;
+            right: 0;
+            background: white;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+            border-radius: 0.5rem;
+            padding: 1rem;
+            min-width: 200px;
+            z-index: 100;
+        }
+
+        .mobile-menu.active {
+            display: block;
+        }
+
+        .mobile-menu a {
+            display: block;
+            padding: 0.75rem 1rem;
+            color: #6b7280;
+            text-decoration: none;
+            border-radius: 0.5rem;
+            margin-bottom: 0.5rem;
+            transition: all 0.2s;
+        }
+
+        .mobile-menu a:hover {
+            background: #fed7aa;
+            color: #ea580c;
+        }
+
         /* Buttons */
         .btn {
             display: inline-flex;
@@ -280,17 +322,83 @@
                 display: none;
             }
 
+            .mobile-menu-toggle {
+                display: block;
+            }
+
+            .faq-hero {
+                padding: 3rem 0;
+            }
+
             .faq-hero h1 {
                 font-size: 2rem;
+            }
+
+            .faq-hero p {
+                font-size: 1.125rem;
+            }
+
+            .faq-content {
+                padding: 3rem 0.5rem;
+            }
+
+            .faq-category h2 {
+                font-size: 1.5rem;
             }
 
             .faq-question {
                 font-size: 0.9375rem;
                 padding: 1rem;
+                align-items: flex-start;
+                gap: 1rem;
             }
 
-            .faq-category h2 {
-                font-size: 1.5rem;
+            .faq-answer-content {
+                padding: 0 1rem 1rem;
+            }
+
+            .cta-section {
+                padding: 3rem 0;
+            }
+
+            .cta-section h2 {
+                font-size: 2rem;
+            }
+
+            .cta-section p {
+                font-size: 1.125rem;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .container {
+                padding: 0 0.75rem;
+            }
+
+            .faq-hero h1 {
+                font-size: 1.75rem;
+            }
+
+            .faq-content {
+                padding: 2rem 0.25rem;
+            }
+
+            .faq-question {
+                padding: 0.875rem;
+                font-size: 0.875rem;
+            }
+
+            .faq-answer-content {
+                padding: 0 0.875rem 0.875rem;
+                font-size: 0.875rem;
+            }
+
+            .cta-section h2 {
+                font-size: 1.75rem;
+            }
+
+            .cta-section p {
+                font-size: 1rem;
             }
         }
     </style>
@@ -303,7 +411,7 @@
                 <a href="index.html" class="logo">
                     <img src="https://raw.githubusercontent.com/JDaws-Dev/3DJumpstart/main/3d-jumpstart-logo.png" alt="3D Jumpstart Logo" class="logo-image">
                 </a>
-                <nav>
+                <nav style="position: relative;">
                     <ul class="nav-links">
                         <li><a href="index.html">Home</a></li>
                         <li><a href="index.html#projects">Projects</a></li>
@@ -312,6 +420,17 @@
                         <li><a href="faq.html" class="active">FAQ</a></li>
                         <li><a href="login.html" class="btn btn-primary">Parent Login / Sign Up</a></li>
                     </ul>
+                    
+                    <button class="mobile-menu-toggle" onclick="toggleMobileMenu()">☰</button>
+                    
+                    <div class="mobile-menu" id="mobile-menu">
+                        <a href="index.html" onclick="closeMobileMenu()">Home</a>
+                        <a href="index.html#projects" onclick="closeMobileMenu()">Projects</a>
+                        <a href="index.html#instructor" onclick="closeMobileMenu()">Instructor</a>
+                        <a href="index.html#pricing" onclick="closeMobileMenu()">Pricing</a>
+                        <a href="faq.html" onclick="closeMobileMenu()">FAQ</a>
+                        <a href="login.html" class="btn btn-primary" style="margin-top: 0.5rem;">Sign Up / Login</a>
+                    </div>
                 </nav>
             </div>
         </div>
@@ -329,17 +448,17 @@
         <div class="faq-category">
             <h2>Program Basics</h2>
             
-<div class="faq-item">
-    <button class="faq-question" onclick="toggleFAQ(this)">
-        What days and times are classes?
-        <span class="faq-arrow">▼</span>
-    </button>
-    <div class="faq-answer">
-        <div class="faq-answer-content">
-            Currently, classes meet on Tuesdays with two time slots: 4:30-5:30pm for grades 4-7 and 5:30-6:30pm for grades 8-12. Additional days and times are coming soon! If you'd prefer a different day or time, email jeremiah@3djumpstart.com to be notified when new schedules become available.
-        </div>
-    </div>
-</div>
+            <div class="faq-item">
+                <button class="faq-question" onclick="toggleFAQ(this)">
+                    What days and times are classes?
+                    <span class="faq-arrow">▼</span>
+                </button>
+                <div class="faq-answer">
+                    <div class="faq-answer-content">
+                        Currently, classes meet on Tuesdays with two time slots: 4:30-5:30pm for grades 4-7 and 5:30-6:30pm for grades 8-12. Additional days and times are coming soon! If you'd prefer a different day or time, email jeremiah@3djumpstart.com to be notified when new schedules become available.
+                    </div>
+                </div>
+            </div>
 
             <div class="faq-item">
                 <button class="faq-question" onclick="toggleFAQ(this)">
@@ -597,6 +716,27 @@
             // Toggle current item
             item.classList.toggle('active');
         }
+
+        // Mobile menu functions
+        function toggleMobileMenu() {
+            const menu = document.getElementById('mobile-menu');
+            menu.classList.toggle('active');
+        }
+
+        function closeMobileMenu() {
+            const menu = document.getElementById('mobile-menu');
+            menu.classList.remove('active');
+        }
+
+        // Close mobile menu when clicking outside
+        document.addEventListener('click', function(e) {
+            const menu = document.getElementById('mobile-menu');
+            const toggle = document.querySelector('.mobile-menu-toggle');
+            
+            if (!menu.contains(e.target) && !toggle.contains(e.target)) {
+                menu.classList.remove('active');
+            }
+        });
     </script>
 </body>
 </html>
