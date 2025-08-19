@@ -994,48 +994,54 @@
     }
 
     /* ====== BILLING - FIXED VERSION ====== */
-    async function loadBilling() {
-      try {
-        // Simple query - just get payments for this parent
-        const { data: payments, error } = await sb
-          .from('payments')
-          .select('*')
-          .eq('parent_id', currentUser.id)
-          .order('created_at', { ascending: false });
+async function loadBilling() {
+  try {
+    // Just get payments for this parent - no joins
+    const { data: payments, error } = await sb
+      .from('payments')
+      .select('*')
+      .eq('parent_id', currentUser.id)
+      .order('created_at', { ascending: false });
 
-        if (error) {
-          console.error('Billing query error:', error);
-          renderBilling([]);
-          return;
-        }
-
-        // Get all enrollments for this parent to match with payments
-        const { data: enrollments } = await sb
-          .from('enrollments')
-          .select('*, students!inner(first_name, last_name)')
-          .eq('parent_id', currentUser.id);
-
-        // Map payments to include student info
-        const paymentsWithDetails = payments?.map(p => {
-          const enrollment = enrollments?.find(e => e.id === p.enrollment_id);
-          const studentName = enrollment?.students 
-            ? `${enrollment.students.first_name} ${enrollment.students.last_name}`
-            : 'Unknown';
-          
-          return {
-            ...p,
-            student_name: studentName,
-            class_time: enrollment?.class_time || 'N/A'
-          };
-        }) || [];
-
-        renderBilling(paymentsWithDetails);
-      } catch(err) {
-        console.error('Billing load error:', err);
-        renderBilling([]);
-      }
+    if (error) {
+      console.error('Billing query error:', error);
+      renderBilling([]);
+      return;
     }
 
+    // Get enrollments separately - no joins
+    const { data: enrollments } = await sb
+      .from('enrollments')
+      .select('*')
+      .eq('parent_id', currentUser.id);
+
+    // Get students separately
+    const { data: students } = await sb
+      .from('students')
+      .select('*')
+      .eq('parent_id', currentUser.id);
+
+    // Map payments to include student info manually
+    const paymentsWithDetails = payments?.map(p => {
+      const enrollment = enrollments?.find(e => e.id === p.enrollment_id);
+      const student = students?.find(s => s.id === enrollment?.student_id);
+      const studentName = student 
+        ? `${student.first_name} ${student.last_name}`
+        : 'Unknown';
+      
+      return {
+        ...p,
+        student_name: studentName,
+        class_time: enrollment?.class_time || 'N/A'
+      };
+    }) || [];
+
+    renderBilling(paymentsWithDetails);
+  } catch(err) {
+    console.error('Billing load error:', err);
+    renderBilling([]);
+  }
+}
     function renderBilling(payments) {
       const tbody = document.getElementById('billingTable');
       
