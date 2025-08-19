@@ -72,7 +72,7 @@ exports.handler = async (event, context) => {
                 3D Jumpstart Instructor</p>
               </div>
               <div class="footer">
-                <p>3D Jumpstart | Shadowbrook Church, Suwanee, GA<br>
+                <p>3D Jumpstart | Suwanee, GA<br>
                 📧 jeremiah@3djumpstart.com | 📱 310-845-5702</p>
               </div>
             </div>
