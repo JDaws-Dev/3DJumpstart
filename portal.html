@@ -993,23 +993,14 @@
         </div>`;
     }
 
-    /* ====== BILLING ====== */
+    /* ====== BILLING - FIXED VERSION ====== */
     async function loadBilling() {
       try {
-        // Get payments with enrollment and student info
+        // Simple query - just get payments for this parent
         const { data: payments, error } = await sb
           .from('payments')
-          .select(`
-            *,
-            enrollments!enrollment_id (
-              student_id,
-              class_time,
-              students:student_id (
-                first_name,
-                last_name
-              )
-            )
-          `)
+          .select('*')
+          .eq('parent_id', currentUser.id)
           .order('created_at', { ascending: false });
 
         if (error) {
@@ -1018,13 +1009,27 @@
           return;
         }
 
-        // Filter to only show payments for this parent's students
-        const myStudentIds = (await sbListStudents()).map(s => s.id);
-        const myPayments = payments?.filter(p => 
-          p.enrollments && myStudentIds.includes(p.enrollments.student_id)
-        ) || [];
+        // Get all enrollments for this parent to match with payments
+        const { data: enrollments } = await sb
+          .from('enrollments')
+          .select('*, students!inner(first_name, last_name)')
+          .eq('parent_id', currentUser.id);
 
-        renderBilling(myPayments);
+        // Map payments to include student info
+        const paymentsWithDetails = payments?.map(p => {
+          const enrollment = enrollments?.find(e => e.id === p.enrollment_id);
+          const studentName = enrollment?.students 
+            ? `${enrollment.students.first_name} ${enrollment.students.last_name}`
+            : 'Unknown';
+          
+          return {
+            ...p,
+            student_name: studentName,
+            class_time: enrollment?.class_time || 'N/A'
+          };
+        }) || [];
+
+        renderBilling(paymentsWithDetails);
       } catch(err) {
         console.error('Billing load error:', err);
         renderBilling([]);
@@ -1046,9 +1051,6 @@
 
       tbody.innerHTML = payments.map(p => {
         const date = new Date(p.created_at).toLocaleDateString();
-        const student = p.enrollments?.students || {};
-        const studentName = `${student.first_name || ''} ${student.last_name || ''}`.trim() || 'Unknown';
-        const classTime = p.enrollments?.class_time || 'N/A';
         const amount = `$${p.amount}`;
         const status = p.event_type === 'Pay in Full' ? 
           '<span style="color:var(--ok)">Paid</span>' : 
@@ -1057,8 +1059,8 @@
         return `
           <tr>
             <td style="padding:.75rem;border-bottom:1px solid var(--line)">${date}</td>
-            <td style="padding:.75rem;border-bottom:1px solid var(--line)">${studentName}</td>
-            <td style="padding:.75rem;border-bottom:1px solid var(--line)">${p.event_type} - ${classTime}</td>
+            <td style="padding:.75rem;border-bottom:1px solid var(--line)">${p.student_name}</td>
+            <td style="padding:.75rem;border-bottom:1px solid var(--line)">${p.event_type} - ${p.class_time}</td>
             <td style="padding:.75rem;border-bottom:1px solid var(--line)">${amount}</td>
             <td style="padding:.75rem;border-bottom:1px solid var(--line)">${status}</td>
           </tr>`;
@@ -1217,10 +1219,12 @@
       const t=document.getElementById('toast');
       document.getElementById('toastIcon').textContent = ok?'✅':'✖️';
       document.getElementById('toastMsg').textContent = msg;
-      t.classList.remove('hide'); 
-      t.classList.add('show');
-      setTimeout(()=>{
-        t.classList.add('hide'); 
+      t.
+
+        classList.remove('hide'); 
+     t.classList.add('show');
+     setTimeout(()=>{ 
+       t.classList.add('hide'); 
        t.classList.remove('show'); 
      }, 1600);
    }
