@@ -134,9 +134,9 @@ exports.handler = async (event, context) => {
                 
                 <div class="schedule-box">
                   <strong>📍 Location:</strong><br>
-                  415 Brogdon Rd<br>
-                  Suwanee, GA 30024<br><br>
-                  <strong>⏰ Saturday Mornings</strong><br>
+                  TBD - Suwanee, GA<br>
+                  Exact location will be sent before the first class<br><br>
+                  <strong>⏰ Class Schedule</strong><br>
                   See your confirmation for your specific time slot
                 </div>
                 
