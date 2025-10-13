@@ -1,4 +1,5 @@
 // supabase/functions/stripe-webhook/index.ts
+// THIS IS THE CORRECT VERSION THAT MATCHES CREATE-CHECKOUT
 import Stripe from 'https://esm.sh/stripe@14?target=denonext'
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
 
@@ -127,8 +128,11 @@ Deno.serve(async (req) => {
       cryptoProvider
     )
   } catch (err) {
+    console.error('Webhook signature verification failed:', err)
     return new Response((err as Error).message, { status: 400 })
   }
+
+  console.log('Received event:', event.type)
 
   if (event.type === 'checkout.session.completed') {
     const session = event.data.object as Stripe.Checkout.Session
@@ -200,5 +204,8 @@ Deno.serve(async (req) => {
     }
   }
 
-  return new Response(JSON.stringify({ ok: true }), { status: 200 })
+  return new Response(JSON.stringify({ received: true }), {
+    status: 200,
+    headers: { 'Content-Type': 'application/json' }
+  })
 })
