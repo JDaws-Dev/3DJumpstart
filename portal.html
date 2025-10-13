@@ -354,9 +354,9 @@
           <a href="index.html" style="text-decoration: none;">
             <img src="https://raw.githubusercontent.com/JDaws-Dev/3DJumpstart/main/3d-jumpstart-logo.png" alt="3D Jumpstart" class="logo-image" />
           </a>
-          <div class="portal-switch">
+          <div class="portal-switch" id="portalSwitch">
             <a href="portal.html" class="switch-btn active">Parent Portal</a>
-            <a href="student-portal.html" class="switch-btn">Student Portal</a>
+            <a href="student-portal.html" class="switch-btn" id="studentPortalLink" style="display: none;">Student Portal</a>
           </div>
         </div>
 
@@ -405,24 +405,9 @@
       </div>
 
       <div id="paymentCard" class="card">
-        <div class="pay-banner">
-          <span>Level 1 • 12-week course • $60/class</span>
-          <span style="font-weight:900;">List total: $720</span>
-        </div>
-
-        <div style="display:flex;align-items:flex-start;gap:16px;justify-content:space-between;margin-top:14px;flex-wrap:wrap">
-          <div style="min-width:280px;flex:1">
-            <h3 class="card-title" style="margin:.1rem 0 .3rem">Payment Options</h3>
-            <ul class="muted" style="margin:.25rem 0 0; padding-left:1rem; line-height:1.75">
-              <li>Pick a class period for each student, then add to cart.</li>
-              <li><strong>Pay in Full:</strong> <strong>$670</strong> per student (save $50 vs $720 list).</li>
-              <li><strong>Pay Half Now:</strong> $360 per student now; remainder due <strong>Oct 15</strong>.</li>
-              <li><strong>Sibling discount:</strong> $50 off the second child (applies once).</li>
-            </ul>
-          </div>
-          <div style="text-align:right;min-width:120px">
-            <span class="pill">Cart: <span id="cartCount">0</span></span>
-          </div>
+        <div style="display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:14px;">
+          <h3 class="card-title" style="margin:0">Checkout</h3>
+          <span class="pill">Cart: <span id="cartCount">0</span></span>
         </div>
 
         <div id="cartList" class="grid" style="margin:12px 0;"></div>
@@ -430,9 +415,14 @@
         <!-- Totals -->
         <div class="totals-wrap" id="totalsWrap"></div>
 
+        <div style="margin-top:14px;padding:12px;background:#fffbeb;border-radius:10px;border:1px solid #fde68a;">
+          <p style="margin:0;font-size:0.9rem;color:#92400e;">
+            <strong>Pay for first week now.</strong> After that, you'll be billed <strong>$40/week per student</strong> on Saturdays after class.
+          </p>
+        </div>
+
         <div class="student-actions" style="gap:10px;margin-top:12px;flex-wrap:wrap">
-          <button id="payFullBtn" class="btn btn-primary" type="button" disabled>Pay In Full</button>
-          <button id="payHalfBtn" class="btn btn-secondary" type="button" disabled>Pay Half Now</button>
+          <button id="payWeeklyBtn" class="btn btn-primary" type="button" disabled>Pay for First Week</button>
         </div>
       </div>
     </section>
@@ -442,35 +432,34 @@
       <div class="card">
         <h2 class="card-title">Location</h2>
         <div class="muted" style="font-size:1.05rem;">
-          <strong>Shadowbrook Church</strong><br/>4187 Suwanee Dam Rd NW, Suwanee, GA 30024
+          <strong>Classes meet at:</strong><br/>415 Brogdon Rd, Suwanee, GA 30024
         </div>
       </div>
 
       <div class="card">
-        <h2 class="card-title">Level 1 Schedule (12 Weeks)</h2>
-        <ul class="muted" style="line-height:1.9; margin:0 0 1rem;">
-          <li>Tuesday 4:30–5:30 <span class="muted">(Grades 4–7)</span></li>
-          <li>Tuesday 5:30–6:30 <span class="muted">(Grades 8–12)</span></li>
-        </ul>
+        <h2 class="card-title">Class Schedule</h2>
+        <div style="margin-bottom:1rem;">
+          <h3 style="font-weight:700;margin-top:0.5rem;margin-bottom:0.5rem;">Saturday Morning</h3>
+          <ul class="muted" style="line-height:1.9; margin:0;">
+            <li>Saturday 9:30–10:30am <span class="muted">(Grades 4–7)</span></li>
+            <li>Saturday 10:30–11:30am <span class="muted">(Grades 8–12)</span></li>
+          </ul>
+        </div>
 
-        <!-- 12-Week Dates -->
+        <div style="margin-bottom:1rem;">
+          <h3 style="font-weight:700;margin-top:0.5rem;margin-bottom:0.5rem;">Monday Evening</h3>
+          <ul class="muted" style="line-height:1.9; margin:0;">
+            <li>Monday 4:30–5:30pm <span class="muted">(Grades 4–7)</span></li>
+            <li>Monday 5:30–6:30pm <span class="muted">(Grades 8–12)</span></li>
+          </ul>
+        </div>
+
         <div style="margin-top:1rem; padding:1rem; border-radius:12px; background:#fffbeb; border:1px solid #f4e5b9;">
-          <h3 class="card-title" style="font-size:1.05rem;margin-bottom:.5rem;">12-Week Dates</h3>
-          <div class="grid" style="grid-template-columns:repeat(3,minmax(0,1fr));gap:8px">
-            <div class="btn-muted" style="padding:.5rem .6rem;border-radius:10px">Week 1 – Sep 9</div>
-            <div class="btn-muted" style="padding:.5rem .6rem;border-radius:10px">Week 2 – Sep 16</div>
-            <div class="btn-muted" style="padding:.5rem .6rem;border-radius:10px">Week 3 – Sep 23</div>
-            <div class="btn-muted" style="padding:.5rem .6rem;border-radius:10px">Week 4 – Sep 30</div>
-            <div class="btn-muted" style="padding:.5rem .6rem;border-radius:10px">Week 5 – Oct 7</div>
-            <div class="btn-muted" style="padding:.5rem .6rem;border-radius:10px">Week 6 – Oct 14</div>
-            <div class="btn-muted" style="padding:.5rem .6rem;border-radius:10px">Week 7 – Oct 21</div>
-            <div class="btn-muted" style="padding:.5rem .6rem;border-radius:10px">Week 8 – Oct 28</div>
-            <div class="btn-muted" style="padding:.5rem .6rem;border-radius:10px">Week 9 – Nov 4</div>
-            <div class="btn-muted" style="padding:.5rem .6rem;border-radius:10px">Week 10 – Nov 11</div>
-            <div class="btn-muted" style="padding:.5rem .6rem;border-radius:10px">Week 11 – Nov 18</div>
-            <div class="btn-muted" style="padding:.5rem .6rem;border-radius:10px">Week 12 – Dec 2</div>
-          </div>
-          <div class="muted" style="margin-top:.5rem;"><strong>Note:</strong> No class on <strong>Nov 25</strong> (Thanksgiving Break).</div>
+          <h3 class="card-title" style="font-size:1.05rem;margin-bottom:.5rem;">Ongoing Enrollment</h3>
+          <p class="muted" style="margin:0;">
+            Classes run every week. Students can join anytime and continue
+            for as long as they want to keep learning.
+          </p>
         </div>
       </div>
 
@@ -623,10 +612,12 @@
 
     const sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
-    // Class periods (Level 1)
+    // Class periods by grade
     const CLASS_PERIODS = [
-      { id:'tue_430', label:'Tuesday 4:30–5:30 (Grades 4–7)', time:'Tuesday 4:30–5:30', level:'Level 1', gradeMin:4, gradeMax:7 },
-      { id:'tue_530', label:'Tuesday 5:30–6:30 (Grades 8–12)', time:'Tuesday 5:30–6:30', level:'Level 1', gradeMin:8, gradeMax:12 },
+      { id:'sat_930am', label:'Saturday 9:30-10:30am (Grades 4-7)', time:'Saturday 9:30-10:30am', level:'Level 1', gradeMin:4, gradeMax:7, public: true },
+      { id:'sat_1030am', label:'Saturday 10:30-11:30am (Grades 8-12)', time:'Saturday 10:30-11:30am', level:'Level 1', gradeMin:8, gradeMax:12, public: true },
+      { id:'mon_430pm', label:'Monday 4:30-5:30pm (Grades 4-7)', time:'Monday 4:30-5:30pm', level:'Level 1', gradeMin:4, gradeMax:7, public: true },
+      { id:'mon_530pm', label:'Monday 5:30-6:30pm (Grades 8-12)', time:'Monday 5:30-6:30pm', level:'Level 1', gradeMin:8, gradeMax:12, public: true },
     ];
 
     // Dropdown options
@@ -634,10 +625,7 @@
     const GRADE_OPTIONS = ['4th','5th','6th','7th','8th','9th','10th','11th','12th'];
 
     // Pricing
-    const PRICE_LIST_PER = 720;   // 12 x $60
-    const PRICE_FULL_PER = 670;   // pay in full
-    const PRICE_HALF_NOW = 360;   // due now per student
-    const SIBLING_DISCOUNT = 50;  // one-time off second child
+    const PRICE_PER_WEEK = 40;    // $40 per week per student
 
     /* ====== STATE ====== */
     let currentUser = null;
@@ -654,7 +642,8 @@
     function allowedPeriodsForGrade(gradeStr){
       const g = gradeToNum(gradeStr);
       if (g==null) return [];
-      return CLASS_PERIODS.filter(p => g>=p.gradeMin && g<=p.gradeMax);
+      // Only return public class periods for enrollment dropdown
+      return CLASS_PERIODS.filter(p => p.public && g>=p.gradeMin && g<=p.gradeMax);
     }
     
     function periodById(id){ 
@@ -724,8 +713,7 @@
         if (e.target.id === 'studentModal') closeModal();
       });
 
-      document.getElementById('payFullBtn').addEventListener('click', () => startCheckout('full'));
-      document.getElementById('payHalfBtn').addEventListener('click', () => startCheckout('half'));
+      document.getElementById('payWeeklyBtn').addEventListener('click', () => startCheckout('weekly'));
     }
 
     function populateDropdowns(){
@@ -871,12 +859,12 @@
         const base = {
           parent_id: currentUser.id,
           student_id: student.id,
-          level: 'Level 1',
+          level: p?.level ?? 'Beginner',
           season,
           class_period_id: p?.id ?? null,
           class_time: p?.time ?? null,
-          payment_plan: 'full',
-          amount_list: PRICE_LIST_PER,
+          payment_plan: 'weekly',
+          amount_list: PRICE_PER_WEEK,
           status: 'cart'
         };
 
@@ -920,7 +908,7 @@
     /* ====== RENDER ====== */
     async function render() {
       const [students, cartData, enrollments] = await Promise.all([
-        sbListStudents(), 
+        sbListStudents(),
         sbListCart(),
         sbListAllEnrollments()
       ]);
@@ -931,6 +919,18 @@
       renderCart(cart, students);
       updateTotals(cart);
       updatePaymentCardVisibility(students, cart, enrollments);
+      updateStudentPortalVisibility(enrollments);
+    }
+
+    function updateStudentPortalVisibility(enrollments) {
+      const studentPortalLink = document.getElementById('studentPortalLink');
+      // Show Student Portal toggle if parent has at least one enrolled or pending student
+      const hasEnrolledStudents = enrollments.some(e =>
+        ['enrolled', 'pending'].includes(e.status)
+      );
+      if (studentPortalLink) {
+        studentPortalLink.style.display = hasEnrolledStudents ? 'inline-flex' : 'none';
+      }
     }
 
     function updatePaymentCardVisibility(students, cart, enrollments) {
@@ -1025,13 +1025,9 @@
           
           enrollmentContent = `
             <div class="field" style="margin-top:.4rem;">
-              <div class="label">Enrolled in Level 1</div>
+              <div class="label">Enrolled</div>
               <div style="padding:10px;background:#f9fafb;border-radius:8px;margin-top:4px">
                 <strong>${enrollment.class_time}</strong> ${statusBadge}
-                ${enrollment.status === 'pending' ? 
-                  '<div style="margin-top:8px;padding:8px;background:#dbeafe;border-radius:6px;font-size:0.875rem;color:#1e40af;"><strong>Balance Due:</strong> $360 by October 15, 2025</div>' : 
-                  ''
-                }
               </div>
               <div class="muted" style="margin-top:8px;font-size:0.875rem">
                 Contact jeremiah@3djumpstart.com for any changes
@@ -1049,7 +1045,7 @@
         } else {
           let options = `<option value="">Select time → Add to cart</option>`;
           options += allowed.map(p => {
-            const gradeText = p.id === 'tue_430' ? ' (Grades 4-7)' : ' (Grades 8-12)';
+            const gradeText = ` (Grades ${p.gradeMin}-${p.gradeMax})`;
             return `<option value="${p.id}">${p.time}${gradeText}</option>`;
           }).join('');
           
@@ -1178,8 +1174,7 @@
     }
 
     function updatePayButtons(enable){
-      document.getElementById('payFullBtn').disabled = !enable;
-      document.getElementById('payHalfBtn').disabled = !enable;
+      document.getElementById('payWeeklyBtn').disabled = !enable;
     }
 
     /* ====== LIVE TOTALS ====== */
@@ -1187,42 +1182,21 @@
       const wrap=document.getElementById('totalsWrap');
       const count=cart.length;
 
-      const sibling = count>=2 ? SIBLING_DISCOUNT : 0;
-
-      const fullSubtotal = count*PRICE_FULL_PER;
-      const fullTotal = Math.max(0, fullSubtotal - sibling);
-
-      const halfTotal = count*PRICE_LIST_PER - sibling;
-      const halfNow = count*PRICE_HALF_NOW;
-      const halfLater = Math.max(0, halfTotal - halfNow);
-
-      if(count===0){ 
-        wrap.innerHTML=''; 
-        return; 
+      if(count===0){
+        wrap.innerHTML='';
+        return;
       }
+
+      const weeklyTotal = count * PRICE_PER_WEEK;
 
       wrap.innerHTML = `
         <div class="total-card pop-in">
           <div class="total-ico ico-full">💳</div>
           <div>
-            <div class="total-title">Pay in Full</div>
+            <div class="total-title">First Week Payment</div>
             <div class="total-rows">
-              <div class="row"><div>Students × $${PRICE_FULL_PER}</div><div>$${fullSubtotal}</div></div>
-              ${sibling ? `<div class="row"><div>Sibling discount (one time)</div><div>−$${SIBLING_DISCOUNT}</div></div>`:''}
-              <div class="row em"><div>Final Total</div><div>$${fullTotal}</div></div>
-            </div>
-          </div>
-        </div>
-
-        <div class="total-card pop-in">
-          <div class="total-ico ico-half">🗓️</div>
-          <div>
-            <div class="total-title">Pay Half Now</div>
-            <div class="total-rows">
-              <div class="row"><div>Due Now ($${PRICE_HALF_NOW} ea)</div><div>$${halfNow}</div></div>
-              ${sibling ? `<div class="row"><div>Sibling discount (applied to final total)</div><div>−$${SIBLING_DISCOUNT}</div></div>`:''}
-              <div class="row"><div>Final Total (list $${PRICE_LIST_PER} ea)</div><div>$${halfTotal}</div></div>
-              <div class="row em"><div>Due Oct 15</div><div>$${halfLater}</div></div>
+              <div class="row"><div>${count} student${count>1?'s':''} × $${PRICE_PER_WEEK}</div><div>$${weeklyTotal}</div></div>
+              <div class="row em"><div>Total Due Now</div><div>$${weeklyTotal}</div></div>
             </div>
           </div>
         </div>`;
@@ -1280,7 +1254,7 @@
 
     function renderBilling(payments) {
       const tbody = document.getElementById('billingTable');
-      
+
       if(!payments || payments.length === 0) {
         tbody.innerHTML = `
           <tr>
@@ -1294,10 +1268,8 @@
       tbody.innerHTML = payments.map(p => {
         const date = new Date(p.created_at).toLocaleDateString();
         const amount = `$${p.amount}`;
-        const status = p.event_type === 'Pay in Full' ? 
-          '<span style="color:var(--ok)">Paid</span>' : 
-          '<span style="color:#f59e0b">Partial (Balance due Oct 15)</span>';
-        
+        const status = '<span style="color:var(--ok)">Paid</span>';
+
         return `
           <tr>
             <td style="padding:.75rem;border-bottom:1px solid var(--line)">${date}</td>
@@ -1441,6 +1413,23 @@
      };
 
      await sbSaveStudent(payload);
+
+     // If editing an existing student, check if they have a cart enrollment
+     // that's no longer valid for their new grade
+     if(editingId) {
+       const cartEnrollment = cart.find(e => e.student_id === editingId);
+       if(cartEnrollment) {
+         const allowed = allowedPeriodsForGrade(grade);
+         const isStillValid = allowed.some(p => p.id === cartEnrollment.class_period_id);
+
+         if(!isStillValid) {
+           // Remove invalid cart enrollment
+           await sb.from('enrollments').delete().eq('id', cartEnrollment.id);
+           alert(`${first}'s grade changed. Please select a new class time for them.`);
+         }
+       }
+     }
+
      closeModal();
      await render();
    }

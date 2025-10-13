@@ -49,16 +49,16 @@ exports.handler = async (event, context) => {
                 <p>Your account has been successfully created. You can now:</p>
                 <ul>
                   <li>Add your students to your account</li>
-                  <li>Enroll in Level 1 classes starting September 9, 2025</li>
+                  <li>Enroll in Saturday morning classes starting October 25th</li>
                   <li>Access the parent portal for class information</li>
                 </ul>
-                
+
                 <div class="info-box">
                   <strong>Next Steps:</strong><br>
                   1. Log in to your account<br>
                   2. Add your student(s)<br>
-                  3. Select a class time (Tuesday 4-5pm for grades 4-7, or 5-6pm for grades 8-12)<br>
-                  4. Complete enrollment
+                  3. Select a Saturday morning time slot (9am for grades 4-8, 10am for grades 9-12, or 11am for advanced)<br>
+                  4. Complete enrollment at $40/week
                 </div>
                 
                 <center>
@@ -82,9 +82,9 @@ exports.handler = async (event, context) => {
         break;
 
       case 'enrollment':
-        subject = `Enrollment Confirmed - 3D Jumpstart Level 1`;
-        const students = data.students.map(s => 
-          `${s.name} - Tuesday ${s.timeSlot}`
+        subject = `Enrollment Confirmed - 3D Jumpstart`;
+        const students = data.students.map(s =>
+          `${s.name} - ${s.timeSlot}`
         ).join('<br>');
         
         emailHtml = `
@@ -112,27 +112,21 @@ exports.handler = async (event, context) => {
                 <p>Dear ${data.parentName},</p>
                 
                 <div class="success-box">
-                  <strong>🎉 Success!</strong> Your enrollment in 3D Jumpstart Level 1 is confirmed.
+                  <strong>🎉 Success!</strong> Your enrollment in 3D Jumpstart is confirmed.
                 </div>
-                
+
                 <h3>Order Details</h3>
                 <div class="info-row">
                   <span><strong>Order Number:</strong></span>
                   <span>${data.orderNumber}</span>
                 </div>
                 <div class="info-row">
-                  <span><strong>Amount Paid:</strong></span>
-                  <span>$${data.amountPaid}</span>
+                  <span><strong>Weekly Rate:</strong></span>
+                  <span>$40/week per student</span>
                 </div>
-                ${data.balanceDue > 0 ? `
                 <div class="info-row">
-                  <span><strong>Balance Due (Oct 15):</strong></span>
-                  <span>$${data.balanceDue}</span>
-                </div>
-                ` : ''}
-                <div class="info-row">
-                  <span><strong>Start Date:</strong></span>
-                  <span>September 9, 2025</span>
+                  <span><strong>Classes Start:</strong></span>
+                  <span>October 25th, 2025</span>
                 </div>
                 
                 <h3>Enrolled Students</h3>
@@ -140,9 +134,10 @@ exports.handler = async (event, context) => {
                 
                 <div class="schedule-box">
                   <strong>📍 Location:</strong><br>
-                  Shadowbrook Church<br>
-                  4187 Suwanee Dam Rd NW<br>
-                  Suwanee, GA 30024
+                  415 Brogdon Rd<br>
+                  Suwanee, GA 30024<br><br>
+                  <strong>⏰ Saturday Mornings</strong><br>
+                  See your confirmation for your specific time slot
                 </div>
                 
                 <h3>What to Bring</h3>

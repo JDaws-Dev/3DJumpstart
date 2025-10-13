@@ -6,14 +6,14 @@
     <title>3D Jumpstart - Professional 3D Design Classes | Suwanee, GA | North Gwinnett STEM Education</title>
     
     <!-- SEO Meta Tags -->
-    <meta name="description" content="Professional 3D design and printing classes for students 4th grade+ in North Gwinnett. Learn Fusion360 CAD software at Shadowbrook Church, Suwanee. Level 1 starts Sept 9th.">
-    <meta name="keywords" content="3D printing classes, Fusion360 training, STEM education, Suwanee Georgia, North Gwinnett, after school programs, CAD classes, 3D design for kids">
+    <meta name="description" content="Professional 3D design classes for students grades 4-12 in Suwanee. Learn Fusion360 CAD software. Saturday mornings and Monday evenings. $40/week, no contracts.">
+    <meta name="keywords" content="3D printing classes, Fusion360 training, STEM education, Suwanee Georgia, North Gwinnett, Saturday classes, Monday classes, CAD classes, 3D design for kids, grades 4-12">
     <meta name="author" content="3D Jumpstart">
     <link rel="canonical" href="https://3djumpstart.com/">
 
     <!-- Open Graph for Facebook/LinkedIn -->
     <meta property="og:title" content="3D Jumpstart - Professional 3D Design Classes | Suwanee, Georgia">
-    <meta property="og:description" content="Professional 3D design and printing classes for students 4th grade+. Learn Fusion360 CAD software. Level 1 starts Sept 9th at Shadowbrook Church, Suwanee.">
+    <meta property="og:description" content="Saturday morning and Monday evening 3D design classes for students grades 4-12 in Suwanee. Learn Fusion360 CAD software. $40/week, no contracts.">
     <meta property="og:image" content="https://3djumpstart.com/3d-jumpstart-social-thumbnail.jpg">
     <meta property="og:image:width" content="1200">
     <meta property="og:image:height" content="630">
@@ -25,7 +25,7 @@
     <!-- Twitter Cards -->
     <meta name="twitter:card" content="summary_large_image">
     <meta name="twitter:title" content="3D Jumpstart - Professional 3D Design Classes">
-    <meta name="twitter:description" content="Professional 3D design and printing classes for students 4th grade+. Learn Fusion360 CAD software.">
+    <meta name="twitter:description" content="Saturday morning and Monday evening 3D design classes for students grades 4-12. Learn Fusion360 CAD software. $40/week, no contracts.">
     <meta name="twitter:image" content="https://3djumpstart.com/3d-jumpstart-social-thumbnail.jpg">
 
     
@@ -41,15 +41,16 @@
       "@context": "https://schema.org",
       "@type": "EducationalOrganization",
       "name": "3D Jumpstart",
-      "description": "Professional 3D design and printing classes for students 4th grade and up",
+      "description": "Professional 3D design classes for students grades 4-12 using Fusion360 CAD software",
       "url": "https://3djumpstart.com",
       "logo": "https://raw.githubusercontent.com/JDaws-Dev/3DJumpstart/main/3d-jumpstart-logo.png",
       "image": "https://raw.githubusercontent.com/JDaws-Dev/3DJumpstart/main/3d-jumpstart-social-thumbnail.jpg",
       "address": {
         "@type": "PostalAddress",
-        "streetAddress": "Shadowbrook Church",
+        "streetAddress": "415 Brogdon Rd",
         "addressLocality": "Suwanee",
         "addressRegion": "GA",
+        "postalCode": "30024",
         "addressCountry": "US"
       },
       "contactPoint": {
@@ -57,22 +58,13 @@
         "email": "jeremiah@3djumpstart.com",
         "contactType": "customer service"
       },
-      "offers": [
-        {
-          "@type": "Offer",
-          "name": "Level 1 3D Design Course - Pay in Full",
-          "price": "700",
-          "priceCurrency": "USD",
-          "description": "12-week professional 3D design course using Fusion360 software"
-        },
-        {
-          "@type": "Offer", 
-          "name": "Level 1 3D Design Course - Payment Plan",
-          "price": "720",
-          "priceCurrency": "USD",
-          "description": "12-week professional 3D design course with split payment option"
-        }
-      ],
+      "offers": {
+        "@type": "Offer",
+        "name": "Weekly 3D Design Class",
+        "price": "40",
+        "priceCurrency": "USD",
+        "description": "Week-to-week professional 3D design classes using Fusion360 software. Saturday mornings and Monday evenings, grades 4-12."
+      },
       "areaServed": {
         "@type": "GeoCircle",
         "geoMidpoint": {
@@ -85,7 +77,7 @@
       "audience": {
         "@type": "EducationalAudience",
         "educationalRole": "student",
-        "audienceType": "children ages 9-18"
+        "audienceType": "students grades 4-12"
       }
     }
     </script>
@@ -395,13 +387,23 @@
         /* Feature Grid */
         .feature-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            grid-template-columns: repeat(2, 1fr);
             gap: 2rem;
             margin-top: 3rem;
-            justify-items: center;
-            max-width: 1000px;
+            max-width: 900px;
             margin-left: auto;
             margin-right: auto;
+        }
+
+        @media (max-width: 768px) {
+            .feature-grid {
+                grid-template-columns: 1fr;
+            }
+
+            /* Stack schedule times on mobile */
+            div[style*="grid-template-columns: repeat(3, 1fr)"] {
+                grid-template-columns: 1fr !important;
+            }
         }
 
         .feature-card {
@@ -661,6 +663,23 @@
             }
         }
 
+        @media (max-width: 768px) {
+            /* Who This Is For - Stack on mobile */
+            .container > div[style*="grid-template-columns: 1fr 1fr"] {
+                grid-template-columns: 1fr !important;
+            }
+
+            /* Value comparison - Stack on mobile */
+            div[style*="grid-template-columns: 1fr 1fr 1fr"] {
+                grid-template-columns: 1fr !important;
+            }
+
+            /* Remove scale transform on mobile for pricing comparison */
+            .card[style*="transform: scale(1.05)"] {
+                transform: scale(1) !important;
+            }
+        }
+
         @media (max-width: 480px) {
             .container {
                 padding: 0 0.75rem;
@@ -675,6 +694,10 @@
                 font-size: 1rem;
             }
 
+            .hero p[style*="font-size: 1.375rem"] {
+                font-size: 1.125rem !important;
+            }
+
             .section-title {
                 font-size: 1.75rem;
             }
@@ -685,6 +708,11 @@
 
             .project-info {
                 padding: 1rem;
+            }
+
+            .hero-badge {
+                font-size: 0.75rem !important;
+                padding: 0.5rem 0.75rem !important;
             }
         }
     </style>
@@ -722,122 +750,91 @@
         </div>
     </header>
 
-    <!-- Hero Section -->
+    <!-- Hero Section with Video -->
     <section id="home" class="hero">
         <div class="container">
-            <div class="hero-content">
+            <div class="hero-content" style="max-width: 1000px; margin: 0 auto;">
                 <div class="hero-badge">
-                    NEXT Level 1 Session Begins September 9, 2025 • Limited Spots Available
+                    The Only Program Like This in North Gwinnett
                 </div>
-                
-                <div class="hero-tagline">
-                    After-School STEM Program
-                </div>
-                
-                <h1>
-                    After-School 3D Design & <br>
-                    <span class="hero-highlight">3D Printing Program</span>
+
+                <h1 style="margin-bottom: 1.5rem;">
+                    Learn to 3D Design & 3D Print<br>
+                    <span class="hero-highlight">Hands-On Classes for Students</span>
                 </h1>
-                
-                <p>
-                    Professional 3D design and 3D printing classes for students 4th grade and up. 
-                    Our Level 1 session starts September 9th - give your child advanced technical skills 
-                    while building an impressive portfolio of real 3D printed projects.
+
+                <!-- Video Hero -->
+                <div style="max-width: 900px; margin: 2rem auto; position: relative; border-radius: 1rem; overflow: hidden; box-shadow: 0 25px 50px -12px rgba(0,0,0,0.25);">
+                    <div style="position: relative; padding-bottom: 56.25%; height: 0; background: linear-gradient(135deg, #f3f4f6 0%, #e5e7eb 100%);">
+                        <!-- Placeholder for video - replace with your video embed code -->
+                        <div style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; display: flex; align-items: center; justify-content: center; flex-direction: column; gap: 1rem;">
+                            <div style="font-size: 4rem; color: #ea580c;">▶</div>
+                            <p style="color: #6b7280; font-weight: 600;">Watch Students Design & Create</p>
+                            <p style="color: #9ca3af; font-size: 0.875rem;">See what it's like to learn professional 3D design</p>
+                        </div>
+                        <!-- When you have the video, replace the placeholder div above with an iframe like this:
+                        <iframe
+                            style="position: absolute; top: 0; left: 0; width: 100%; height: 100%;"
+                            src="YOUR_VIDEO_URL"
+                            frameborder="0"
+                            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                            allowfullscreen>
+                        </iframe>
+                        -->
+                    </div>
+                </div>
+
+                <p style="font-size: 1.25rem; color: #374151; margin-bottom: 1.5rem; line-height: 1.6; max-width: 700px; margin-left: auto; margin-right: auto;">
+                    Learn professional 3D modeling and printing. Turn your ideas into real objects you can hold.
                 </p>
-                
+
+                <p style="font-size: 1rem; color: #6b7280; margin-bottom: 2rem;">
+                    <strong>$40/week</strong> • Saturday mornings & Monday evenings • Grades 4-12 • Suwanee, GA
+                </p>
+
                 <div class="hero-actions">
                     <a href="login.html" class="btn btn-primary" style="font-size: 1.125rem; padding: 1rem 2rem;">
-                        Get Started Today
+                        Reserve Your Spot
                     </a>
-                   <a href="faq.html" class="btn btn-outline">
-    View FAQ
-</a>
-                </div>
-                
-                <div class="location-highlight">
-                    <div class="location-title">
-                        Shadowbrook Church, Suwanee, Georgia • Tuesday After-School
-                    </div>
-                    <div class="location-details">
-                        Small Classes • Ages 4th Grade+ • Advanced STEM Skills
-                    </div>
-                </div>
-                
-                <div style="display: flex; flex-wrap: wrap; justify-content: center; gap: 2rem; font-size: 0.875rem; color: #6b7280;">
-                    <div style="display: flex; align-items: center; gap: 0.5rem;">
-                        LEVEL 1: 12 weeks starting Sept 9th
-                    </div>
-                    <div style="display: flex; align-items: center; gap: 0.5rem;">
-                        Small Class Sizes
-                    </div>
-                    <div style="display: flex; align-items: center; gap: 0.5rem;">
-                        Professional Skills
-                    </div>
+                    <a href="#projects" class="btn btn-outline">
+                        See Student Projects ↓
+                    </a>
                 </div>
             </div>
         </div>
     </section>
 
-    <!-- Level 1 Program Overview Section -->
+    <!-- What Makes Us Different Section -->
     <section class="section" style="background: #f9fafb;">
         <div class="container">
-            <div class="badge">
-                Level 1 Program Overview
-            </div>
-            <h2 class="section-title">Professional 3D Design Skills for Students 4th Grade+</h2>
+            <h2 class="section-title">What Makes 3D Jumpstart Different</h2>
             <p class="section-subtitle">
-                12-week comprehensive program using the same Fusion360 software that professional engineers 
-                use to create everything from medical devices to aerospace components.
+                Professional CAD software. Real 3D printing. Small classes. Portfolio projects.
             </p>
 
             <div class="feature-grid">
                 <div class="feature-card">
                     <div class="feature-icon">💻</div>
-                    <h3>Fusion360 CAD Software</h3>
-                    <p>Professional-grade design software used by engineers worldwide</p>
+                    <h3>Professional CAD Software</h3>
+                    <p>Learn Fusion360 - the same CAD used by NASA and Tesla engineers. Real skills, not toy software.</p>
                 </div>
 
                 <div class="feature-card">
                     <div class="feature-icon">🖨️</div>
-                    <h3>3D Printing Technology</h3>
-                    <p>Hands-on experience with professional 3D printing processes</p>
+                    <h3>Learn 3D Printing</h3>
+                    <p>Master how to operate a 3D printer. Learn slicing, settings, troubleshooting, and best practices.</p>
                 </div>
 
                 <div class="feature-card">
                     <div class="feature-icon">👥</div>
                     <h3>Small Classes</h3>
-                    <p>Hands-on instruction with personalized attention for every student</p>
+                    <p>Small group sizes mean every student gets personal attention and help when they need it.</p>
                 </div>
 
                 <div class="feature-card">
                     <div class="feature-icon">📁</div>
-                    <h3>Portfolio Development</h3>
-                    <p>Build impressive projects for college applications</p>
-                </div>
-
-                <div class="feature-card">
-                    <div class="feature-icon">📧</div>
-                    <h3>Weekly Updates</h3>
-                    <p>Progress emails with photos of your child's projects</p>
-                </div>
-
-                <div class="feature-card">
-                    <div class="feature-icon">🚀</div>
-                    <h3>Multi-Level Program</h3>
-                    <p>Starting with Level 1 fundamentals, with advanced levels coming soon</p>
-                </div>
-            </div>
-
-            <div style="text-align: center; margin-top: 3rem;">
-                <div style="background: linear-gradient(135deg, #fed7aa 0%, #fb923c 100%); padding: 1.5rem; border-radius: 1rem; margin-bottom: 1rem; display: inline-block;">
-                    <p style="color: #111827; font-weight: 600; font-size: 1.125rem; margin: 0;">
-                        Perfect for creative kids who love hands-on building • Great alongside coding and robotics programs
-                    </p>
-                </div>
-                <div style="background: linear-gradient(135deg, #dbeafe 0%, #93c5fd 100%); padding: 1.5rem; border-radius: 1rem; display: inline-block;">
-                    <p style="color: #1e3a8a; font-weight: 600; font-size: 1.125rem; margin: 0;">
-                        These professional skills look amazing on college applications!
-                    </p>
+                    <h3>Build Your Portfolio</h3>
+                    <p>Create projects that look great on college applications and resumes.</p>
                 </div>
             </div>
         </div>
@@ -994,34 +991,68 @@
     <!-- Pricing Section -->
     <section id="pricing" class="section">
         <div class="container">
-            <div class="badge">
-                Simple, Transparent Pricing
-            </div>
-            <h2 class="section-title">Professional instruction at an affordable price</h2>
-            
-            <div style="max-width: 500px; margin: 0 auto;">
-                <div class="card" style="text-align: center; border-color: #ea580c; background: linear-gradient(135deg, #fed7aa 0%, #ffffff 100%);">
-                    <div style="background: #ea580c; color: white; padding: 0.5rem 1rem; border-radius: 9999px; font-weight: 600; margin-bottom: 1.5rem; display: inline-block;">
-                        Weekly Classes
-                    </div>
-                    <h3 style="font-size: 1.125rem; color: #6b7280; margin-bottom: 0.5rem;">LEVEL 1 (12 weeks) - More levels coming soon!</h3>
+            <h2 class="section-title">Simple Pricing</h2>
+            <p class="section-subtitle">$40 per week • Pay as you go • No contracts</p>
+
+            <div style="max-width: 450px; margin: 0 auto;">
+                <div class="card" style="text-align: center; border: 3px solid #ea580c; background: white;">
                     <div style="font-size: 3rem; font-weight: 800; color: #ea580c; margin-bottom: 1rem;">
-                        $60<span style="font-size: 1.25rem; color: #6b7280;">/week</span>
+                        $40<span style="font-size: 1.25rem; color: #6b7280;">/week</span>
                     </div>
                     <ul style="list-style: none; padding: 0; margin: 2rem 0; text-align: left;">
-                        <li style="padding: 0.5rem 0; color: #374151;">✅ Professional Fusion360 instruction</li>
-                        <li style="padding: 0.5rem 0; color: #374151;">✅ Hands-on 3D printing experience</li>
-                        <li style="padding: 0.5rem 0; color: #374151;">✅ Online curriculum access</li>
-                        <li style="padding: 0.5rem 0; color: #374151;">✅ Weekly progress updates</li>
-                        <li style="padding: 0.5rem 0; color: #374151;">✅ Small class sizes</li>
+                        <li style="padding: 0.5rem 0; color: #374151;">✓ 1-hour class with professional CAD instruction</li>
+                        <li style="padding: 0.5rem 0; color: #374151;">✓ Small group learning environment</li>
+                        <li style="padding: 0.5rem 0; color: #374151;">✓ All equipment and computers provided</li>
+                        <li style="padding: 0.5rem 0; color: #374151;">✓ Learn to operate your own 3D printer</li>
                     </ul>
                     <a href="login.html" class="btn btn-primary" style="width: 100%; margin-bottom: 1rem;">
-                        Enroll Now
+                        Reserve Your Spot
                     </a>
-                    <p style="color: #ea580c; font-weight: 600; font-size: 0.875rem; margin: 0;">
-                        Limited spots available for LEVEL 1 class starting September 9th
+                    <p style="color: #6b7280; font-size: 0.875rem; margin: 0;">
+                        Starting October 25th
                     </p>
                 </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Schedule Details Section -->
+    <section class="section" style="background: #ffffff;">
+        <div class="container">
+            <h2 class="section-title">Class Schedule</h2>
+
+            <div style="max-width: 1000px; margin: 0 auto;">
+                <h3 style="color: #ea580c; font-size: 1.5rem; text-align: center; margin-bottom: 1.5rem;">Saturday Morning</h3>
+                <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 2rem; margin-bottom: 3rem;">
+                    <div class="card" style="text-align: center;">
+                        <h3 style="color: #ea580c; font-size: 1.25rem; margin-bottom: 0.5rem;">9:30-10:30 AM</h3>
+                        <p style="color: #374151;">Grades 4-7</p>
+                    </div>
+
+                    <div class="card" style="text-align: center;">
+                        <h3 style="color: #ea580c; font-size: 1.25rem; margin-bottom: 0.5rem;">10:30-11:30 AM</h3>
+                        <p style="color: #374151;">Grades 8-12</p>
+                    </div>
+                </div>
+
+                <h3 style="color: #ea580c; font-size: 1.5rem; text-align: center; margin-bottom: 1.5rem;">Monday Evening</h3>
+                <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 2rem;">
+                    <div class="card" style="text-align: center;">
+                        <h3 style="color: #ea580c; font-size: 1.25rem; margin-bottom: 0.5rem;">4:30-5:30 PM</h3>
+                        <p style="color: #374151;">Grades 4-7</p>
+                    </div>
+
+                    <div class="card" style="text-align: center;">
+                        <h3 style="color: #ea580c; font-size: 1.25rem; margin-bottom: 0.5rem;">5:30-6:30 PM</h3>
+                        <p style="color: #374151;">Grades 8-12</p>
+                    </div>
+                </div>
+            </div>
+
+            <div style="text-align: center; margin-top: 2rem;">
+                <p style="color: #6b7280; font-size: 1rem;">
+                    <strong>Location:</strong> Suwanee, GA
+                </p>
             </div>
         </div>
     </section>
@@ -1030,27 +1061,23 @@
     <section class="section" style="background: linear-gradient(135deg, #ea580c 0%, #dc2626 100%); color: white;">
         <div class="container" style="text-align: center;">
             <h2 style="font-size: 2.5rem; font-weight: 800; margin-bottom: 1rem; color: white;">
-                NEXT Level 1 Session Starts September 9, 2025 at Shadowbrook Church, Suwanee, Georgia
+                Ready to Get Started?
             </h2>
             <p style="font-size: 1.25rem; margin-bottom: 3rem; color: rgba(255, 255, 255, 0.9);">
-                Tuesday afternoons/evenings • Limited spots available • Serving North Gwinnett families
+                Classes start October 25th • $40/week
             </p>
-            
+
             <div style="display: flex; flex-direction: column; gap: 1rem; align-items: center; margin-bottom: 2rem;">
                 <a href="login.html" class="btn" style="background: white; color: #ea580c; font-size: 1.125rem; padding: 1rem 2rem; border: none;">
-                    Reserve Your Spot Today
+                    Reserve Your Spot
                 </a>
                 <a href="mailto:jeremiah@3djumpstart.com" class="btn btn-outline" style="border-color: white; color: white;">
-                    jeremiah@3djumpstart.com
+                    Have Questions? Email Me
                 </a>
             </div>
-            
-            <p style="color: rgba(255, 255, 255, 0.8);">
-                Questions? Feel free to email or message us. We'd love to connect with parents interested in giving their children cutting-edge technical skills!
-            </p>
-            
-            <p style="font-size: 1.25rem; font-weight: 600; margin-top: 2rem; color: white;">
-                Building tomorrow's innovators, one design at a time!
+
+            <p style="color: rgba(255, 255, 255, 0.9); font-size: 1rem;">
+                jeremiah@3djumpstart.com
             </p>
         </div>
     </section>
