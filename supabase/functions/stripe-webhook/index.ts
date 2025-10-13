@@ -167,7 +167,7 @@ Deno.serve(async (req) => {
           enrollment_id: enrollmentId,
           amount: 40, // $40 per student for first week
           event_type: 'First Week',
-          stripe_object_id: session.payment_intent?.toString() || session.id,
+          stripe_object_id: session.id,  // Use session.id NOT payment_intent
           created_at: new Date().toISOString()
         })
 
