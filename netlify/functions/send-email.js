@@ -142,7 +142,7 @@ exports.handler = async (event, context) => {
                 
                 <h3>What to Bring</h3>
                 <ul>
-                  <li>Imperial (Inch) Digital or Dial Calipers - <a href="https://a.co/d/7BT1kL0">View on Amazon</a></li>
+                  <li>Imperial (Inch) Dial Calipers - <a href="https://a.co/d/7BT1kL0">View on Amazon</a></li>
                   <li>Water bottle</li>
                   <li>Enthusiasm to learn!</li>
                 </ul>

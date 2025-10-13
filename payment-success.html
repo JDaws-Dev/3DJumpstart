@@ -227,28 +227,33 @@
                             const status = e.status === 'enrolled' ? 'Enrolled' : 'Pending (Balance Due)';
                             return `
                                 <div style="padding: 0.5rem; background: #f1f5f9; margin: 0.5rem 0; border-radius: 0.5rem;">
-                                    <strong>${student.first_name} ${student.last_name}</strong> - 
-                                    Grade ${student.grade} - 
-                                    ${e.class_time} - 
+                                    <strong>${student.first_name} ${student.last_name}</strong> -
+                                    Grade ${student.grade} -
+                                    ${e.class_time} -
                                     <span style="color: ${e.status === 'enrolled' ? '#16a34a' : '#f59e0b'};">${status}</span>
                                 </div>
                             `;
                         }).join('');
-                        
+
                         document.getElementById('enrollmentInfo').innerHTML = `
                             <h3>Enrolled Students:</h3>
                             ${enrollmentHtml}
                         `;
+                        // STOP refreshing - payment is complete and enrollments loaded
                     } else {
-                        // Try again in 3 seconds
-                        setTimeout(() => location.reload(), 3000);
+                        // Enrollments not found yet - wait longer
+                        document.getElementById('enrollmentInfo').innerHTML = `
+                            <p style="color: #f59e0b;">Loading enrollment details...</p>
+                        `;
+                        // Only retry if no enrollments (in case webhook is still processing)
+                        setTimeout(() => location.reload(), 5000);
                     }
                 } else {
-                    // Payment not found yet - try again
+                    // Payment not found yet - webhook may still be processing
                     document.getElementById('enrollmentInfo').innerHTML = `
                         <p style="color: #f59e0b;">Payment is being processed. Auto-refreshing...</p>
                     `;
-                    setTimeout(() => location.reload(), 3000);
+                    setTimeout(() => location.reload(), 5000);
                 }
             } catch (error) {
                 console.error('Error:', error);
