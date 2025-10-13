@@ -268,6 +268,7 @@
       <button class="tab" onclick="switchTab(event,'attendance')">Attendance</button>
       <button class="tab" onclick="switchTab(event,'billing')">Weekly Billing</button>
       <button class="tab" onclick="switchTab(event,'payments')">Payment History</button>
+      <button class="tab" onclick="switchTab(event,'blackout')">Blackout Dates</button>
     </div>
 
     <!-- CLASS ROSTER -->
@@ -367,6 +368,35 @@
       </div>
     </div>
 
+    <!-- BLACKOUT DATES -->
+    <div id="tab-blackout" class="tab-content">
+      <div style="background:#fff;border-radius:.75rem;padding:1rem;margin-bottom:1rem;box-shadow:0 1px 3px rgba(0,0,0,.08);">
+        <h3 style="margin:0 0 0.5rem;">Manage Blackout Dates</h3>
+        <p class="muted" style="margin:0 0 1rem;">Add dates when classes won't meet (holidays, breaks, etc.). These dates will be shown to parents.</p>
+
+        <!-- Add Blackout Date Form -->
+        <div style="background:#f9fafb;padding:1rem;border-radius:8px;margin-bottom:1.5rem;">
+          <h4 style="margin:0 0 0.75rem;">Add New Blackout Date</h4>
+          <div style="display:grid;grid-template-columns:1fr 2fr auto;gap:0.75rem;align-items:end;">
+            <div>
+              <label style="display:block;margin-bottom:0.25rem;font-weight:600;font-size:0.875rem;">Date</label>
+              <input type="date" id="blackoutDateInput" style="padding:0.5rem;border:1px solid #e2e8f0;border-radius:8px;width:100%;">
+            </div>
+            <div>
+              <label style="display:block;margin-bottom:0.25rem;font-weight:600;font-size:0.875rem;">Reason</label>
+              <input type="text" id="blackoutReasonInput" placeholder="e.g., Thanksgiving Break" style="padding:0.5rem;border:1px solid #e2e8f0;border-radius:8px;width:100%;">
+            </div>
+            <button class="btn btn-primary" onclick="addBlackoutDate()">Add Date</button>
+          </div>
+        </div>
+
+        <!-- Blackout Dates List -->
+        <div id="blackoutDatesList">
+          <p class="muted">Loading...</p>
+        </div>
+      </div>
+    </div>
+
   </main>
 
   <!-- Attendance Modal -->
@@ -400,7 +430,7 @@
     const ADMIN_EMAILS = ['jeremiah@3djumpstart.com']; // lowercase
 
     // === STATE ===
-    let all = { enrollments:[], students:[], parents:[], payments:[], attendance:[] };
+    let all = { enrollments:[], students:[], parents:[], payments:[], attendance:[], blackoutDates:[] };
     let classes = []; // [{id,label}]
     let currentWeekStart = null; // Will be set to Monday of current week
     let selectedClassForAttendance = null;
@@ -426,18 +456,20 @@
     }
 
     async function fetchAll(){
-      const [{data:enrs},{data:studs},{data:pars},{data:pays},{data:attnd}] = await Promise.all([
+      const [{data:enrs},{data:studs},{data:pars},{data:pays},{data:attnd},{data:blackout}] = await Promise.all([
         supabase.from('enrollments').select('*').order('created_at',{ascending:false}),
         supabase.from('students').select('*'),
         supabase.from('parents').select('*'),
         supabase.from('payments').select('*').order('created_at',{ascending:false}),
-        supabase.from('attendance').select('*').order('class_date',{ascending:false})
+        supabase.from('attendance').select('*').order('class_date',{ascending:false}),
+        supabase.from('blackout_dates').select('*').order('date',{ascending:true})
       ]);
       all.enrollments = enrs || [];
       all.students = studs || [];
       all.parents = pars || [];
       all.payments = pays || [];
       all.attendance = attnd || [];
+      all.blackoutDates = blackout || [];
     }
 
     function buildClassDropdown(){
@@ -572,9 +604,11 @@
       document.querySelectorAll('.tab-content').forEach(c=>c.classList.remove('active'));
       document.getElementById('tab-'+tab).classList.add('active');
 
-      // Render attendance calendar when switching to attendance tab
+      // Render content when switching tabs
       if (tab === 'attendance') {
         renderAttendanceCalendar();
+      } else if (tab === 'blackout') {
+        renderBlackoutDates();
       }
     }
 
@@ -918,13 +952,24 @@
         const presentCount = attendanceRecords.filter(a => a.present).length;
         const totalCount = enrolled.length;
         const isComplete = attendanceRecords.length > 0;
+        const isBlackout = isBlackoutDate(dateStr);
+        const blackoutInfo = isBlackout ? all.blackoutDates.find(b => b.date === dateStr) : null;
 
-        const badge = isComplete
-          ? `<span class="class-card-badge badge-complete">${presentCount}/${totalCount} Present</span>`
-          : `<span class="class-card-badge badge-pending">Not Taken</span>`;
+        let badge, cardStyle, clickable;
+        if (isBlackout) {
+          badge = `<span class="class-card-badge" style="background:#ef4444;color:#fff;">No Class</span>`;
+          cardStyle = 'opacity:0.6;cursor:not-allowed;';
+          clickable = false;
+        } else {
+          badge = isComplete
+            ? `<span class="class-card-badge badge-complete">${presentCount}/${totalCount} Present</span>`
+            : `<span class="class-card-badge badge-pending">Not Taken</span>`;
+          cardStyle = '';
+          clickable = true;
+        }
 
         html += `
-          <div class="class-card" onclick="openAttendanceModal('${cp.id}', '${dateStr}', '${cp.label}')">
+          <div class="class-card" ${clickable ? `onclick="openAttendanceModal('${cp.id}', '${dateStr}', '${cp.label}')"` : ''} style="${cardStyle}">
             <div class="class-card-header">
               <div class="class-card-title">${cp.label}</div>
               ${badge}
@@ -932,9 +977,15 @@
             <div class="muted" style="font-size:0.875rem;">
               ${classDate.toLocaleDateString('en-US', { weekday: 'long', month: 'short', day: 'numeric' })}
             </div>
-            <div class="muted" style="font-size:0.875rem;margin-top:0.25rem;">
-              ${totalCount} student${totalCount !== 1 ? 's' : ''} enrolled
-            </div>
+            ${isBlackout ? `
+              <div style="color:#ef4444;font-size:0.875rem;margin-top:0.25rem;font-weight:600;">
+                ${blackoutInfo?.reason || 'No class scheduled'}
+              </div>
+            ` : `
+              <div class="muted" style="font-size:0.875rem;margin-top:0.25rem;">
+                ${totalCount} student${totalCount !== 1 ? 's' : ''} enrolled
+              </div>
+            `}
           </div>
         `;
       });
@@ -1044,6 +1095,138 @@
         console.error('Save attendance error:', err);
         alert('Error saving attendance');
       }
+    }
+
+    // === BLACKOUT DATES FUNCTIONS ===
+
+    function renderBlackoutDates() {
+      const listDiv = document.getElementById('blackoutDatesList');
+
+      if (all.blackoutDates.length === 0) {
+        listDiv.innerHTML = '<p class="muted">No blackout dates set. Classes will meet every scheduled day.</p>';
+        return;
+      }
+
+      // Group by past/upcoming
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
+
+      const upcoming = all.blackoutDates.filter(b => new Date(b.date) >= today);
+      const past = all.blackoutDates.filter(b => new Date(b.date) < today);
+
+      let html = '';
+
+      if (upcoming.length > 0) {
+        html += '<h4 style="margin:0 0 0.75rem;color:#111827;">Upcoming Blackout Dates</h4>';
+        html += upcoming.map(b => {
+          const date = new Date(b.date);
+          return `
+            <div class="student-checkbox-row" style="background:#fff;">
+              <div style="flex:1;">
+                <strong>${date.toLocaleDateString('en-US', {weekday:'long', month:'long', day:'numeric', year:'numeric'})}</strong>
+                <div class="muted" style="font-size:0.875rem;margin-top:0.25rem;">${b.reason}</div>
+              </div>
+              <button class="btn" onclick="deleteBlackoutDate('${b.id}')" style="background:#dc2626;color:#fff;">Delete</button>
+            </div>
+          `;
+        }).join('');
+      }
+
+      if (past.length > 0) {
+        html += '<h4 style="margin:1.5rem 0 0.75rem;color:#6b7280;">Past Blackout Dates</h4>';
+        html += past.map(b => {
+          const date = new Date(b.date);
+          return `
+            <div class="student-checkbox-row" style="background:#f9fafb;opacity:0.7;">
+              <div style="flex:1;">
+                <strong>${date.toLocaleDateString('en-US', {weekday:'long', month:'long', day:'numeric', year:'numeric'})}</strong>
+                <div class="muted" style="font-size:0.875rem;margin-top:0.25rem;">${b.reason}</div>
+              </div>
+              <button class="btn" onclick="deleteBlackoutDate('${b.id}')" style="background:#6b7280;color:#fff;">Delete</button>
+            </div>
+          `;
+        }).join('');
+      }
+
+      listDiv.innerHTML = html;
+    }
+
+    async function addBlackoutDate() {
+      const dateInput = document.getElementById('blackoutDateInput');
+      const reasonInput = document.getElementById('blackoutReasonInput');
+
+      const date = dateInput.value;
+      const reason = reasonInput.value.trim();
+
+      if (!date) {
+        alert('Please select a date');
+        return;
+      }
+
+      if (!reason) {
+        alert('Please enter a reason');
+        return;
+      }
+
+      try {
+        const { error } = await supabase.from('blackout_dates').insert({
+          date,
+          reason,
+          created_by: (await supabase.auth.getUser()).data.user?.email || 'admin'
+        });
+
+        if (error) {
+          if (error.code === '23505') { // Unique constraint violation
+            alert('This date is already marked as a blackout date');
+          } else {
+            alert('Error adding blackout date: ' + error.message);
+          }
+          return;
+        }
+
+        // Clear inputs
+        dateInput.value = '';
+        reasonInput.value = '';
+
+        // Refresh data
+        await fetchAll();
+        renderBlackoutDates();
+        renderAttendanceCalendar(); // Update attendance calendar too
+
+        alert('Blackout date added successfully!');
+      } catch (err) {
+        console.error('Error adding blackout date:', err);
+        alert('Failed to add blackout date');
+      }
+    }
+
+    async function deleteBlackoutDate(id) {
+      if (!confirm('Delete this blackout date? Classes will be scheduled for this day again.')) {
+        return;
+      }
+
+      try {
+        const { error } = await supabase.from('blackout_dates').delete().eq('id', id);
+
+        if (error) {
+          alert('Error deleting blackout date: ' + error.message);
+          return;
+        }
+
+        // Refresh data
+        await fetchAll();
+        renderBlackoutDates();
+        renderAttendanceCalendar(); // Update attendance calendar too
+
+        alert('Blackout date deleted successfully!');
+      } catch (err) {
+        console.error('Error deleting blackout date:', err);
+        alert('Failed to delete blackout date');
+      }
+    }
+
+    function isBlackoutDate(dateStr) {
+      return all.blackoutDates.some(b => b.date === dateStr);
     }
 
     async function logout(){ await supabase.auth.signOut(); window.location.href='login.html'; }

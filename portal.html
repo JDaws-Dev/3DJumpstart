@@ -463,6 +463,15 @@
         </div>
       </div>
 
+      <!-- Upcoming Class Dates -->
+      <div class="card" id="upcomingDatesCard">
+        <h2 class="card-title">Upcoming Class Dates</h2>
+        <p class="muted" style="margin-bottom:1rem;">Next 4 weeks of scheduled classes</p>
+        <div id="upcomingDatesList">
+          <p class="muted">Loading...</p>
+        </div>
+      </div>
+
       <div class="card">
         <h2 class="card-title">What Your Student Needs</h2>
         <p class="muted" style="font-size:1.05rem;">
@@ -669,6 +678,7 @@
         bindUI();
         populateDropdowns();
         await render();
+        await renderUpcomingDates(); // Load upcoming dates on page load
       })().catch(console.error);
     });
 
@@ -696,10 +706,12 @@
           btn.classList.add('active');
           document.querySelectorAll('.tab-content').forEach(c=>c.classList.remove('active'));
           document.getElementById('tab-'+btn.dataset.tab).classList.add('active');
-          
-          // Load billing when tab is clicked
+
+          // Load content when tabs are clicked
           if(btn.dataset.tab === 'billing') {
             loadBilling();
+          } else if(btn.dataset.tab === 'class-info') {
+            renderUpcomingDates(); // Refresh dates when viewing class info
           }
         });
       });
@@ -903,6 +915,78 @@
         .order('created_at');
       if (error) throw error;
       return data || [];
+    }
+
+    /* ====== UPCOMING CLASS DATES ====== */
+    async function renderUpcomingDates() {
+      try {
+        // Fetch blackout dates
+        const { data: blackoutDates } = await sb.from('blackout_dates').select('*').order('date', { ascending: true });
+        const blackoutSet = new Set((blackoutDates || []).map(b => b.date));
+
+        // Generate next 4 weeks of class dates
+        const today = new Date();
+        const dates = [];
+
+        for (let week = 0; week < 4; week++) {
+          // Calculate Monday of this week
+          const monday = new Date(today);
+          const dayOfWeek = today.getDay();
+          const daysToMonday = dayOfWeek === 0 ? -6 : 1 - dayOfWeek;
+          monday.setDate(today.getDate() + daysToMonday + (week * 7));
+
+          // Saturday (offset 5 from Monday)
+          const saturday = new Date(monday);
+          saturday.setDate(monday.getDate() + 5);
+
+          // Monday (offset 0)
+          const nextMonday = new Date(monday);
+
+          dates.push({ date: saturday, day: 'Saturday', classes: ['9:30-10:30am', '10:30-11:30am'] });
+          dates.push({ date: nextMonday, day: 'Monday', classes: ['4:30-5:30pm', '5:30-6:30pm'] });
+        }
+
+        // Filter to future dates and check blackouts
+        const futureDates = dates.filter(d => d.date >= today);
+
+        let html = '';
+        futureDates.forEach(d => {
+          const dateStr = d.date.toISOString().split('T')[0];
+          const isBlackout = blackoutSet.has(dateStr);
+          const blackoutInfo = isBlackout ? blackoutDates.find(b => b.date === dateStr) : null;
+
+          const bgColor = isBlackout ? '#fee2e2' : '#f0fdf4';
+          const borderColor = isBlackout ? '#fca5a5' : '#86efac';
+          const textColor = isBlackout ? '#dc2626' : '#16a34a';
+
+          html += `
+            <div style="padding:0.75rem;margin-bottom:0.5rem;background:${bgColor};border:1px solid ${borderColor};border-radius:8px;">
+              <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:0.25rem;">
+                <strong style="font-size:1rem;">
+                  ${d.day}, ${d.date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
+                </strong>
+                <span style="color:${textColor};font-weight:600;font-size:0.875rem;">
+                  ${isBlackout ? '❌ No Class' : '✓ Class Meets'}
+                </span>
+              </div>
+              ${isBlackout ? `
+                <div class="muted" style="font-size:0.875rem;color:#dc2626;">
+                  ${blackoutInfo?.reason || 'Class cancelled'}
+                </div>
+              ` : `
+                <div class="muted" style="font-size:0.875rem;">
+                  ${d.classes.join(' • ')}
+                </div>
+              `}
+            </div>
+          `;
+        });
+
+        document.getElementById('upcomingDatesList').innerHTML = html || '<p class="muted">No upcoming dates available.</p>';
+      } catch (err) {
+        console.error('Error loading upcoming dates:', err);
+        document.getElementById('upcomingDatesList').innerHTML = '<p class="muted">Error loading dates.</p>';
+      }
     }
 
     /* ====== RENDER ====== */
