@@ -163,9 +163,11 @@ Deno.serve(async (req) => {
       // Payments
       await supabase.from('payments').insert({
         order_id: order.id,
+        parent_id: parentId,
         amount: paidAmount,
         payment_type: 'stripe',
         stripe_charge_id: typeof session.payment_intent === 'string' ? session.payment_intent : null,
+        stripe_object_id: (typeof session.payment_intent === 'string' ? session.payment_intent : null) || session.id,
         status: 'succeeded',
         processed_at: new Date().toISOString()
       })

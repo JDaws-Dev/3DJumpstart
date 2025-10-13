@@ -1,26 +1,51 @@
--- DATABASE CLEANUP - Remove Old Tuesday Classes and Reset
--- Run this in Supabase SQL Editor to start fresh
+-- Database Cleanup Script
+-- ONLY run this if you need to start fresh with attendance/blackout tables
+-- Run in Supabase SQL Editor: https://supabase.com/dashboard/project/hucjmggkasahwpjgnwia/sql
 
--- Step 1: Delete all old enrollments (this will cascade delete related payments)
-DELETE FROM public.enrollments;
+-- WARNING: This will delete all attendance and blackout data!
+-- Only use if you're having issues or want to reset
 
--- Step 2: Delete all old students
-DELETE FROM public.students;
+-- ========================================
+-- ATTENDANCE TABLE CLEANUP
+-- ========================================
 
--- Step 3: Delete all old parents (optional - keeps login accounts but removes data)
--- Uncomment the line below if you want to delete parent records too:
--- DELETE FROM public.parents;
+-- Drop existing policies
+DROP POLICY IF EXISTS "Enable read access for authenticated users" ON attendance;
+DROP POLICY IF EXISTS "Enable insert access for authenticated users" ON attendance;
+DROP POLICY IF EXISTS "Enable update access for authenticated users" ON attendance;
+DROP POLICY IF EXISTS "Enable delete access for authenticated users" ON attendance;
 
--- Step 4: Delete old advanced class requests
-DELETE FROM public.advanced_class_requests;
+-- Drop trigger and function
+DROP TRIGGER IF EXISTS update_attendance_timestamp ON attendance;
+DROP FUNCTION IF EXISTS update_attendance_updated_at();
 
--- Verify cleanup
-SELECT 'Enrollments remaining:' as check_name, COUNT(*) as count FROM public.enrollments
-UNION ALL
-SELECT 'Students remaining:' as check_name, COUNT(*) as count FROM public.students
-UNION ALL
-SELECT 'Parents remaining:' as check_name, COUNT(*) as count FROM public.parents
-UNION ALL
-SELECT 'Payments remaining:' as check_name, COUNT(*) as count FROM public.payments
-UNION ALL
-SELECT 'Advanced requests remaining:' as check_name, COUNT(*) as count FROM public.advanced_class_requests;
+-- Drop indexes
+DROP INDEX IF EXISTS idx_attendance_date;
+DROP INDEX IF EXISTS idx_attendance_student;
+DROP INDEX IF EXISTS idx_attendance_enrollment;
+DROP INDEX IF EXISTS idx_attendance_class;
+
+-- Drop table (this deletes all attendance records)
+-- DROP TABLE IF EXISTS attendance CASCADE;
+
+-- ========================================
+-- BLACKOUT DATES TABLE CLEANUP
+-- ========================================
+
+-- Drop existing policies
+DROP POLICY IF EXISTS "Enable read access for all authenticated users" ON blackout_dates;
+DROP POLICY IF EXISTS "Enable insert access for authenticated users" ON blackout_dates;
+DROP POLICY IF EXISTS "Enable update access for authenticated users" ON blackout_dates;
+DROP POLICY IF EXISTS "Enable delete access for authenticated users" ON blackout_dates;
+
+-- Drop index
+DROP INDEX IF EXISTS idx_blackout_dates_date;
+
+-- Drop table (this deletes all blackout dates)
+-- DROP TABLE IF EXISTS blackout_dates CASCADE;
+
+-- ========================================
+-- After running cleanup, run the setup scripts again:
+-- 1. ATTENDANCE_SETUP.sql
+-- 2. BLACKOUT_DATES_SETUP.sql
+-- ========================================
