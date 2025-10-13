@@ -14,19 +14,36 @@ const supabase = createClient(
 // Stripe Price ID for $40 weekly class payment
 const WEEKLY_PRICE_ID = 'price_1SHcmnKgkIT46sg7kgWR6PuU'
 
+// CORS headers
+const corsHeaders = {
+  'Access-Control-Allow-Origin': '*',
+  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
+}
+
 Deno.serve(async (req) => {
+  // Handle CORS preflight requests
+  if (req.method === 'OPTIONS') {
+    return new Response('ok', { headers: corsHeaders })
+  }
+
   try {
     // Verify auth
     const authHeader = req.headers.get('Authorization')
     if (!authHeader) {
-      return new Response(JSON.stringify({ error: 'No authorization' }), { status: 401 })
+      return new Response(JSON.stringify({ error: 'No authorization' }), {
+        status: 401,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+      })
     }
 
     const token = authHeader.replace('Bearer ', '')
     const { data: { user }, error: authError } = await supabase.auth.getUser(token)
 
     if (authError || !user) {
-      return new Response(JSON.stringify({ error: 'Unauthorized' }), { status: 401 })
+      return new Response(JSON.stringify({ error: 'Unauthorized' }), {
+        status: 401,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+      })
     }
 
     // Parse request
@@ -44,7 +61,10 @@ Deno.serve(async (req) => {
 
     if (enrollError || !enrollments || enrollments.length === 0) {
       console.error('No valid enrollments found:', enrollError)
-      return new Response(JSON.stringify({ error: 'No valid enrollments found' }), { status: 400 })
+      return new Response(JSON.stringify({ error: 'No valid enrollments found' }), {
+        status: 400,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+      })
     }
 
     console.log('Found enrollments:', enrollments.length)
@@ -80,7 +100,7 @@ Deno.serve(async (req) => {
       JSON.stringify({ url: session.url }),
       {
         status: 200,
-        headers: { 'Content-Type': 'application/json' }
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' }
       }
     )
 
@@ -88,7 +108,10 @@ Deno.serve(async (req) => {
     console.error('Create checkout error:', err)
     return new Response(
       JSON.stringify({ error: (err as Error).message }),
-      { status: 500 }
+      {
+        status: 500,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+      }
     )
   }
 })
