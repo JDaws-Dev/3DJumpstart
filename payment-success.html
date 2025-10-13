@@ -208,46 +208,18 @@
                     .maybeSingle();
 
                 if (payment) {
-                    // Payment found - show success
+                    // Payment found - show success and redirect to portal
                     document.getElementById('statusBadge').textContent = 'Complete';
                     document.getElementById('statusBadge').className = 'status-badge status-complete';
                     document.getElementById('totalPaid').textContent = `$${payment.amount || 0}`;
+                    document.getElementById('enrollmentInfo').innerHTML = `
+                        <p style="color: #16a34a;">✓ Payment successful! Redirecting to your portal...</p>
+                    `;
 
-                    // Get enrollments
-                    const { data: enrollments } = await supabase
-                        .from('enrollments')
-                        .select('*, students!inner(first_name, last_name, grade)')
-                        .eq('parent_id', payment.parent_id)
-                        .in('status', ['enrolled', 'pending'])
-                        .order('created_at', { ascending: false });
-
-                    if (enrollments && enrollments.length > 0) {
-                        const enrollmentHtml = enrollments.map(e => {
-                            const student = e.students;
-                            const status = e.status === 'enrolled' ? 'Enrolled' : 'Pending (Balance Due)';
-                            return `
-                                <div style="padding: 0.5rem; background: #f1f5f9; margin: 0.5rem 0; border-radius: 0.5rem;">
-                                    <strong>${student.first_name} ${student.last_name}</strong> -
-                                    Grade ${student.grade} -
-                                    ${e.class_time} -
-                                    <span style="color: ${e.status === 'enrolled' ? '#16a34a' : '#f59e0b'};">${status}</span>
-                                </div>
-                            `;
-                        }).join('');
-
-                        document.getElementById('enrollmentInfo').innerHTML = `
-                            <h3>Enrolled Students:</h3>
-                            ${enrollmentHtml}
-                        `;
-                        // STOP refreshing - payment is complete and enrollments loaded
-                    } else {
-                        // Enrollments not found yet - wait longer
-                        document.getElementById('enrollmentInfo').innerHTML = `
-                            <p style="color: #f59e0b;">Loading enrollment details...</p>
-                        `;
-                        // Only retry if no enrollments (in case webhook is still processing)
-                        setTimeout(() => location.reload(), 5000);
-                    }
+                    // Redirect to portal after 2 seconds
+                    setTimeout(() => {
+                        window.location.href = 'portal.html';
+                    }, 2000);
                 } else {
                     // Payment not found yet - webhook may still be processing
                     document.getElementById('enrollmentInfo').innerHTML = `
