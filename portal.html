@@ -1304,12 +1304,12 @@
 
         // Prepare enrollment IDs
         const enrollmentIds = cart.map(e => e.id);
-        
+
         // Build request body
         const requestBody = {
           parent_id: currentUser.id,
           parent_email: currentUser.email,
-          payment_plan: method === 'half' ? 'pay_half' : 'pay_full',
+          payment_plan: 'weekly',
           enrollment_ids: enrollmentIds,
           success_url: `${window.location.origin}/payment-success.html?session_id={CHECKOUT_SESSION_ID}`,
           cancel_url: `${window.location.origin}/portal.html`
