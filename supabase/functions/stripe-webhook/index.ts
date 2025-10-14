@@ -180,18 +180,28 @@ Deno.serve(async (req) => {
 
       // Send confirmation email
       if (parentEmail && enrollmentIds.length > 0) {
+        console.log('Attempting to send confirmation email to:', parentEmail)
+
         // Get enrollment details with student info
-        const { data: enrollmentData } = await supabase
+        const { data: enrollmentData, error: enrollmentError } = await supabase
           .from('enrollments')
           .select('*, students!inner(first_name, last_name)')
           .in('id', enrollmentIds)
 
-        if (enrollmentData) {
+        if (enrollmentError) {
+          console.error('Failed to fetch enrollment data for email:', enrollmentError)
+        } else if (enrollmentData && enrollmentData.length > 0) {
+          console.log('Found enrollment data, preparing email for', enrollmentData.length, 'students')
+
           const studentNames = enrollmentData.map(e => `${e.students.first_name} ${e.students.last_name}`)
           const classDetails = enrollmentData.map(e => e.class_time || 'TBD')
 
           await sendConfirmationEmail(parentEmail, studentNames, classDetails, totalAmount)
+        } else {
+          console.log('No enrollment data found for email')
         }
+      } else {
+        console.log('Skipping email: parentEmail=', parentEmail, 'enrollmentIds.length=', enrollmentIds.length)
       }
 
     } catch (err) {
