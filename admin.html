@@ -826,8 +826,7 @@
             return { success: false, error: 'Missing data' };
           }
 
-          // Here you'll need to call your Stripe charge endpoint
-          // For now, we'll create a payment record directly
+          // Create payment record
           const { data, error } = await supabase
             .from('payments')
             .insert({
@@ -836,10 +835,37 @@
               amount: 40,
               event_type: 'Weekly Class',
               attendance_date: s.attendanceDate, // Link to attendance date
-              stripe_object_id: 'manual_' + Date.now() // Replace with actual Stripe charge ID
+              stripe_object_id: 'manual_' + Date.now()
             });
 
-          return { success: !error, error };
+          if (error) {
+            return { success: false, error, studentName: `${student.first_name} ${student.last_name}` };
+          }
+
+          // Send billing email notification
+          try {
+            const emailResponse = await fetch(`${SUPABASE_URL}/functions/v1/send-billing-email`, {
+              method: 'POST',
+              headers: {
+                'Authorization': `Bearer ${SUPABASE_ANON_KEY}`,
+                'Content-Type': 'application/json'
+              },
+              body: JSON.stringify({
+                parent_id: parent.id,
+                student_names: [`${student.first_name} ${student.last_name}`],
+                class_date: s.attendanceDate,
+                amount: 40
+              })
+            });
+
+            if (!emailResponse.ok) {
+              console.warn('Email notification failed for:', parent.email);
+            }
+          } catch (emailError) {
+            console.warn('Failed to send email:', emailError);
+          }
+
+          return { success: true, studentName: `${student.first_name} ${student.last_name}` };
         }));
 
         const successful = results.filter(r => r.success).length;
