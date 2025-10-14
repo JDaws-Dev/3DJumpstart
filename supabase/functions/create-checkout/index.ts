@@ -81,10 +81,36 @@ Deno.serve(async (req) => {
 
     let customerId = parent?.stripe_customer_id
 
-    // If parent doesn't have a Stripe customer yet, create one
-    if (!customerId && parent_email) {
+    // Verify customer exists in Stripe, or create new one
+    let needsNewCustomer = !customerId
+
+    if (customerId) {
+      // Check if this customer actually exists in Stripe
+      try {
+        await stripe.customers.retrieve(customerId)
+        console.log('Verified existing Stripe customer:', customerId)
+      } catch (err: any) {
+        if (err.code === 'resource_missing') {
+          console.log('Customer in database does not exist in Stripe, will create new one')
+          needsNewCustomer = true
+        } else {
+          throw err // Re-throw other errors
+        }
+      }
+    }
+
+    if (needsNewCustomer) {
+      const emailToUse = parent_email || parent?.email
+
+      if (!emailToUse) {
+        return new Response(
+          JSON.stringify({ error: 'Parent email is required to create checkout session' }),
+          { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        )
+      }
+
       const customer = await stripe.customers.create({
-        email: parent_email,
+        email: emailToUse,
         name: parent?.name || undefined,
         metadata: {
           parent_id: parent_id
@@ -92,6 +118,19 @@ Deno.serve(async (req) => {
       })
       customerId = customer.id
       console.log('Created new Stripe customer:', customerId)
+
+      // Save customer ID to database immediately
+      const { error: saveError } = await supabase
+        .from('parents')
+        .update({ stripe_customer_id: customerId })
+        .eq('id', parent_id)
+
+      if (saveError) {
+        console.error('Failed to save customer ID to database:', saveError)
+        // Continue anyway - webhook will save it as backup
+      } else {
+        console.log('Saved customer ID to database:', customerId)
+      }
     }
 
     // Create line items for Stripe Checkout

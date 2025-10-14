@@ -390,6 +390,25 @@
         <div id="enrollmentList"></div>
       </div>
 
+      <!-- Payment Method Status -->
+      <div id="paymentMethodStatus" class="card" style="display:none">
+        <div style="display:flex;align-items:center;justify-content:space-between;gap:12px;">
+          <div style="flex:1">
+            <h3 style="margin:0 0 8px;font-size:1.1rem;color:var(--warn)">⚠️ Payment Method Required</h3>
+            <p style="margin:0;color:var(--muted);font-size:0.95rem;">
+              To enable automatic weekly billing based on attendance, please add a payment method to your account.
+            </p>
+          </div>
+          <button id="addPaymentMethodBtn" class="btn btn-primary" type="button">Add Payment Method</button>
+        </div>
+      </div>
+
+      <!-- Payment Method Success -->
+      <div id="paymentMethodSuccess" class="success-card" style="display:none">
+        <h3 style="color:#166534;margin-bottom:0.5rem;">✅ Payment Method Saved</h3>
+        <p style="color:#166534;margin:0;">Your payment method is on file for weekly attendance-based billing.</p>
+      </div>
+
       <!-- Success Message Card -->
       <div id="allEnrolledMessage" class="success-card" style="display:none">
         <h3 style="color:#166534;margin-bottom:0.5rem;">✅ All Students Enrolled!</h3>
@@ -668,12 +687,23 @@
     document.addEventListener('DOMContentLoaded', () => {
       (async () => {
         const { data: { session } } = await sb.auth.getSession();
-        if (!session){ 
-          window.location.href = 'login.html'; 
-          return; 
+        if (!session){
+          window.location.href = 'login.html';
+          return;
         }
         currentUser = session.user;
         document.getElementById('parent-name').textContent = currentUser.email || 'Parent';
+
+        // Check if returning from payment method setup
+        const urlParams = new URLSearchParams(window.location.search);
+        if (urlParams.get('payment_method') === 'added') {
+          // Show success message briefly
+          setTimeout(() => {
+            alert('Payment method added successfully! You\'re all set for automatic weekly billing.');
+            // Clean up URL
+            window.history.replaceState({}, document.title, window.location.pathname);
+          }, 500);
+        }
 
         bindUI();
         populateDropdowns();
@@ -726,6 +756,7 @@
       });
 
       document.getElementById('payWeeklyBtn').addEventListener('click', () => startCheckout('weekly'));
+      document.getElementById('addPaymentMethodBtn').addEventListener('click', () => setupPaymentMethod());
     }
 
     function populateDropdowns(){
@@ -989,6 +1020,41 @@
       }
     }
 
+    /* ====== PAYMENT METHOD STATUS ====== */
+    async function checkPaymentMethodStatus() {
+      try {
+        // Get parent's stripe_customer_id
+        const { data: parent } = await sb
+          .from('parents')
+          .select('stripe_customer_id')
+          .eq('id', parentId)
+          .single();
+
+        const hasStripeCustomer = !!parent?.stripe_customer_id;
+        const hasEnrolledStudents = allEnrollments.some(e =>
+          ['enrolled', 'pending'].includes(e.status)
+        );
+
+        // Only show payment method status if user has enrolled students
+        if (!hasEnrolledStudents) {
+          document.getElementById('paymentMethodStatus').style.display = 'none';
+          document.getElementById('paymentMethodSuccess').style.display = 'none';
+          return;
+        }
+
+        // Show warning if no payment method, success if they have one
+        if (hasStripeCustomer) {
+          document.getElementById('paymentMethodStatus').style.display = 'none';
+          document.getElementById('paymentMethodSuccess').style.display = 'block';
+        } else {
+          document.getElementById('paymentMethodStatus').style.display = 'block';
+          document.getElementById('paymentMethodSuccess').style.display = 'none';
+        }
+      } catch (err) {
+        console.error('Error checking payment method status:', err);
+      }
+    }
+
     /* ====== RENDER ====== */
     async function render() {
       const [students, cartData, enrollments] = await Promise.all([
@@ -1004,6 +1070,7 @@
       updateTotals(cart);
       updatePaymentCardVisibility(students, cart, enrollments);
       updateStudentPortalVisibility(enrollments);
+      await checkPaymentMethodStatus();
     }
 
     function updateStudentPortalVisibility(enrollments) {
@@ -1415,7 +1482,16 @@
 
         if (!response.ok) {
           console.error('Checkout failed:', responseText);
-          alert('Checkout error. Please try again.');
+          let errorMessage = 'Checkout error. Please try again.';
+          try {
+            const errorData = JSON.parse(responseText);
+            if (errorData.error) {
+              errorMessage = `Checkout error: ${errorData.error}`;
+            }
+          } catch (e) {
+            // Use default error message
+          }
+          alert(errorMessage);
           return;
         }
 
@@ -1435,6 +1511,57 @@
       } catch (err) {
         console.error('Checkout error:', err);
         alert('Could not start checkout. Please try again.');
+      }
+    }
+
+    /* ====== SETUP PAYMENT METHOD ====== */
+    async function setupPaymentMethod() {
+      try {
+        // Get current session for auth token
+        const { data: { session } } = await sb.auth.getSession();
+        if (!session) {
+          alert('Please log in to continue.');
+          window.location.href = 'login.html';
+          return;
+        }
+
+        // Build request body
+        const requestBody = {
+          parent_id: parentId,
+          success_url: `${window.location.origin}/portal.html?payment_method=added`,
+          cancel_url: `${window.location.origin}/portal.html`
+        };
+
+        console.log('Setting up payment method for parent:', parentId);
+
+        // Call setup-payment-method function
+        const response = await fetch(`${SUPABASE_URL}/functions/v1/setup-payment-method`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${session.access_token}`
+          },
+          body: JSON.stringify(requestBody)
+        });
+
+        const result = await response.json();
+
+        if (!response.ok) {
+          console.error('Setup payment method failed:', result);
+          alert('Failed to set up payment method. Please try again.');
+          return;
+        }
+
+        // Redirect to Stripe Checkout in setup mode
+        if (result.url) {
+          window.location.href = result.url;
+        } else {
+          alert('No checkout URL received. Please try again.');
+        }
+
+      } catch (err) {
+        console.error('Setup payment method error:', err);
+        alert('Could not set up payment method. Please try again.');
       }
     }
 

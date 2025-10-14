@@ -279,7 +279,7 @@
         </select>
         <input type="search" id="searchStudent" placeholder="Search students..." onkeyup="renderRoster()">
         <button class="btn btn-primary" onclick="exportRoster()">Export CSV</button>
-        <div id="spotsLine" class="spotline">Spots left: <span id="spotsLeft">—</span> <span class="muted">(capacity 16)</span></div>
+        <div id="spotsLine" class="spotline">Spots left: <span id="spotsLeft">—</span> <span class="muted">(capacity 10)</span></div>
       </div>
       <div class="data-section">
         <table>
@@ -497,13 +497,13 @@
       document.getElementById('outstandingBalance').textContent = (outstanding||0).toFixed(0);
       const activeCount = all.enrollments.filter(e=>['enrolled','pending'].includes(e.status)).length;
       document.getElementById('enrolledCount').textContent = activeCount;
-      const capacity = 48; // 3 classes × 16 students per class
+      const capacity = 40; // 4 classes × 10 students per class
       document.getElementById('availableSpots').textContent = Math.max(capacity - activeCount, 0);
     }
 
     function updateSpotsLeft(){
       const sel = document.getElementById('classSelect').value;
-      const cap = 16; // 16 students per class
+      const cap = 10; // 10 students per class
       let occupied = 0;
       if(sel){
         if(sel.startsWith('t:')){

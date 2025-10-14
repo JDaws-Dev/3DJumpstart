@@ -113,6 +113,97 @@ async function sendConfirmationEmail(parentEmail: string, studentNames: string[]
   }
 }
 
+// Email function for payment method not saved
+async function sendPaymentMethodNeededEmail(parentEmail: string, parentName: string) {
+  const RESEND_API_KEY = Deno.env.get('RESEND_API_KEY')
+  const FROM_EMAIL = Deno.env.get('FROM_EMAIL') || 'noreply@3djumpstart.com'
+
+  if (!RESEND_API_KEY) {
+    console.log('RESEND_API_KEY not set, skipping email')
+    return
+  }
+
+  const htmlContent = `
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+</head>
+<body style="margin: 0; padding: 0; font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background-color: #f8fafc;">
+  <div style="max-width: 600px; margin: 0 auto; padding: 20px;">
+    <div style="background: white; border-radius: 12px; padding: 40px; box-shadow: 0 4px 6px rgba(0,0,0,0.1);">
+
+      <div style="text-align: center; margin-bottom: 30px;">
+        <div style="font-size: 48px; color: #f59e0b; margin-bottom: 10px;">⚠️</div>
+        <h1 style="color: #0f172a; margin: 0; font-size: 28px;">Action Required: Add Payment Method</h1>
+      </div>
+
+      <p style="color: #334155; font-size: 16px; line-height: 1.6; margin-bottom: 20px;">
+        Hi ${parentName},
+      </p>
+
+      <p style="color: #334155; font-size: 16px; line-height: 1.6; margin-bottom: 20px;">
+        Your enrollment payment was successful! However, we were unable to save your payment method for future weekly charges.
+      </p>
+
+      <div style="background: #fef3c7; border-left: 4px solid #f59e0b; padding: 15px; margin: 20px 0; border-radius: 4px;">
+        <p style="margin: 0; color: #92400e; font-size: 14px;">
+          <strong>What this means:</strong> To enable automatic weekly billing for attendance, please add a payment method to your account.
+        </p>
+      </div>
+
+      <div style="text-align: center; margin: 30px 0;">
+        <a href="https://3djumpstart.com/portal.html" style="display: inline-block; background: #ea580c; color: white; padding: 14px 32px; border-radius: 8px; text-decoration: none; font-weight: 600; font-size: 16px;">
+          Add Payment Method
+        </a>
+      </div>
+
+      <p style="color: #334155; font-size: 16px; line-height: 1.6; margin-bottom: 20px;">
+        Once you add a payment method, we'll be able to automatically charge for weekly classes based on attendance.
+      </p>
+
+      <div style="border-top: 1px solid #e2e8f0; margin-top: 30px; padding-top: 20px;">
+        <p style="color: #64748b; font-size: 14px; margin: 0;">
+          Questions? Contact us for any changes or support.<br>
+          <a href="https://3djumpstart.com" style="color: #ea580c; text-decoration: none;">3djumpstart.com</a>
+        </p>
+      </div>
+
+    </div>
+  </div>
+</body>
+</html>
+  `
+
+  try {
+    const response = await fetch('https://api.resend.com/emails', {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${RESEND_API_KEY}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        from: FROM_EMAIL,
+        to: parentEmail,
+        subject: '⚠️ Action Required: Add Payment Method for Weekly Billing',
+        html: htmlContent,
+      }),
+    })
+
+    if (!response.ok) {
+      const error = await response.text()
+      console.error('Resend API error:', error)
+      throw new Error(`Resend API error: ${error}`)
+    }
+
+    const data = await response.json()
+    console.log('Payment method needed email sent:', data.id)
+  } catch (error) {
+    console.error('Failed to send payment method email:', error)
+  }
+}
+
 Deno.serve(async (req) => {
   const sig = req.headers.get('Stripe-Signature')!
   const body = await req.text()
@@ -144,6 +235,8 @@ Deno.serve(async (req) => {
 
     try {
       // Save Stripe customer ID to parent record for future charges
+      let paymentMethodSaved = false
+
       if (parentId && session.customer) {
         const { error: customerError } = await supabase
           .from('parents')
@@ -154,6 +247,21 @@ Deno.serve(async (req) => {
           console.error('Failed to save Stripe customer ID:', customerError)
         } else {
           console.log('Saved Stripe customer ID for parent:', parentId)
+
+          // Check if payment method was actually saved
+          try {
+            const customerId = typeof session.customer === 'string' ? session.customer : session.customer.id
+            const paymentMethods = await stripe.paymentMethods.list({
+              customer: customerId,
+              type: 'card',
+              limit: 1
+            })
+
+            paymentMethodSaved = paymentMethods.data.length > 0
+            console.log('Payment method saved:', paymentMethodSaved)
+          } catch (pmError) {
+            console.error('Error checking payment methods:', pmError)
+          }
         }
       }
 
@@ -211,6 +319,21 @@ Deno.serve(async (req) => {
           const classDetails = enrollmentData.map(e => e.class_time || 'TBD')
 
           await sendConfirmationEmail(parentEmail, studentNames, classDetails, totalAmount)
+
+          // If payment method wasn't saved, send notification
+          if (!paymentMethodSaved && parentId) {
+            console.log('Payment method not saved, sending notification email')
+
+            // Get parent name
+            const { data: parentData } = await supabase
+              .from('parents')
+              .select('name')
+              .eq('id', parentId)
+              .single()
+
+            const parentName = parentData?.name || 'there'
+            await sendPaymentMethodNeededEmail(parentEmail, parentName)
+          }
         } else {
           console.log('No enrollment data found for email')
         }

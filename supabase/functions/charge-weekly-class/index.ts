@@ -70,8 +70,10 @@ Deno.serve(async (req) => {
 
     console.log('Charging customer:', parent.stripe_customer_id)
 
-    // Get customer's default payment method
-    const customer = await stripe.customers.retrieve(parent.stripe_customer_id)
+    // Get customer's payment methods
+    const customer = await stripe.customers.retrieve(parent.stripe_customer_id, {
+      expand: ['invoice_settings.default_payment_method']
+    })
 
     if (!customer || customer.deleted) {
       return new Response(
@@ -83,28 +85,44 @@ Deno.serve(async (req) => {
       )
     }
 
-    // Get the default payment method
-    const paymentMethodId = customer.invoice_settings?.default_payment_method ||
-                           customer.default_source
+    // Try to get default payment method from invoice settings
+    let paymentMethodId = customer.invoice_settings?.default_payment_method
 
+    // If no default, get the list of payment methods and use the first card
     if (!paymentMethodId) {
-      return new Response(
-        JSON.stringify({
-          error: 'No payment method',
-          message: 'No saved payment method found. Parent needs to complete an enrollment with payment first.'
-        }),
-        { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-      )
+      console.log('No default payment method, listing all payment methods')
+
+      const paymentMethods = await stripe.paymentMethods.list({
+        customer: parent.stripe_customer_id,
+        type: 'card',
+        limit: 1
+      })
+
+      if (paymentMethods.data.length === 0) {
+        return new Response(
+          JSON.stringify({
+            error: 'No payment method',
+            message: 'No saved payment method found. Parent needs to complete an enrollment with payment first.'
+          }),
+          { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        )
+      }
+
+      paymentMethodId = paymentMethods.data[0].id
+      console.log('Found payment method from list:', paymentMethodId)
     }
 
-    console.log('Using payment method:', paymentMethodId)
+    // Extract the ID if it's an object
+    const pmId = typeof paymentMethodId === 'string' ? paymentMethodId : paymentMethodId.id
+
+    console.log('Using payment method:', pmId)
 
     // Create a payment intent with the saved payment method
     const paymentIntent = await stripe.paymentIntents.create({
       amount: amount * 100, // Stripe uses cents
       currency: 'usd',
       customer: parent.stripe_customer_id,
-      payment_method: typeof paymentMethodId === 'string' ? paymentMethodId : paymentMethodId.id,
+      payment_method: pmId,
       off_session: true, // Charge without customer present
       confirm: true, // Automatically confirm
       description: `Weekly class - ${studentName} - ${attendance_date}`,
