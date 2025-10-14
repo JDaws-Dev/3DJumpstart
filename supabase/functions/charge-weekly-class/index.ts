@@ -70,12 +70,41 @@ Deno.serve(async (req) => {
 
     console.log('Charging customer:', parent.stripe_customer_id)
 
+    // Get customer's default payment method
+    const customer = await stripe.customers.retrieve(parent.stripe_customer_id)
+
+    if (!customer || customer.deleted) {
+      return new Response(
+        JSON.stringify({
+          error: 'Customer not found',
+          message: 'Stripe customer record not found'
+        }),
+        { status: 404, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      )
+    }
+
+    // Get the default payment method
+    const paymentMethodId = customer.invoice_settings?.default_payment_method ||
+                           customer.default_source
+
+    if (!paymentMethodId) {
+      return new Response(
+        JSON.stringify({
+          error: 'No payment method',
+          message: 'No saved payment method found. Parent needs to complete an enrollment with payment first.'
+        }),
+        { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      )
+    }
+
+    console.log('Using payment method:', paymentMethodId)
+
     // Create a payment intent with the saved payment method
     const paymentIntent = await stripe.paymentIntents.create({
       amount: amount * 100, // Stripe uses cents
       currency: 'usd',
       customer: parent.stripe_customer_id,
-      payment_method_types: ['card'],
+      payment_method: typeof paymentMethodId === 'string' ? paymentMethodId : paymentMethodId.id,
       off_session: true, // Charge without customer present
       confirm: true, // Automatically confirm
       description: `Weekly class - ${studentName} - ${attendance_date}`,
