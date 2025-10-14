@@ -72,6 +72,28 @@ Deno.serve(async (req) => {
     // Calculate total: $40 per student
     const totalAmount = enrollments.length * 40
 
+    // Get or create Stripe customer for this parent
+    const { data: parent } = await supabase
+      .from('parents')
+      .select('stripe_customer_id, email, name')
+      .eq('id', parent_id)
+      .single()
+
+    let customerId = parent?.stripe_customer_id
+
+    // If parent doesn't have a Stripe customer yet, create one
+    if (!customerId && parent_email) {
+      const customer = await stripe.customers.create({
+        email: parent_email,
+        name: parent?.name || undefined,
+        metadata: {
+          parent_id: parent_id
+        }
+      })
+      customerId = customer.id
+      console.log('Created new Stripe customer:', customerId)
+    }
+
     // Create line items for Stripe Checkout
     const line_items = enrollments.map(() => ({
       price: WEEKLY_PRICE_ID,
@@ -82,8 +104,11 @@ Deno.serve(async (req) => {
     const session = await stripe.checkout.sessions.create({
       mode: 'payment',
       line_items,
-      customer_email: parent_email,
+      customer: customerId, // Use customer instead of customer_email
       client_reference_id: parent_id,
+      payment_intent_data: {
+        setup_future_usage: 'off_session', // Save payment method for future charges
+      },
       metadata: {
         parent_id,
         enrollment_ids: JSON.stringify(enrollment_ids),
