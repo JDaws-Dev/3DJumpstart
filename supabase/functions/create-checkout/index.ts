@@ -100,14 +100,19 @@ Deno.serve(async (req) => {
       quantity: 1,
     }))
 
-    // Create Stripe Checkout Session
+    // Create Stripe Checkout Session with payment method saving
     const session = await stripe.checkout.sessions.create({
       mode: 'payment',
       line_items,
-      customer: customerId, // Use customer instead of customer_email
+      customer: customerId,
       client_reference_id: parent_id,
+      payment_method_collection: 'always', // Always collect payment method
       payment_intent_data: {
-        setup_future_usage: 'off_session', // Save payment method for future charges
+        setup_future_usage: 'off_session', // Save payment method for future off-session charges
+        capture_method: 'automatic',
+      },
+      invoice_creation: {
+        enabled: false, // We're not using invoices
       },
       metadata: {
         parent_id,
