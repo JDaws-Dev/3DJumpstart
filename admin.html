@@ -826,25 +826,9 @@
             return { success: false, error: 'Missing data' };
           }
 
-          // Create payment record
-          const { data, error } = await supabase
-            .from('payments')
-            .insert({
-              parent_id: parent.id,
-              enrollment_id: enrollment.id,
-              amount: 40,
-              event_type: 'Weekly Class',
-              attendance_date: s.attendanceDate, // Link to attendance date
-              stripe_object_id: 'manual_' + Date.now()
-            });
-
-          if (error) {
-            return { success: false, error, studentName: `${student.first_name} ${student.last_name}` };
-          }
-
-          // Send billing email notification
+          // Charge through Stripe using saved payment method
           try {
-            const emailResponse = await fetch(`${SUPABASE_URL}/functions/v1/send-billing-email`, {
+            const chargeResponse = await fetch(`${SUPABASE_URL}/functions/v1/charge-weekly-class`, {
               method: 'POST',
               headers: {
                 'Authorization': `Bearer ${SUPABASE_ANON_KEY}`,
@@ -852,29 +836,47 @@
               },
               body: JSON.stringify({
                 parent_id: parent.id,
-                student_names: [`${student.first_name} ${student.last_name}`],
-                class_date: s.attendanceDate,
+                enrollment_id: enrollment.id,
+                student_id: student.id,
+                attendance_date: s.attendanceDate,
                 amount: 40
               })
             });
 
-            if (!emailResponse.ok) {
-              console.warn('Email notification failed for:', parent.email);
-            }
-          } catch (emailError) {
-            console.warn('Failed to send email:', emailError);
-          }
+            const result = await chargeResponse.json();
 
-          return { success: true, studentName: `${student.first_name} ${student.last_name}` };
+            if (!chargeResponse.ok) {
+              return {
+                success: false,
+                error: result.message || result.error || 'Charge failed',
+                studentName: `${student.first_name} ${student.last_name}`
+              };
+            }
+
+            return {
+              success: true,
+              studentName: `${student.first_name} ${student.last_name}`,
+              paymentIntentId: result.payment_intent_id
+            };
+
+          } catch (error) {
+            return {
+              success: false,
+              error: error.message || 'Network error',
+              studentName: `${student.first_name} ${student.last_name}`
+            };
+          }
         }));
 
         const successful = results.filter(r => r.success).length;
-        const failed = results.filter(r => !r.success).length;
+        const failedResults = results.filter(r => !r.success);
+        const failed = failedResults.length;
 
         if(failed === 0){
-          alert(`✅ Successfully charged ${successful} student${successful > 1 ? 's' : ''}!`);
+          alert(`✅ Successfully charged ${successful} student${successful > 1 ? 's' : ''}!\n\nPayments processed through Stripe and confirmation emails sent.`);
         } else {
-          alert(`⚠️ Charged ${successful} student${successful > 1 ? 's' : ''}, but ${failed} failed. Check console for details.`);
+          const failureDetails = failedResults.map(r => `• ${r.studentName}: ${r.error}`).join('\n');
+          alert(`⚠️ Charged ${successful} student${successful > 1 ? 's' : ''}, but ${failed} failed:\n\n${failureDetails}\n\nCommon issues:\n- Parent needs to complete initial enrollment first\n- Payment card declined or expired`);
         }
 
         // Refresh data

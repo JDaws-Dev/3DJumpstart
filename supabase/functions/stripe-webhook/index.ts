@@ -143,6 +143,20 @@ Deno.serve(async (req) => {
     console.log('Total amount:', totalAmount)
 
     try {
+      // Save Stripe customer ID to parent record for future charges
+      if (parentId && session.customer) {
+        const { error: customerError } = await supabase
+          .from('parents')
+          .update({ stripe_customer_id: session.customer })
+          .eq('id', parentId)
+
+        if (customerError) {
+          console.error('Failed to save Stripe customer ID:', customerError)
+        } else {
+          console.log('Saved Stripe customer ID for parent:', parentId)
+        }
+      }
+
       // Update enrollments from 'cart' to 'enrolled'
       const { error: enrollError } = await supabase
         .from('enrollments')
