@@ -1120,7 +1120,7 @@
         const { data: parent } = await sb
           .from('parents')
           .select('stripe_customer_id')
-          .eq('id', parentId)
+          .eq('id', currentUser.id)
           .single();
 
         const hasStripeCustomer = !!parent?.stripe_customer_id;
@@ -1679,12 +1679,12 @@
 
         // Build request body
         const requestBody = {
-          parent_id: parentId,
+          parent_id: currentUser.id,
           success_url: `${window.location.origin}/portal.html?payment_method=added`,
           cancel_url: `${window.location.origin}/portal.html`
         };
 
-        console.log('Setting up payment method for parent:', parentId);
+        console.log('Setting up payment method for parent:', currentUser.id);
 
         // Call setup-payment-method function
         const response = await fetch(`${SUPABASE_URL}/functions/v1/setup-payment-method`, {
