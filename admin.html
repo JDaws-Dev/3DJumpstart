@@ -293,9 +293,10 @@
               <th>Parent Contact</th>
               <th>Status</th>
               <th>Special</th>
+              <th>Actions</th>
             </tr>
           </thead>
-          <tbody id="rosterTable"><tr><td colspan="8" style="text-align:center">Loading...</td></tr></tbody>
+          <tbody id="rosterTable"><tr><td colspan="9" style="text-align:center">Loading...</td></tr></tbody>
         </table>
       </div>
     </div>
@@ -498,6 +499,80 @@
     </div>
   </div>
 
+  <!-- Edit Student Modal -->
+  <div id="editStudentModal" class="modal">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h3 class="modal-title">Edit Student</h3>
+        <button class="modal-close" onclick="closeEditStudentModal()">&times;</button>
+      </div>
+      <div id="editStudentModalBody">
+        <input type="hidden" id="editStudentId">
+        <input type="hidden" id="editEnrollmentId">
+
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:1rem;margin-bottom:1rem;">
+          <div>
+            <label style="display:block;margin-bottom:0.25rem;font-weight:600;">First Name *</label>
+            <input type="text" id="editFirstName" required style="width:100%;padding:0.5rem;border:1px solid #e2e8f0;border-radius:8px;">
+          </div>
+          <div>
+            <label style="display:block;margin-bottom:0.25rem;font-weight:600;">Last Name *</label>
+            <input type="text" id="editLastName" required style="width:100%;padding:0.5rem;border:1px solid #e2e8f0;border-radius:8px;">
+          </div>
+        </div>
+
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:1rem;margin-bottom:1rem;">
+          <div>
+            <label style="display:block;margin-bottom:0.25rem;font-weight:600;">Grade *</label>
+            <input type="number" id="editGrade" min="4" max="12" required style="width:100%;padding:0.5rem;border:1px solid #e2e8f0;border-radius:8px;">
+          </div>
+          <div>
+            <label style="display:block;margin-bottom:0.25rem;font-weight:600;">Age *</label>
+            <input type="number" id="editAge" min="8" max="18" required style="width:100%;padding:0.5rem;border:1px solid #e2e8f0;border-radius:8px;">
+          </div>
+        </div>
+
+        <div style="margin-bottom:1rem;">
+          <label style="display:block;margin-bottom:0.25rem;font-weight:600;">Class Time *</label>
+          <select id="editClassTime" required style="width:100%;padding:0.5rem;border:1px solid #e2e8f0;border-radius:8px;">
+            <option value="">Select a class time...</option>
+            <option value="Saturday 9:30-10:30am (Grades 4-7)">Saturday 9:30-10:30am (Grades 4-7)</option>
+            <option value="Saturday 10:30-11:30am (Grades 8-12)">Saturday 10:30-11:30am (Grades 8-12)</option>
+            <option value="Monday 4:30-5:30pm (Grades 4-7)">Monday 4:30-5:30pm (Grades 4-7)</option>
+            <option value="Monday 5:30-6:30pm (Grades 8-12)">Monday 5:30-6:30pm (Grades 8-12)</option>
+          </select>
+        </div>
+
+        <div style="margin-bottom:1rem;">
+          <label style="display:block;margin-bottom:0.25rem;font-weight:600;">Special Needs / Notes</label>
+          <textarea id="editSpecial" rows="3" placeholder="Any special needs or notes..." style="width:100%;padding:0.5rem;border:1px solid #e2e8f0;border-radius:8px;resize:vertical;"></textarea>
+        </div>
+
+        <div style="background:#eff6ff;padding:1rem;border-radius:8px;border:1px solid #3b82f6;margin-bottom:1rem;">
+          <h4 style="margin:0 0 0.5rem;">Parent Information</h4>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:1rem;">
+            <div>
+              <label style="display:block;margin-bottom:0.25rem;font-weight:600;font-size:0.875rem;">Parent Name *</label>
+              <input type="text" id="editParentName" required style="width:100%;padding:0.5rem;border:1px solid #e2e8f0;border-radius:8px;">
+            </div>
+            <div>
+              <label style="display:block;margin-bottom:0.25rem;font-weight:600;font-size:0.875rem;">Parent Email *</label>
+              <input type="email" id="editParentEmail" required style="width:100%;padding:0.5rem;border:1px solid #e2e8f0;border-radius:8px;">
+            </div>
+          </div>
+          <div style="margin-top:1rem;">
+            <label style="display:block;margin-bottom:0.25rem;font-weight:600;font-size:0.875rem;">Parent Phone</label>
+            <input type="tel" id="editParentPhone" style="width:100%;padding:0.5rem;border:1px solid #e2e8f0;border-radius:8px;">
+          </div>
+        </div>
+      </div>
+      <div style="display:flex;gap:1rem;margin-top:1.5rem;">
+        <button class="btn btn-primary" onclick="saveStudentEdit()" style="flex:1">Save Changes</button>
+        <button class="btn" onclick="closeEditStudentModal()" style="background:#6b7280;color:#fff;flex:1">Cancel</button>
+      </div>
+    </div>
+  </div>
+
   <div id="auth-error" class="auth-error" style="display:none">
     <h2>⛔ Admin Access Required</h2>
     <p>You must be logged in as an administrator to view this page.</p>
@@ -553,19 +628,31 @@
     }
 
     function buildClassDropdown(){
-      const seen = new Map();
-      all.enrollments.forEach(e=>{
-        const key = `${e.class_period_id||''}|${e.class_time||''}`;
-        if(!seen.has(key)){
-          seen.set(key,{ id: e.class_period_id || '', label: e.class_time || '(No class time)' });
-        }
-      });
-      classes = Array.from(seen.values()).sort((a,b)=>a.label.localeCompare(b.label));
+      // Use fixed class list instead of building from enrollments to avoid duplicates
+      const fixedClasses = [
+        { id: 'sat_930am', label: 'Saturday 9:30-10:30am (Grades 4-7)' },
+        { id: 'sat_1030am', label: 'Saturday 10:30-11:30am (Grades 8-12)' },
+        { id: 'mon_430pm', label: 'Monday 4:30-5:30pm (Grades 4-7)' },
+        { id: 'mon_530pm', label: 'Monday 5:30-6:30pm (Grades 8-12)' }
+      ];
+
+      // Only include classes that have enrollments
+      const classesWithEnrollments = fixedClasses.filter(c =>
+        all.enrollments.some(e => e.class_period_id === c.id)
+      );
+
+      classes = classesWithEnrollments;
       const sel = document.getElementById('classSelect');
+
+      // Clear existing options except "All Classes"
+      while (sel.options.length > 1) {
+        sel.remove(1);
+      }
+
       classes.forEach(c=>{
         const opt = document.createElement('option');
-        opt.value = c.id || `t:${c.label}`;
-        opt.textContent = c.label + (c.id ? '' : ' (no id)');
+        opt.value = c.id;
+        opt.textContent = c.label;
         sel.appendChild(opt);
       });
     }
@@ -609,12 +696,7 @@
 
       if(sel){
         // Single class selected
-        if(sel.startsWith('t:')){
-          const label = sel.slice(2);
-          occupied = all.enrollments.filter(e=>['enrolled','pending'].includes(e.status) && (e.class_time||'')===label).length;
-        }else{
-          occupied = all.enrollments.filter(e=>['enrolled','pending'].includes(e.status) && (e.class_period_id||'')===sel).length;
-        }
+        occupied = all.enrollments.filter(e=>['enrolled','pending'].includes(e.status) && (e.class_period_id||'')===sel).length;
         cap = 10; // Single class capacity
       }else{
         // All classes - total capacity
@@ -637,12 +719,7 @@
       const active = all.enrollments.filter(e=>['enrolled','pending'].includes(e.status));
       let list = active;
       if(sel){
-        if(sel.startsWith('t:')){
-          const label = sel.slice(2);
-          list = list.filter(e=>(e.class_time||'')===label);
-        }else{
-          list = list.filter(e=>(e.class_period_id||'')===sel);
-        }
+        list = list.filter(e=>(e.class_period_id||'')===sel);
       }
       if(q){
         list = list.filter(e=>{
@@ -653,7 +730,7 @@
       }
       updateSpotsLeft();
       if(!list.length){
-        tbody.innerHTML = '<tr><td colspan="8" style="text-align:center">No students for this filter.</td></tr>';
+        tbody.innerHTML = '<tr><td colspan="9" style="text-align:center">No students for this filter.</td></tr>';
         return;
       }
       tbody.innerHTML = list.map(e=>{
@@ -672,6 +749,7 @@
           <td>${parentContact}</td>
           <td>${status}</td>
           <td>${s.special||'-'}</td>
+          <td><button class="btn" onclick="openEditStudentModal('${s.id}', '${e.id}', '${p.id}')" style="background:#3b82f6;color:#fff;padding:0.35rem 0.75rem;font-size:0.875rem;">Edit</button></td>
         </tr>`;
       }).join('');
     }
@@ -1391,6 +1469,149 @@
     }
 
     async function logout(){ await supabase.auth.signOut(); window.location.href='login.html'; }
+
+    // === EDIT STUDENT FUNCTIONALITY ===
+    function openEditStudentModal(studentId, enrollmentId, parentId) {
+      const student = all.students.find(s => s.id === studentId) || {};
+      const enrollment = all.enrollments.find(e => e.id === enrollmentId) || {};
+      const parent = all.parents.find(p => p.id === parentId) || {};
+
+      // Populate form
+      document.getElementById('editStudentId').value = studentId;
+      document.getElementById('editEnrollmentId').value = enrollmentId;
+      document.getElementById('editFirstName').value = student.first_name || '';
+      document.getElementById('editLastName').value = student.last_name || '';
+      document.getElementById('editGrade').value = student.grade || '';
+      document.getElementById('editAge').value = student.age || '';
+      document.getElementById('editClassTime').value = enrollment.class_time || '';
+      document.getElementById('editSpecial').value = student.special || '';
+      document.getElementById('editParentName').value = parent.name || '';
+      document.getElementById('editParentEmail').value = parent.email || '';
+      document.getElementById('editParentPhone').value = parent.phone || '';
+
+      document.getElementById('editStudentModal').classList.add('show');
+    }
+
+    function closeEditStudentModal() {
+      document.getElementById('editStudentModal').classList.remove('show');
+    }
+
+    async function saveStudentEdit() {
+      const studentId = document.getElementById('editStudentId').value;
+      const enrollmentId = document.getElementById('editEnrollmentId').value;
+      const parentId = all.students.find(s => s.id === studentId)?.parent_id;
+
+      if (!studentId || !enrollmentId) {
+        alert('Error: Missing student or enrollment ID');
+        return;
+      }
+
+      const studentUpdates = {
+        first_name: document.getElementById('editFirstName').value.trim(),
+        last_name: document.getElementById('editLastName').value.trim(),
+        grade: parseInt(document.getElementById('editGrade').value),
+        age: parseInt(document.getElementById('editAge').value),
+        special: document.getElementById('editSpecial').value.trim() || null
+      };
+
+      const enrollmentUpdates = {
+        class_time: document.getElementById('editClassTime').value
+      };
+
+      // Map class_time to class_period_id
+      const classPeriodMap = {
+        'Saturday 9:30-10:30am (Grades 4-7)': 'sat_930am',
+        'Saturday 10:30-11:30am (Grades 8-12)': 'sat_1030am',
+        'Monday 4:30-5:30pm (Grades 4-7)': 'mon_430pm',
+        'Monday 5:30-6:30pm (Grades 8-12)': 'mon_530pm'
+      };
+      enrollmentUpdates.class_period_id = classPeriodMap[enrollmentUpdates.class_time] || null;
+
+      const parentUpdates = {
+        name: document.getElementById('editParentName').value.trim(),
+        email: document.getElementById('editParentEmail').value.trim(),
+        phone: document.getElementById('editParentPhone').value.trim()
+      };
+
+      // Validate required fields
+      if (!studentUpdates.first_name || !studentUpdates.last_name) {
+        alert('First name and last name are required');
+        return;
+      }
+
+      if (!studentUpdates.grade || isNaN(studentUpdates.grade)) {
+        alert('Grade is required and must be a number');
+        return;
+      }
+
+      if (!studentUpdates.age || isNaN(studentUpdates.age)) {
+        alert('Age is required and must be a number');
+        return;
+      }
+
+      if (!enrollmentUpdates.class_time) {
+        alert('Class time is required');
+        return;
+      }
+
+      if (!parentUpdates.name || !parentUpdates.email) {
+        alert('Parent name and email are required');
+        return;
+      }
+
+      try {
+        // Update student
+        const { error: studentError } = await supabase
+          .from('students')
+          .update(studentUpdates)
+          .eq('id', studentId);
+
+        if (studentError) {
+          alert('Error updating student: ' + studentError.message);
+          console.error(studentError);
+          return;
+        }
+
+        // Update enrollment
+        const { error: enrollmentError } = await supabase
+          .from('enrollments')
+          .update(enrollmentUpdates)
+          .eq('id', enrollmentId);
+
+        if (enrollmentError) {
+          alert('Error updating enrollment: ' + enrollmentError.message);
+          console.error(enrollmentError);
+          return;
+        }
+
+        // Update parent if parentId exists
+        if (parentId) {
+          const { error: parentError } = await supabase
+            .from('parents')
+            .update(parentUpdates)
+            .eq('id', parentId);
+
+          if (parentError) {
+            alert('Error updating parent: ' + parentError.message);
+            console.error(parentError);
+            return;
+          }
+        }
+
+        alert('Student information updated successfully!');
+        closeEditStudentModal();
+
+        // Refresh data and roster
+        await fetchAll();
+        buildClassDropdown();
+        updateStats();
+        renderRoster();
+
+      } catch (err) {
+        console.error('Save error:', err);
+        alert('Failed to save changes: ' + err.message);
+      }
+    }
 
     // === EMAIL FUNCTIONALITY ===
     let selectedParents = new Set();
