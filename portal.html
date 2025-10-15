@@ -747,20 +747,17 @@
           setTimeout(async () => {
             const enrollments = await sbListAllEnrollments();
             const students = await sbListStudents();
-            const newlyEnrolled = enrollments.filter(e =>
-              e.status === 'enrolled' &&
-              new Date(e.updated_at) > new Date(Date.now() - 60000) // Within last minute
-            );
+            const enrolledStudents = enrollments.filter(e => e.status === 'enrolled');
 
-            if (newlyEnrolled.length > 0) {
-              const names = newlyEnrolled.map(e => {
+            if (enrolledStudents.length > 0) {
+              const names = enrolledStudents.map(e => {
                 const student = students.find(s => s.id === e.student_id);
                 return `${student?.first_name || 'Student'} in ${e.class_time}`;
               }).join(', ');
 
               document.getElementById('celebrationContent').innerHTML = `
                 <p style="color: #166534; font-size: 1.05rem; margin-bottom: 0.5rem;">
-                  <strong>${names}</strong> ${newlyEnrolled.length === 1 ? 'is' : 'are'} enrolled and ready to start learning!
+                  <strong>${names}</strong> ${enrolledStudents.length === 1 ? 'is' : 'are'} enrolled and ready to start learning!
                 </p>
               `;
               document.getElementById('enrollmentCelebration').style.display = 'block';
@@ -769,6 +766,7 @@
               window.scrollTo({ top: 0, behavior: 'smooth' });
             }
 
+            // Remove flag only after user dismisses the banner manually
             sessionStorage.removeItem('just_enrolled');
           }, 1000);
         }
