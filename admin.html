@@ -1147,7 +1147,9 @@
       if (upcoming.length > 0) {
         html += '<h4 style="margin:0 0 0.75rem;color:#111827;">Upcoming Blackout Dates</h4>';
         html += upcoming.map(b => {
-          const date = new Date(b.date);
+          // Parse date string as local date to avoid timezone issues
+          const [year, month, day] = b.date.split('-').map(Number);
+          const date = new Date(year, month - 1, day);
           return `
             <div class="student-checkbox-row" style="background:#fff;">
               <div style="flex:1;">
@@ -1163,7 +1165,9 @@
       if (past.length > 0) {
         html += '<h4 style="margin:1.5rem 0 0.75rem;color:#6b7280;">Past Blackout Dates</h4>';
         html += past.map(b => {
-          const date = new Date(b.date);
+          // Parse date string as local date to avoid timezone issues
+          const [year, month, day] = b.date.split('-').map(Number);
+          const date = new Date(year, month - 1, day);
           return `
             <div class="student-checkbox-row" style="background:#f9fafb;opacity:0.7;">
               <div style="flex:1;">
