@@ -326,9 +326,10 @@ Deno.serve(async (req) => {
         console.log('Attempting to send confirmation email to:', parentEmail)
 
         // Get enrollment details with student info
+        // Use the specific foreign key relationship to avoid ambiguity
         const { data: enrollmentData, error: enrollmentError } = await supabase
           .from('enrollments')
-          .select('*, students(first_name, last_name)')
+          .select('*, students!enrollments_student_id_fkey(first_name, last_name)')
           .in('id', enrollmentIds)
 
         if (enrollmentError) {
