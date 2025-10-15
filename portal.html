@@ -498,30 +498,10 @@
         </div>
       </div>
 
-      <div class="card">
-        <h2 class="card-title">Class Schedule</h2>
-        <div style="margin-bottom:1rem;">
-          <h3 style="font-weight:700;margin-top:0.5rem;margin-bottom:0.5rem;">Saturday Morning</h3>
-          <ul class="muted" style="line-height:1.9; margin:0;">
-            <li>Saturday 9:30–10:30am <span class="muted">(Grades 4–7)</span></li>
-            <li>Saturday 10:30–11:30am <span class="muted">(Grades 8–12)</span></li>
-          </ul>
-        </div>
-
-        <div style="margin-bottom:1rem;">
-          <h3 style="font-weight:700;margin-top:0.5rem;margin-bottom:0.5rem;">Monday Evening</h3>
-          <ul class="muted" style="line-height:1.9; margin:0;">
-            <li>Monday 4:30–5:30pm <span class="muted">(Grades 4–7)</span></li>
-            <li>Monday 5:30–6:30pm <span class="muted">(Grades 8–12)</span></li>
-          </ul>
-        </div>
-
-        <div style="margin-top:1rem; padding:1rem; border-radius:12px; background:#fffbeb; border:1px solid #f4e5b9;">
-          <h3 class="card-title" style="font-size:1.05rem;margin-bottom:.5rem;">Ongoing Enrollment</h3>
-          <p class="muted" style="margin:0;">
-            Classes run every week. Students can join anytime and continue
-            for as long as they want to keep learning.
-          </p>
+      <div class="card" id="yourClassSchedule">
+        <h2 class="card-title">Your Class Schedule</h2>
+        <div id="enrolledClassesList">
+          <p class="muted">No enrolled students yet.</p>
         </div>
       </div>
 
@@ -1136,6 +1116,7 @@
       updateTotals(cart);
       updatePaymentCardVisibility(students, cart, enrollments);
       updateStudentPortalVisibility(enrollments);
+      renderEnrolledClasses(enrollments, students);
       await checkPaymentMethodStatus();
     }
 
@@ -1175,7 +1156,7 @@
     }
 
     function renderEnrollmentSummary(enrollments, students) {
-      const activeEnrollments = enrollments.filter(e => 
+      const activeEnrollments = enrollments.filter(e =>
         e.status === 'enrolled' || e.status === 'pending'
       );
 
@@ -1190,21 +1171,65 @@
       summaryDiv.style.display = 'block';
       listDiv.innerHTML = activeEnrollments.map(e => {
         const student = students.find(s => s.id === e.student_id);
-        const statusText = e.status === 'enrolled' ? '✓ Enrolled' : 
-                          e.status === 'pending' ? '✓ Enrolled - Balance Due Oct 15' : 
+        const statusText = e.status === 'enrolled' ? '✓ Enrolled' :
+                          e.status === 'pending' ? '✓ Enrolled - Balance Due Oct 15' :
                           '⏳ Pending';
-        const statusClass = e.status === 'enrolled' ? 'status-enrolled' : 
-                           e.status === 'pending' ? 'status-balance-due' : 
+        const statusClass = e.status === 'enrolled' ? 'status-enrolled' :
+                           e.status === 'pending' ? 'status-balance-due' :
                            'status-pending';
-        
+
         return `
           <div class="enrollment-item">
-            <strong>${student ? student.first_name + ' ' + student.last_name : 'Student'}</strong> - 
-            ${e.class_time || 'Time TBD'} 
+            <strong>${student ? student.first_name + ' ' + student.last_name : 'Student'}</strong> -
+            ${e.class_time || 'Time TBD'}
             <span class="status-badge ${statusClass}">${statusText}</span>
           </div>
         `;
       }).join('');
+    }
+
+    function renderEnrolledClasses(enrollments, students) {
+      const activeEnrollments = enrollments.filter(e =>
+        e.status === 'enrolled' || e.status === 'pending'
+      );
+
+      const listDiv = document.getElementById('enrolledClassesList');
+
+      if(activeEnrollments.length === 0) {
+        listDiv.innerHTML = '<p class="muted">No enrolled students yet. Once you enroll, your class schedule will appear here.</p>';
+        return;
+      }
+
+      // Get unique class times
+      const uniqueClasses = [...new Set(activeEnrollments.map(e => e.class_time))].filter(Boolean);
+
+      listDiv.innerHTML = uniqueClasses.map(classTime => {
+        // Find all students in this class
+        const studentsInClass = activeEnrollments
+          .filter(e => e.class_time === classTime)
+          .map(e => students.find(s => s.id === e.student_id))
+          .filter(Boolean);
+
+        const studentNames = studentsInClass.map(s => s.first_name).join(', ');
+
+        return `
+          <div style="margin-bottom: 1.5rem; padding: 1rem; background: #f0fdf4; border-radius: 0.5rem; border: 1px solid #86efac;">
+            <h3 style="color: #166534; margin: 0 0 0.5rem; font-size: 1.125rem;">
+              ${classTime}
+            </h3>
+            <p style="color: #166534; margin: 0; font-size: 0.95rem;">
+              <strong>Students enrolled:</strong> ${studentNames}
+            </p>
+          </div>
+        `;
+      }).join('') + `
+        <div style="margin-top: 1rem; padding: 1rem; border-radius: 0.5rem; background: #fffbeb; border: 1px solid #fde68a;">
+          <h4 style="color: #92400e; margin: 0 0 0.5rem; font-size: 1rem;">Ongoing Enrollment</h4>
+          <p style="color: #92400e; margin: 0; font-size: 0.95rem;">
+            Classes run every week. Students can join anytime and continue for as long as they want to keep learning.
+          </p>
+        </div>
+      `;
     }
 
     function renderStudents(list, enrollments){
