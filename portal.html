@@ -1028,7 +1028,12 @@
 
         let html = '';
         futureDates.forEach(d => {
-          const dateStr = d.date.toISOString().split('T')[0];
+          // Format date as YYYY-MM-DD in local timezone (not UTC)
+          const year = d.date.getFullYear();
+          const month = String(d.date.getMonth() + 1).padStart(2, '0');
+          const day = String(d.date.getDate()).padStart(2, '0');
+          const dateStr = `${year}-${month}-${day}`;
+
           const isBlackout = blackoutSet.has(dateStr);
           const blackoutInfo = isBlackout ? blackoutDates.find(b => b.date === dateStr) : null;
 
