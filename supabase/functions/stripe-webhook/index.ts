@@ -225,8 +225,15 @@ Deno.serve(async (req) => {
     const session = event.data.object as Stripe.Checkout.Session
     const parentId = session.client_reference_id
 
-    // Get email from session or fetch from customer
+    // Get email from session - check multiple sources
     let parentEmail = session.customer_email || null
+
+    // Try customer_details.email
+    if (!parentEmail && session.customer_details?.email) {
+      parentEmail = session.customer_details.email
+    }
+
+    // Fallback to fetching from customer object
     if (!parentEmail && session.customer) {
       try {
         const customerId = typeof session.customer === 'string' ? session.customer : session.customer.id
@@ -236,6 +243,8 @@ Deno.serve(async (req) => {
         console.error('Failed to fetch customer email:', err)
       }
     }
+
+    console.log('Parent email resolved to:', parentEmail)
 
     const metadata = session.metadata || {}
     const enrollmentIds = JSON.parse(metadata.enrollment_ids || '[]')
