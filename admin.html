@@ -259,14 +259,13 @@
       <div class="stat-card">
         <div class="stat-title">Available Spots</div>
         <div class="stat-value"><span id="availableSpots">0</span></div>
-        <div class="stat-detail">All classes</div>
+        <div class="stat-detail" id="spotsBreakdown">All classes</div>
       </div>
     </div>
 
     <div class="tabs">
       <button class="tab active" onclick="switchTab(event,'roster')">Class Roster</button>
-      <button class="tab" onclick="switchTab(event,'attendance')">Attendance</button>
-      <button class="tab" onclick="switchTab(event,'billing')">Weekly Billing</button>
+      <button class="tab" onclick="switchTab(event,'attendance')">Attendance & Billing</button>
       <button class="tab" onclick="switchTab(event,'payments')">Payment History</button>
       <button class="tab" onclick="switchTab(event,'blackout')">Blackout Dates</button>
     </div>
@@ -279,73 +278,92 @@
         </select>
         <input type="search" id="searchStudent" placeholder="Search students..." onkeyup="renderRoster()">
         <button class="btn btn-primary" onclick="exportRoster()">Export CSV</button>
+        <button class="btn" id="emailSelectedBtn" onclick="openEmailModal()" disabled style="background:#ea580c;color:#fff;">Email Selected Parents</button>
         <div id="spotsLine" class="spotline">Spots left: <span id="spotsLeft">—</span> <span class="muted">(capacity 10)</span></div>
       </div>
       <div class="data-section">
         <table>
           <thead>
             <tr>
+              <th><input type="checkbox" id="selectAllRoster" onchange="toggleSelectAllRoster()" title="Select all"></th>
               <th>Student</th>
-              <th>First</th>
-              <th>Last</th>
               <th>Grade</th>
               <th>Age</th>
               <th>Class Time</th>
-              <th>Parent</th>
-              <th>Parent Email</th>
-              <th>Parent Phone</th>
+              <th>Parent Contact</th>
               <th>Status</th>
               <th>Special</th>
             </tr>
           </thead>
-          <tbody id="rosterTable"><tr><td colspan="11" style="text-align:center">Loading...</td></tr></tbody>
+          <tbody id="rosterTable"><tr><td colspan="8" style="text-align:center">Loading...</td></tr></tbody>
         </table>
       </div>
     </div>
 
     <!-- ATTENDANCE -->
     <div id="tab-attendance" class="tab-content">
-      <div style="background:#fff;border-radius:.75rem;padding:1rem;margin-bottom:1rem;box-shadow:0 1px 3px rgba(0,0,0,.08);">
-        <h3 style="margin:0 0 0.5rem;">Weekly Attendance</h3>
-        <p class="muted" style="margin:0 0 1rem;">Take roll for each class. Mark students present/absent for the selected week.</p>
+      <!-- Calendar View -->
+      <div id="attendanceCalendarView">
+        <div style="background:#fff;border-radius:.75rem;padding:1rem;margin-bottom:1rem;box-shadow:0 1px 3px rgba(0,0,0,.08);">
+          <h3 style="margin:0 0 0.5rem;">Weekly Attendance & Billing</h3>
+          <p class="muted" style="margin:0 0 1rem;">Click a class to take attendance and charge students.</p>
 
-        <!-- Week Navigator -->
-        <div class="filter-bar" style="margin-bottom:1.5rem;align-items:center;">
-          <button class="btn" onclick="changeWeek(-1)" style="background:#64748b;color:#fff;">← Previous Week</button>
-          <strong id="currentWeekLabel" style="font-size:1.1rem;">Week of Jan 1, 2025</strong>
-          <button class="btn" onclick="changeWeek(1)" style="background:#64748b;color:#fff;">Next Week →</button>
-          <button class="btn btn-primary" onclick="goToCurrentWeek()">Today</button>
-        </div>
+          <!-- Week Navigator -->
+          <div class="filter-bar" style="margin-bottom:1.5rem;align-items:center;">
+            <button class="btn" onclick="changeWeek(-1)" style="background:#64748b;color:#fff;">← Previous Week</button>
+            <strong id="currentWeekLabel" style="font-size:1.1rem;">Week of Jan 1, 2025</strong>
+            <button class="btn" onclick="changeWeek(1)" style="background:#64748b;color:#fff;">Next Week →</button>
+            <button class="btn btn-primary" onclick="goToCurrentWeek()">Today</button>
+            <div style="display:flex;gap:0.5rem;align-items:center;">
+              <label style="font-weight:600;font-size:0.875rem;">Jump to:</label>
+              <input type="date" id="jumpToDate" style="padding:0.45rem 0.6rem;border:1px solid #e2e8f0;border-radius:8px;" onchange="jumpToWeek()">
+            </div>
+          </div>
 
-        <!-- Class Schedule Cards -->
-        <div id="attendanceCalendar" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:1rem;">
-          <!-- Will be populated by JS -->
+          <!-- Class Schedule Cards -->
+          <div id="attendanceCalendar" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:1rem;">
+            <!-- Will be populated by JS -->
+          </div>
         </div>
       </div>
-    </div>
 
-    <!-- WEEKLY BILLING -->
-    <div id="tab-billing" class="tab-content">
-      <div style="background:#fff;border-radius:.75rem;padding:1rem;margin-bottom:1rem;box-shadow:0 1px 3px rgba(0,0,0,.08);">
-        <h3 style="margin:0 0 0.5rem;">Charge Weekly Payments (Based on Attendance)</h3>
-        <p class="muted" style="margin:0 0 1rem;">Bill students based on attendance records. Only students marked present will be charged.</p>
+      <!-- Class Detail View (hidden by default) -->
+      <div id="attendanceDetailView" style="display:none;">
+        <div style="background:#fff;border-radius:.75rem;padding:1.5rem;box-shadow:0 1px 3px rgba(0,0,0,.08);">
+          <!-- Back button -->
+          <button class="btn" onclick="backToAttendanceCalendar()" style="background:#6b7280;color:#fff;margin-bottom:1rem;">← Back to Calendar</button>
 
-        <!-- Week Navigator for Billing -->
-        <div class="filter-bar" style="margin-bottom:1rem;align-items:center;">
-          <button class="btn" onclick="changeBillingWeek(-1)" style="background:#64748b;color:#fff;">← Previous Week</button>
-          <strong id="billingWeekLabel" style="font-size:1rem;">Week of Jan 1, 2025</strong>
-          <button class="btn" onclick="changeBillingWeek(1)" style="background:#64748b;color:#fff;">Next Week →</button>
-          <button class="btn" onclick="goToCurrentBillingWeek()" style="background:#64748b;color:#fff;">Today</button>
+          <!-- Class Header -->
+          <div style="display:flex;justify-content:space-between;align-items:start;margin-bottom:1.5rem;padding-bottom:1rem;border-bottom:2px solid #e5e7eb;">
+            <div>
+              <h2 style="margin:0 0 0.5rem;" id="classDetailTitle">Saturday 9:30-10:30am</h2>
+              <p class="muted" style="margin:0;" id="classDetailDate">October 25, 2025</p>
+            </div>
+            <div id="classDetailStatus"></div>
+          </div>
+
+          <!-- Attendance Section -->
+          <div id="attendanceDetailSection">
+            <h3 style="margin:0 0 1rem;">Take Attendance</h3>
+            <div style="background:#eff6ff;padding:1rem;border-radius:8px;border:1px solid #3b82f6;margin-bottom:1rem;">
+              <label style="font-weight:600;display:flex;align-items:center;gap:0.5rem;">
+                <input type="checkbox" id="selectAllAttendanceDetail" onchange="toggleSelectAllAttendanceDetail()">
+                Mark All Present
+              </label>
+            </div>
+            <div id="attendanceDetailList"></div>
+            <div style="margin-top:1.5rem;">
+              <button class="btn btn-primary" onclick="saveAttendanceDetail()" style="padding:0.75rem 1.5rem;">Save Attendance</button>
+            </div>
+          </div>
+
+          <!-- Billing Section -->
+          <div id="billingDetailSection" style="display:none;margin-top:2rem;padding-top:2rem;border-top:2px solid #e5e7eb;">
+            <h3 style="margin:0 0 1rem;">Charge Students ($40 each)</h3>
+            <div id="billingDetailList"></div>
+            <div style="margin-top:1.5rem;" id="billingDetailActions"></div>
+          </div>
         </div>
-
-        <div class="filter-bar" style="margin-bottom:1rem;">
-          <select id="billingClassSelect" onchange="renderWeeklyBilling()">
-            <option value="">Select a class to bill...</option>
-          </select>
-          <button class="btn btn-primary" id="chargeSelectedBtn" onclick="chargeSelected()" disabled>Charge Selected Students</button>
-        </div>
-
-        <div id="billingStudentsList"></div>
       </div>
     </div>
 
@@ -354,8 +372,16 @@
       <div class="filter-bar">
         <select id="paymentType" onchange="renderPayments()">
           <option value="">All Types</option>
-          <option value="Weekly">Weekly</option>
+          <option value="First Week">First Week</option>
+          <option value="Weekly">Weekly Class</option>
         </select>
+        <select id="paymentDateRange" onchange="renderPayments()">
+          <option value="">All Time</option>
+          <option value="thisWeek">This Week</option>
+          <option value="thisMonth">This Month</option>
+          <option value="lastMonth">Last Month</option>
+        </select>
+        <input type="search" id="searchPayment" placeholder="Search parent name or email..." onkeyup="renderPayments()" style="flex:1;max-width:300px;">
         <span style="margin-left:auto">Total: <strong class="money success">$<span id="paymentTotal">0</span></strong></span>
       </div>
       <div class="data-section">
@@ -401,17 +427,73 @@
 
   <!-- Attendance Modal -->
   <div id="attendanceModal" class="modal">
-    <div class="modal-content">
+    <div class="modal-content" style="max-width:700px;">
       <div class="modal-header">
         <h3 class="modal-title" id="attendanceModalTitle">Take Roll</h3>
         <button class="modal-close" onclick="closeAttendanceModal()">&times;</button>
       </div>
-      <div id="attendanceModalBody">
-        <!-- Will be populated by JS -->
+
+      <!-- Attendance Section -->
+      <div id="attendanceSection">
+        <div id="attendanceModalBody">
+          <!-- Will be populated by JS -->
+        </div>
+        <div style="display:flex;gap:1rem;margin-top:1.5rem;">
+          <button class="btn btn-primary" onclick="saveAttendance()" style="flex:1">Save Attendance</button>
+          <button class="btn" onclick="closeAttendanceModal()" style="background:#6b7280;color:#fff;flex:1">Cancel</button>
+        </div>
+      </div>
+
+      <!-- Billing Section (shown after saving attendance) -->
+      <div id="billingSection" style="display:none;">
+        <div style="background:#dcfce7;padding:1rem;border-radius:8px;border:1px solid #16a34a;margin-bottom:1.5rem;">
+          <div style="font-size:1.25rem;font-weight:700;color:#166534;margin-bottom:0.5rem;">✓ Attendance Saved</div>
+          <div style="color:#166534;"><span id="presentCount">0</span> student(s) marked present</div>
+        </div>
+
+        <h4 style="margin:0 0 1rem;">Charge Students for This Class</h4>
+        <p class="muted" style="margin:0 0 1rem;font-size:0.875rem;">Select which students to charge $40 for attending this class. Already charged students are shown below.</p>
+
+        <div id="billingStudentsList"></div>
+
+        <div style="display:flex;gap:1rem;margin-top:1.5rem;">
+          <button class="btn btn-primary" id="chargePresentBtn" onclick="chargePresentStudents()" disabled style="flex:1">Charge Selected Students</button>
+          <button class="btn" onclick="closeAttendanceModal()" style="background:#6b7280;color:#fff;">Done</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Email Modal -->
+  <div id="emailModal" class="modal">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h3 class="modal-title">Email Parents</h3>
+        <button class="modal-close" onclick="closeEmailModal()">&times;</button>
+      </div>
+      <div id="emailModalBody">
+        <div style="margin-bottom:1rem;">
+          <strong>Recipients (<span id="recipientCount">0</span> parents):</strong>
+          <div id="recipientList" style="margin-top:0.5rem;padding:0.75rem;background:#f9fafb;border-radius:8px;max-height:150px;overflow-y:auto;font-size:0.875rem;"></div>
+        </div>
+
+        <div style="margin-bottom:1rem;">
+          <label style="display:block;margin-bottom:0.25rem;font-weight:600;">Subject</label>
+          <input type="text" id="emailSubject" placeholder="Email subject..." style="width:100%;padding:0.5rem;border:1px solid #e2e8f0;border-radius:8px;font-family:inherit;">
+        </div>
+
+        <div style="margin-bottom:1rem;">
+          <label style="display:block;margin-bottom:0.25rem;font-weight:600;">Message</label>
+          <textarea id="emailBody" rows="10" placeholder="Type your message here..." style="width:100%;padding:0.5rem;border:1px solid #e2e8f0;border-radius:8px;font-family:inherit;resize:vertical;"></textarea>
+        </div>
+
+        <div style="background:#fef3c7;padding:0.75rem;border-radius:8px;border:1px solid #f59e0b;font-size:0.875rem;">
+          <strong>Note:</strong> This will open your email client (Gmail, Outlook, etc.) with all recipients in BCC to protect privacy. You can review and edit before sending.
+        </div>
       </div>
       <div style="display:flex;gap:1rem;margin-top:1.5rem;">
-        <button class="btn btn-primary" onclick="saveAttendance()" style="flex:1">Save Attendance</button>
-        <button class="btn" onclick="closeAttendanceModal()" style="background:#6b7280;color:#fff;flex:1">Cancel</button>
+        <button class="btn btn-primary" onclick="draftEmail()" style="flex:1">Open in Email Client</button>
+        <button class="btn" onclick="closeEmailModal()" style="background:#6b7280;color:#fff;flex:1">Cancel</button>
       </div>
     </div>
   </div>
@@ -447,9 +529,7 @@
       document.getElementById('main-content').style.display='block';
       await fetchAll();
       buildClassDropdown();
-      buildBillingClassDropdown();
       initCurrentWeek();
-      initBillingWeek();
       updateStats();
       renderRoster();
       renderPayments();
@@ -497,26 +577,57 @@
       document.getElementById('outstandingBalance').textContent = (outstanding||0).toFixed(0);
       const activeCount = all.enrollments.filter(e=>['enrolled','pending'].includes(e.status)).length;
       document.getElementById('enrolledCount').textContent = activeCount;
-      const capacity = 40; // 4 classes × 10 students per class
-      document.getElementById('availableSpots').textContent = Math.max(capacity - activeCount, 0);
+
+      // Calculate per-class availability
+      const classPeriods = [
+        { id: 'sat_930am', label: 'Sat 9:30am' },
+        { id: 'sat_1030am', label: 'Sat 10:30am' },
+        { id: 'mon_430pm', label: 'Mon 4:30pm' },
+        { id: 'mon_530pm', label: 'Mon 5:30pm' }
+      ];
+
+      let totalAvailable = 0;
+      const breakdownParts = [];
+
+      classPeriods.forEach(cp => {
+        const enrolled = all.enrollments.filter(e =>
+          e.class_period_id === cp.id && ['enrolled','pending'].includes(e.status)
+        ).length;
+        const available = Math.max(10 - enrolled, 0);
+        totalAvailable += available;
+        breakdownParts.push(`${cp.label}: ${available}/10`);
+      });
+
+      document.getElementById('availableSpots').textContent = totalAvailable;
+      document.getElementById('spotsBreakdown').innerHTML = breakdownParts.join('<br>');
     }
 
     function updateSpotsLeft(){
       const sel = document.getElementById('classSelect').value;
-      const cap = 10; // 10 students per class
+      let cap = 10; // 10 students per class
       let occupied = 0;
+
       if(sel){
+        // Single class selected
         if(sel.startsWith('t:')){
           const label = sel.slice(2);
           occupied = all.enrollments.filter(e=>['enrolled','pending'].includes(e.status) && (e.class_time||'')===label).length;
         }else{
           occupied = all.enrollments.filter(e=>['enrolled','pending'].includes(e.status) && (e.class_period_id||'')===sel).length;
         }
+        cap = 10; // Single class capacity
       }else{
+        // All classes - total capacity
         occupied = all.enrollments.filter(e=>['enrolled','pending'].includes(e.status)).length;
+        cap = 40; // 4 classes × 10 students per class
       }
+
       const left = Math.max(cap - occupied, 0);
       document.getElementById('spotsLeft').textContent = left;
+
+      // Update capacity label
+      const capacityLabel = sel ? '(capacity 10)' : '(capacity 40)';
+      document.getElementById('spotsLine').innerHTML = `Spots left: <span id="spotsLeft">${left}</span> <span class="muted">${capacityLabel}</span>`;
     }
 
     function renderRoster(){
@@ -542,25 +653,23 @@
       }
       updateSpotsLeft();
       if(!list.length){
-        tbody.innerHTML = '<tr><td colspan="11" style="text-align:center">No students for this filter.</td></tr>';
+        tbody.innerHTML = '<tr><td colspan="8" style="text-align:center">No students for this filter.</td></tr>';
         return;
       }
       tbody.innerHTML = list.map(e=>{
         const s = all.students.find(st=>st.id===e.student_id) || {};
         const p = all.parents.find(pr=>pr.id===e.parent_id) || all.parents.find(pr=>pr.id===s.parent_id) || {};
         const status = e.status==='enrolled' ? 'Enrolled' : 'Pending';
-        const emailCell = p.email ? `<a href="mailto:${p.email}">${p.email}</a>` : '-';
-        const phoneCell = p.phone ? `<a href="tel:${p.phone}">${p.phone}</a>` : '-';
+        const emailCell = p.email ? `<a href="mailto:${p.email}">${p.email}</a>` : '';
+        const phoneCell = p.phone ? `<a href="tel:${p.phone}">${p.phone}</a>` : '';
+        const parentContact = [p.name||'Unknown', emailCell, phoneCell].filter(Boolean).join('<br>');
         return `<tr>
+          <td><input type="checkbox" class="roster-check" data-parent-id="${e.parent_id}" data-parent-email="${p.email||''}" data-parent-name="${p.name||''}" onchange="updateEmailButton()"></td>
           <td><strong>${s.first_name||''} ${s.last_name||''}</strong></td>
-          <td>${s.first_name||''}</td>
-          <td>${s.last_name||''}</td>
           <td>${s.grade||'-'}</td>
           <td>${s.age||'-'}</td>
           <td>${e.class_time||'TBD'}</td>
-          <td>${p.name||'Unknown'}</td>
-          <td>${emailCell}</td>
-          <td>${phoneCell}</td>
+          <td>${parentContact}</td>
           <td>${status}</td>
           <td>${s.special||'-'}</td>
         </tr>`;
@@ -570,15 +679,58 @@
     function renderPayments(){
       const tbody = document.getElementById('paymentsTable');
       const type = document.getElementById('paymentType').value;
+      const dateRange = document.getElementById('paymentDateRange').value;
+      const searchQuery = (document.getElementById('searchPayment').value || '').toLowerCase();
+
       let list = all.payments.slice();
+
+      // Filter by type
       if(type) list = list.filter(p=>p.event_type===type);
+
+      // Filter by date range
+      if(dateRange) {
+        const now = new Date();
+        const todayStart = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+
+        if(dateRange === 'thisWeek') {
+          const day = now.getDay();
+          const diff = day === 0 ? -6 : 1 - day;
+          const weekStart = new Date(todayStart);
+          weekStart.setDate(todayStart.getDate() + diff);
+          list = list.filter(p => new Date(p.created_at) >= weekStart);
+        } else if(dateRange === 'thisMonth') {
+          const monthStart = new Date(now.getFullYear(), now.getMonth(), 1);
+          list = list.filter(p => new Date(p.created_at) >= monthStart);
+        } else if(dateRange === 'lastMonth') {
+          const lastMonthStart = new Date(now.getFullYear(), now.getMonth() - 1, 1);
+          const lastMonthEnd = new Date(now.getFullYear(), now.getMonth(), 0, 23, 59, 59);
+          list = list.filter(p => {
+            const d = new Date(p.created_at);
+            return d >= lastMonthStart && d <= lastMonthEnd;
+          });
+        }
+      }
+
+      // Filter by parent search
+      if(searchQuery) {
+        list = list.filter(p => {
+          const enrollment = p.enrollment_id ? all.enrollments.find(e=>e.id===p.enrollment_id) : null;
+          const parent = (enrollment && all.parents.find(pr=>pr.id===enrollment.parent_id)) || all.parents.find(pr=>pr.id===p.parent_id) || {};
+          const parentName = (parent.name || '').toLowerCase();
+          const parentEmail = (parent.email || '').toLowerCase();
+          return parentName.includes(searchQuery) || parentEmail.includes(searchQuery);
+        });
+      }
+
       if(!list.length){
         tbody.innerHTML = '<tr><td colspan="7" style="text-align:center">No payments found.</td></tr>';
         document.getElementById('paymentTotal').textContent = '0';
         return;
       }
+
       const total = list.reduce((s,p)=>s+(p.amount||0),0);
       document.getElementById('paymentTotal').textContent = (total||0).toFixed(0);
+
       tbody.innerHTML = list.map(p=>{
         const enrollment = p.enrollment_id ? all.enrollments.find(e=>e.id===p.enrollment_id) : null;
         const student = enrollment ? (all.students.find(s=>s.id===enrollment.student_id)||{}) : {};
@@ -586,6 +738,7 @@
         const balanceDue = enrollment ? (Number(enrollment.balance_due)||0) : 0;
         const emailCell = parent.email ? `<a href="mailto:${parent.email}">${parent.email}</a>` : '-';
         const phoneCell = parent.phone ? `<a href="tel:${parent.phone}">${parent.phone}</a>` : '-';
+        const stripeLink = p.stripe_object_id ? `<a href="https://dashboard.stripe.com/payments/${p.stripe_object_id}" target="_blank" style="font-size:.75rem;">${p.stripe_object_id.slice(0,20)}...</a>` : '';
         return `<tr>
           <td>${p.created_at ? new Date(p.created_at).toLocaleDateString() : '-'}</td>
           <td>${parent.name||'Unknown'}<br>${emailCell} &nbsp; ${phoneCell}</td>
@@ -593,7 +746,7 @@
           <td>${p.event_type||'Payment'}</td>
           <td class="money success">$${(p.amount||0).toFixed(0)}</td>
           <td class="money ${balanceDue>0?'warning':''}">$${(balanceDue||0).toFixed(0)}</td>
-          <td style="font-size:.75rem">${(p.stripe_object_id||'').slice(0,20)}${p.stripe_object_id?'...':''}</td>
+          <td>${stripeLink}</td>
         </tr>`;
       }).join('');
     }
@@ -651,79 +804,299 @@
       const a = document.createElement('a'); a.href=url; a.download=`roster_${label.replace(/\s+/g,'-').toLowerCase()}_${new Date().toISOString().slice(0,10)}.csv`; a.click();
     }
 
-    // === WEEKLY BILLING ===
-    let selectedStudents = new Set();
+    // === ATTENDANCE FUNCTIONS ===
 
-    function buildBillingClassDropdown(){
-      const sel = document.getElementById('billingClassSelect');
-      // Add all class periods
-      const allClasses = [
-        { id: 'sat_930am', label: 'Saturday 9:30-10:30am (Grades 4-7)' },
-        { id: 'sat_1030am', label: 'Saturday 10:30-11:30am (Grades 8-12)' },
-        { id: 'mon_430pm', label: 'Monday 4:30-5:30pm (Grades 4-7)' },
-        { id: 'mon_530pm', label: 'Monday 5:30-6:30pm (Grades 8-12)' }
+    // Initialize current week to this week's Monday
+    function initCurrentWeek() {
+      const today = new Date();
+      const day = today.getDay();
+      const diff = day === 0 ? -6 : 1 - day; // Move to Monday
+      currentWeekStart = new Date(today);
+      currentWeekStart.setDate(today.getDate() + diff);
+      currentWeekStart.setHours(0, 0, 0, 0);
+    }
+
+    function changeWeek(delta) {
+      if (!currentWeekStart) initCurrentWeek();
+      currentWeekStart.setDate(currentWeekStart.getDate() + (delta * 7));
+      renderAttendanceCalendar();
+    }
+
+    function goToCurrentWeek() {
+      initCurrentWeek();
+      renderAttendanceCalendar();
+    }
+
+    function jumpToWeek() {
+      const dateInput = document.getElementById('jumpToDate');
+      if (!dateInput.value) return;
+
+      const selectedDate = new Date(dateInput.value + 'T00:00:00');
+      const day = selectedDate.getDay();
+      const diff = day === 0 ? -6 : 1 - day; // Move to Monday
+      currentWeekStart = new Date(selectedDate);
+      currentWeekStart.setDate(selectedDate.getDate() + diff);
+      currentWeekStart.setHours(0, 0, 0, 0);
+
+      renderAttendanceCalendar();
+    }
+
+    function formatWeekLabel(monday) {
+      const sunday = new Date(monday);
+      sunday.setDate(monday.getDate() + 6);
+      const opts = { month: 'short', day: 'numeric', year: 'numeric' };
+      return `Week of ${monday.toLocaleDateString('en-US', opts)} - ${sunday.toLocaleDateString('en-US', opts)}`;
+    }
+
+    function renderAttendanceCalendar() {
+      if (!currentWeekStart) initCurrentWeek();
+
+      // Check if viewing current week
+      const today = new Date();
+      const todayDay = today.getDay();
+      const todayDiff = todayDay === 0 ? -6 : 1 - todayDay;
+      const thisWeekMonday = new Date(today);
+      thisWeekMonday.setDate(today.getDate() + todayDiff);
+      thisWeekMonday.setHours(0, 0, 0, 0);
+      const isCurrentWeek = currentWeekStart.getTime() === thisWeekMonday.getTime();
+
+      // Update week label with current week indicator
+      const weekLabel = formatWeekLabel(currentWeekStart);
+      document.getElementById('currentWeekLabel').textContent = weekLabel;
+      if (isCurrentWeek) {
+        document.getElementById('currentWeekLabel').innerHTML = `${weekLabel} <span style="background:#16a34a;color:#fff;padding:0.25rem 0.5rem;border-radius:0.25rem;font-size:0.75rem;margin-left:0.5rem;">Current Week</span>`;
+      }
+
+      // Define your 4 class periods
+      const classPeriods = [
+        { id: 'sat_930am', label: 'Saturday 9:30-10:30am (Grades 4-7)', dayOffset: 5 },
+        { id: 'sat_1030am', label: 'Saturday 10:30-11:30am (Grades 8-12)', dayOffset: 5 },
+        { id: 'mon_430pm', label: 'Monday 4:30-5:30pm (Grades 4-7)', dayOffset: 0 },
+        { id: 'mon_530pm', label: 'Monday 5:30-6:30pm (Grades 8-12)', dayOffset: 0 }
       ];
 
-      allClasses.forEach(c => {
-        const opt = document.createElement('option');
-        opt.value = c.id;
-        opt.textContent = c.label;
-        sel.appendChild(opt);
+      const calendarDiv = document.getElementById('attendanceCalendar');
+      let html = '';
+
+      classPeriods.forEach(cp => {
+        const classDate = new Date(currentWeekStart);
+        classDate.setDate(currentWeekStart.getDate() + cp.dayOffset);
+        const dateStr = classDate.toISOString().split('T')[0];
+
+        // Get enrolled students for this class
+        const enrolled = all.enrollments.filter(e =>
+          e.class_period_id === cp.id &&
+          ['enrolled', 'pending'].includes(e.status)
+        );
+
+        // Get attendance for this class on this date
+        const attendanceRecords = all.attendance.filter(a =>
+          a.class_period_id === cp.id &&
+          a.class_date === dateStr
+        );
+
+        const presentCount = attendanceRecords.filter(a => a.present).length;
+        const totalCount = enrolled.length;
+        const isComplete = attendanceRecords.length > 0;
+        const isBlackout = isBlackoutDate(dateStr);
+        const blackoutInfo = isBlackout ? all.blackoutDates.find(b => b.date === dateStr) : null;
+
+        let badge, cardStyle, clickable;
+        if (isBlackout) {
+          badge = `<span class="class-card-badge" style="background:#ef4444;color:#fff;">No Class</span>`;
+          cardStyle = 'opacity:0.6;cursor:not-allowed;';
+          clickable = false;
+        } else {
+          badge = isComplete
+            ? `<span class="class-card-badge badge-complete">${presentCount}/${totalCount} Present</span>`
+            : `<span class="class-card-badge badge-pending">Not Taken</span>`;
+          cardStyle = '';
+          clickable = true;
+        }
+
+        html += `
+          <div class="class-card" ${clickable ? `onclick="openAttendanceDetail('${cp.id}', '${dateStr}', '${cp.label}')"` : ''} style="${cardStyle}">
+            <div class="class-card-header">
+              <div class="class-card-title">${cp.label}</div>
+              ${badge}
+            </div>
+            <div class="muted" style="font-size:0.875rem;">
+              ${classDate.toLocaleDateString('en-US', { weekday: 'long', month: 'short', day: 'numeric' })}
+            </div>
+            ${isBlackout ? `
+              <div style="color:#ef4444;font-size:0.875rem;margin-top:0.25rem;font-weight:600;">
+                ${blackoutInfo?.reason || 'No class scheduled'}
+              </div>
+            ` : `
+              <div class="muted" style="font-size:0.875rem;margin-top:0.25rem;">
+                ${totalCount} student${totalCount !== 1 ? 's' : ''} enrolled
+              </div>
+            `}
+          </div>
+        `;
+      });
+
+      calendarDiv.innerHTML = html;
+    }
+
+    function openAttendanceDetail(classPeriodId, classDate, classLabel) {
+      selectedClassForAttendance = { classPeriodId, classDate, classLabel };
+
+      // Hide calendar, show detail view
+      document.getElementById('attendanceCalendarView').style.display = 'none';
+      document.getElementById('attendanceDetailView').style.display = 'block';
+
+      // Set class info
+      document.getElementById('classDetailTitle').textContent = classLabel;
+      const dateObj = new Date(classDate + 'T00:00:00');
+      document.getElementById('classDetailDate').textContent = dateObj.toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric', year: 'numeric' });
+
+      // Get enrolled students for this class
+      const enrolled = all.enrollments.filter(e =>
+        e.class_period_id === classPeriodId &&
+        ['enrolled', 'pending'].includes(e.status)
+      );
+
+      if (enrolled.length === 0) {
+        document.getElementById('attendanceDetailList').innerHTML = '<p class="muted">No students enrolled in this class.</p>';
+        return;
+      }
+
+      // Get existing attendance records
+      const attendanceMap = new Map();
+      const hasExistingAttendance = all.attendance.some(a => a.class_period_id === classPeriodId && a.class_date === classDate);
+      all.attendance
+        .filter(a => a.class_period_id === classPeriodId && a.class_date === classDate)
+        .forEach(a => attendanceMap.set(a.enrollment_id, a));
+
+      let html = enrolled.map(e => {
+        const student = all.students.find(s => s.id === e.student_id) || {};
+        const existingRecord = attendanceMap.get(e.id);
+        const checked = existingRecord ? existingRecord.present : true; // Default to present
+
+        return `
+          <div class="student-checkbox-row">
+            <label>
+              <input type="checkbox" class="attendance-detail-check" data-enrollment="${e.id}" data-student="${e.student_id}" ${checked ? 'checked' : ''}>
+              <div>
+                <strong>${student.first_name || ''} ${student.last_name || ''}</strong>
+                <div class="muted" style="font-size:0.875rem;">Grade ${student.grade || '-'} • Age ${student.age || '-'}</div>
+              </div>
+            </label>
+          </div>
+        `;
+      }).join('');
+
+      document.getElementById('attendanceDetailList').innerHTML = html;
+
+      // Show billing section if attendance already exists
+      if (hasExistingAttendance) {
+        showBillingDetailSection();
+      } else {
+        document.getElementById('billingDetailSection').style.display = 'none';
+      }
+    }
+
+    function backToAttendanceCalendar() {
+      document.getElementById('attendanceCalendarView').style.display = 'block';
+      document.getElementById('attendanceDetailView').style.display = 'none';
+      selectedClassForAttendance = null;
+      selectedBillingStudents.clear();
+    }
+
+    function toggleSelectAllAttendanceDetail() {
+      const checked = document.getElementById('selectAllAttendanceDetail').checked;
+      document.querySelectorAll('.attendance-detail-check').forEach(cb => {
+        cb.checked = checked;
       });
     }
 
-    function renderWeeklyBilling(){
-      if (!billingWeekStart) initBillingWeek();
+    async function saveAttendanceDetail() {
+      if (!selectedClassForAttendance) return;
 
-      // Update week label
-      document.getElementById('billingWeekLabel').textContent = formatWeekLabel(billingWeekStart);
+      const { classPeriodId, classDate } = selectedClassForAttendance;
+      const checkboxes = document.querySelectorAll('.attendance-detail-check');
 
-      const classId = document.getElementById('billingClassSelect').value;
-      const listDiv = document.getElementById('billingStudentsList');
-      selectedStudents.clear();
+      const records = [];
+      checkboxes.forEach(cb => {
+        records.push({
+          enrollment_id: cb.dataset.enrollment,
+          student_id: cb.dataset.student,
+          class_period_id: classPeriodId,
+          class_date: classDate,
+          present: cb.checked
+        });
+      });
 
-      if(!classId){
-        listDiv.innerHTML = '<p class="muted">Select a class to view students who attended this week.</p>';
-        document.getElementById('chargeSelectedBtn').disabled = true;
-        return;
+      try {
+        // Delete existing attendance for this class/date, then insert new
+        await supabase
+          .from('attendance')
+          .delete()
+          .eq('class_period_id', classPeriodId)
+          .eq('class_date', classDate);
+
+        const { error } = await supabase.from('attendance').insert(records);
+
+        if (error) {
+          alert('Error saving attendance: ' + error.message);
+          console.error(error);
+          return;
+        }
+
+        // Refresh data
+        await fetchAll();
+        renderAttendanceCalendar();
+
+        // Show billing section
+        showBillingDetailSection();
+
+      } catch (err) {
+        console.error('Save attendance error:', err);
+        alert('Error saving attendance');
       }
+    }
 
-      // Calculate class date for selected class period
-      const classDate = getClassDateForPeriod(classId, billingWeekStart);
-      const dateStr = classDate.toISOString().split('T')[0];
+    // === BILLING IN DETAIL VIEW ===
+    let selectedBillingStudents = new Set();
 
-      // Get attendance records for this class on this date
+    function showBillingDetailSection() {
+      if (!selectedClassForAttendance) return;
+
+      const { classPeriodId, classDate } = selectedClassForAttendance;
+      const dateStr = classDate;
+
+      // Show the billing section
+      document.getElementById('billingDetailSection').style.display = 'block';
+
+      // Get attendance records for students marked present
       const attendanceRecords = all.attendance.filter(a =>
-        a.class_period_id === classId &&
+        a.class_period_id === classPeriodId &&
         a.class_date === dateStr &&
-        a.present === true // Only show students who were present
+        a.present === true
       );
 
       if(attendanceRecords.length === 0){
-        listDiv.innerHTML = `
+        document.getElementById('billingDetailList').innerHTML = `
           <div style="background:#fef3c7;padding:1rem;border-radius:8px;border:1px solid #f59e0b;">
-            <strong>No attendance recorded yet</strong>
-            <p class="muted" style="margin:0.5rem 0 0 0;">Go to the Attendance tab to mark who attended class on ${classDate.toLocaleDateString('en-US', {weekday:'long', month:'short', day:'numeric'})}.</p>
+            <strong>No students marked present</strong>
+            <p class="muted" style="margin:0.5rem 0 0 0;">No one to charge for this class.</p>
           </div>
         `;
-        document.getElementById('chargeSelectedBtn').disabled = true;
+        document.getElementById('billingDetailActions').innerHTML = '';
         return;
       }
 
-      // Check which students have already been charged for this date
+      // Check which students have already been charged
       const alreadyCharged = new Set(
         all.payments
           .filter(p => p.attendance_date === dateStr && p.event_type === 'Weekly Class')
           .map(p => p.enrollment_id)
       );
 
-      let html = `<div style="margin-bottom:1rem;">
-        <strong>Class Date: ${classDate.toLocaleDateString('en-US', {weekday:'long', month:'short', day:'numeric', year:'numeric'})}</strong>
-        <p class="muted" style="margin:0.25rem 0 0.75rem 0;">${attendanceRecords.length} student${attendanceRecords.length !== 1 ? 's' : ''} marked present</p>
-        <label style="font-weight:600;"><input type="checkbox" id="selectAllCheck" onchange="toggleSelectAll()" style="margin-right:0.5rem;">Select All</label>
-      </div>`;
+      const unchargedCount = attendanceRecords.filter(a => !alreadyCharged.has(a.enrollment_id)).length;
 
-      html += attendanceRecords.map(a => {
+      let html = attendanceRecords.map(a => {
         const enrollment = all.enrollments.find(e => e.id === a.enrollment_id) || {};
         const student = all.students.find(s => s.id === a.student_id) || {};
         const parent = all.parents.find(p => p.id === enrollment.parent_id) || {};
@@ -731,61 +1104,53 @@
 
         return `
           <div class="student-checkbox-row" style="${charged ? 'background:#f0fdf4;border-color:#16a34a;' : ''}">
-            <label>
-              <input type="checkbox" class="student-check"
+            <label style="flex:1;">
+              <input type="checkbox" class="billing-detail-check"
                 data-enrollment="${a.enrollment_id}"
                 data-student="${a.student_id}"
                 data-parent="${enrollment.parent_id}"
                 data-attendance="${a.id}"
                 data-date="${dateStr}"
-                ${charged ? 'disabled' : ''}
-                onchange="updateChargeButton()">
+                ${charged ? 'disabled' : 'checked'}
+                onchange="updateChargeDetailButton()">
               <div>
                 <strong>${student.first_name || ''} ${student.last_name || ''}</strong>
                 <div class="muted" style="font-size:0.875rem;">
                   Parent: ${parent.name || parent.email || 'Unknown'}
-                  ${parent.email ? `• ${parent.email}` : ''}
                 </div>
-                ${charged ? '<div style="color:#16a34a;font-size:0.75rem;font-weight:600;">✓ Already Charged</div>' : ''}
               </div>
             </label>
-            <div class="money" style="font-weight:700;color:${charged ? '#6b7280' : '#16a34a'};">$40</div>
+            <div class="money" style="font-weight:700;font-size:1.125rem;color:${charged ? '#6b7280' : '#16a34a'};">
+              ${charged ? '✓ Paid' : '$40'}
+            </div>
           </div>
         `;
       }).join('');
 
-      listDiv.innerHTML = html;
-      document.getElementById('chargeSelectedBtn').disabled = true;
+      document.getElementById('billingDetailList').innerHTML = html;
+
+      if (unchargedCount > 0) {
+        document.getElementById('billingDetailActions').innerHTML = `
+          <button class="btn btn-primary" id="chargeDetailBtn" onclick="chargeDetailStudents()" style="padding:0.75rem 1.5rem;">
+            Charge ${unchargedCount} Student${unchargedCount > 1 ? 's' : ''} ($${unchargedCount * 40})
+          </button>
+        `;
+      } else {
+        document.getElementById('billingDetailActions').innerHTML = `
+          <div style="background:#dcfce7;padding:1rem;border-radius:8px;border:1px solid #16a34a;color:#166534;">
+            <strong>✓ All students have been charged for this class</strong>
+          </div>
+        `;
+      }
+
+      updateChargeDetailButton();
     }
 
-    function getClassDateForPeriod(classPeriodId, weekStart) {
-      // Map class period to day offset from Monday
-      const dayOffsets = {
-        'sat_930am': 5,
-        'sat_1030am': 5,
-        'mon_430pm': 0,
-        'mon_530pm': 0
-      };
-      const offset = dayOffsets[classPeriodId] || 0;
-      const date = new Date(weekStart);
-      date.setDate(weekStart.getDate() + offset);
-      return date;
-    }
-
-    function toggleSelectAll(){
-      const selectAll = document.getElementById('selectAllCheck');
-      const checkboxes = document.querySelectorAll('.student-check');
+    function updateChargeDetailButton() {
+      const checkboxes = document.querySelectorAll('.billing-detail-check:checked:not([disabled])');
+      selectedBillingStudents.clear();
       checkboxes.forEach(cb => {
-        cb.checked = selectAll.checked;
-      });
-      updateChargeButton();
-    }
-
-    function updateChargeButton(){
-      const checkboxes = document.querySelectorAll('.student-check:checked:not([disabled])');
-      selectedStudents.clear();
-      checkboxes.forEach(cb => {
-        selectedStudents.add({
+        selectedBillingStudents.add({
           enrollmentId: cb.dataset.enrollment,
           studentId: cb.dataset.student,
           parentId: cb.dataset.parent,
@@ -793,18 +1158,17 @@
           attendanceDate: cb.dataset.date
         });
       });
-      document.getElementById('chargeSelectedBtn').disabled = selectedStudents.size === 0;
 
-      const btn = document.getElementById('chargeSelectedBtn');
-      if(selectedStudents.size > 0){
-        btn.textContent = `Charge ${selectedStudents.size} Student${selectedStudents.size > 1 ? 's' : ''} ($${selectedStudents.size * 40})`;
-      } else {
-        btn.textContent = 'Charge Selected Students';
+      const btn = document.getElementById('chargeDetailBtn');
+      if (!btn) return;
+
+      if(selectedBillingStudents.size > 0){
+        btn.textContent = `Charge ${selectedBillingStudents.size} Student${selectedBillingStudents.size > 1 ? 's' : ''} ($${selectedBillingStudents.size * 40})`;
       }
     }
 
-    async function chargeSelected(){
-      const count = selectedStudents.size;
+    async function chargeDetailStudents() {
+      const count = selectedBillingStudents.size;
       if(count === 0) return;
 
       const total = count * 40;
@@ -813,7 +1177,7 @@
       }
 
       try {
-        const students = Array.from(selectedStudents);
+        const students = Array.from(selectedBillingStudents);
 
         // Call Stripe charge function for each student
         const results = await Promise.all(students.map(async (s) => {
@@ -826,7 +1190,6 @@
             return { success: false, error: 'Missing data' };
           }
 
-          // Charge through Stripe using saved payment method
           try {
             const chargeResponse = await fetch(`${SUPABASE_URL}/functions/v1/charge-weekly-class`, {
               method: 'POST',
@@ -879,249 +1242,15 @@
           alert(`⚠️ Charged ${successful} student${successful > 1 ? 's' : ''}, but ${failed} failed:\n\n${failureDetails}\n\nCommon issues:\n- Parent needs to complete initial enrollment first\n- Payment card declined or expired`);
         }
 
-        // Refresh data
+        // Refresh data and update view
         await fetchAll();
-        renderWeeklyBilling();
         renderPayments();
+        renderAttendanceCalendar();
+        showBillingDetailSection();
 
       } catch(err) {
         console.error('Charge error:', err);
         alert('Failed to charge students. Error: ' + err.message);
-      }
-    }
-
-    // === BILLING WEEK STATE ===
-    let billingWeekStart = null;
-
-    function initBillingWeek() {
-      const today = new Date();
-      const day = today.getDay();
-      const diff = day === 0 ? -6 : 1 - day;
-      billingWeekStart = new Date(today);
-      billingWeekStart.setDate(today.getDate() + diff);
-      billingWeekStart.setHours(0, 0, 0, 0);
-    }
-
-    function changeBillingWeek(delta) {
-      if (!billingWeekStart) initBillingWeek();
-      billingWeekStart.setDate(billingWeekStart.getDate() + (delta * 7));
-      renderWeeklyBilling();
-    }
-
-    function goToCurrentBillingWeek() {
-      initBillingWeek();
-      renderWeeklyBilling();
-    }
-
-    // === ATTENDANCE FUNCTIONS ===
-
-    // Initialize current week to this week's Monday
-    function initCurrentWeek() {
-      const today = new Date();
-      const day = today.getDay();
-      const diff = day === 0 ? -6 : 1 - day; // Move to Monday
-      currentWeekStart = new Date(today);
-      currentWeekStart.setDate(today.getDate() + diff);
-      currentWeekStart.setHours(0, 0, 0, 0);
-    }
-
-    function changeWeek(delta) {
-      if (!currentWeekStart) initCurrentWeek();
-      currentWeekStart.setDate(currentWeekStart.getDate() + (delta * 7));
-      renderAttendanceCalendar();
-    }
-
-    function goToCurrentWeek() {
-      initCurrentWeek();
-      renderAttendanceCalendar();
-    }
-
-    function formatWeekLabel(monday) {
-      const sunday = new Date(monday);
-      sunday.setDate(monday.getDate() + 6);
-      const opts = { month: 'short', day: 'numeric', year: 'numeric' };
-      return `Week of ${monday.toLocaleDateString('en-US', opts)} - ${sunday.toLocaleDateString('en-US', opts)}`;
-    }
-
-    function renderAttendanceCalendar() {
-      if (!currentWeekStart) initCurrentWeek();
-
-      // Update week label
-      document.getElementById('currentWeekLabel').textContent = formatWeekLabel(currentWeekStart);
-
-      // Define your 4 class periods
-      const classPeriods = [
-        { id: 'sat_930am', label: 'Saturday 9:30-10:30am (Grades 4-7)', dayOffset: 5 },
-        { id: 'sat_1030am', label: 'Saturday 10:30-11:30am (Grades 8-12)', dayOffset: 5 },
-        { id: 'mon_430pm', label: 'Monday 4:30-5:30pm (Grades 4-7)', dayOffset: 0 },
-        { id: 'mon_530pm', label: 'Monday 5:30-6:30pm (Grades 8-12)', dayOffset: 0 }
-      ];
-
-      const calendarDiv = document.getElementById('attendanceCalendar');
-      let html = '';
-
-      classPeriods.forEach(cp => {
-        const classDate = new Date(currentWeekStart);
-        classDate.setDate(currentWeekStart.getDate() + cp.dayOffset);
-        const dateStr = classDate.toISOString().split('T')[0];
-
-        // Get enrolled students for this class
-        const enrolled = all.enrollments.filter(e =>
-          e.class_period_id === cp.id &&
-          ['enrolled', 'pending'].includes(e.status)
-        );
-
-        // Get attendance for this class on this date
-        const attendanceRecords = all.attendance.filter(a =>
-          a.class_period_id === cp.id &&
-          a.class_date === dateStr
-        );
-
-        const presentCount = attendanceRecords.filter(a => a.present).length;
-        const totalCount = enrolled.length;
-        const isComplete = attendanceRecords.length > 0;
-        const isBlackout = isBlackoutDate(dateStr);
-        const blackoutInfo = isBlackout ? all.blackoutDates.find(b => b.date === dateStr) : null;
-
-        let badge, cardStyle, clickable;
-        if (isBlackout) {
-          badge = `<span class="class-card-badge" style="background:#ef4444;color:#fff;">No Class</span>`;
-          cardStyle = 'opacity:0.6;cursor:not-allowed;';
-          clickable = false;
-        } else {
-          badge = isComplete
-            ? `<span class="class-card-badge badge-complete">${presentCount}/${totalCount} Present</span>`
-            : `<span class="class-card-badge badge-pending">Not Taken</span>`;
-          cardStyle = '';
-          clickable = true;
-        }
-
-        html += `
-          <div class="class-card" ${clickable ? `onclick="openAttendanceModal('${cp.id}', '${dateStr}', '${cp.label}')"` : ''} style="${cardStyle}">
-            <div class="class-card-header">
-              <div class="class-card-title">${cp.label}</div>
-              ${badge}
-            </div>
-            <div class="muted" style="font-size:0.875rem;">
-              ${classDate.toLocaleDateString('en-US', { weekday: 'long', month: 'short', day: 'numeric' })}
-            </div>
-            ${isBlackout ? `
-              <div style="color:#ef4444;font-size:0.875rem;margin-top:0.25rem;font-weight:600;">
-                ${blackoutInfo?.reason || 'No class scheduled'}
-              </div>
-            ` : `
-              <div class="muted" style="font-size:0.875rem;margin-top:0.25rem;">
-                ${totalCount} student${totalCount !== 1 ? 's' : ''} enrolled
-              </div>
-            `}
-          </div>
-        `;
-      });
-
-      calendarDiv.innerHTML = html;
-    }
-
-    function openAttendanceModal(classPeriodId, classDate, classLabel) {
-      selectedClassForAttendance = { classPeriodId, classDate, classLabel };
-
-      document.getElementById('attendanceModalTitle').textContent = `Take Roll - ${classLabel}`;
-
-      // Get enrolled students for this class
-      const enrolled = all.enrollments.filter(e =>
-        e.class_period_id === classPeriodId &&
-        ['enrolled', 'pending'].includes(e.status)
-      );
-
-      if (enrolled.length === 0) {
-        document.getElementById('attendanceModalBody').innerHTML = '<p class="muted">No students enrolled in this class.</p>';
-        document.getElementById('attendanceModal').classList.add('show');
-        return;
-      }
-
-      // Get existing attendance records
-      const attendanceMap = new Map();
-      all.attendance
-        .filter(a => a.class_period_id === classPeriodId && a.class_date === classDate)
-        .forEach(a => attendanceMap.set(a.enrollment_id, a));
-
-      let html = '<div style="margin-bottom:1rem;"><label style="font-weight:600;"><input type="checkbox" id="selectAllAttendance" onchange="toggleSelectAllAttendance()" style="margin-right:0.5rem;">Mark All Present</label></div>';
-
-      html += enrolled.map(e => {
-        const student = all.students.find(s => s.id === e.student_id) || {};
-        const existingRecord = attendanceMap.get(e.id);
-        const checked = existingRecord ? existingRecord.present : true; // Default to present
-
-        return `
-          <div class="student-checkbox-row">
-            <label>
-              <input type="checkbox" class="attendance-check" data-enrollment="${e.id}" data-student="${e.student_id}" ${checked ? 'checked' : ''}>
-              <div>
-                <strong>${student.first_name || ''} ${student.last_name || ''}</strong>
-                <div class="muted" style="font-size:0.875rem;">Grade ${student.grade || '-'}</div>
-              </div>
-            </label>
-          </div>
-        `;
-      }).join('');
-
-      document.getElementById('attendanceModalBody').innerHTML = html;
-      document.getElementById('attendanceModal').classList.add('show');
-    }
-
-    function closeAttendanceModal() {
-      document.getElementById('attendanceModal').classList.remove('show');
-      selectedClassForAttendance = null;
-    }
-
-    function toggleSelectAllAttendance() {
-      const checked = document.getElementById('selectAllAttendance').checked;
-      document.querySelectorAll('.attendance-check').forEach(cb => {
-        cb.checked = checked;
-      });
-    }
-
-    async function saveAttendance() {
-      if (!selectedClassForAttendance) return;
-
-      const { classPeriodId, classDate } = selectedClassForAttendance;
-      const checkboxes = document.querySelectorAll('.attendance-check');
-
-      const records = [];
-      checkboxes.forEach(cb => {
-        records.push({
-          enrollment_id: cb.dataset.enrollment,
-          student_id: cb.dataset.student,
-          class_period_id: classPeriodId,
-          class_date: classDate,
-          present: cb.checked
-        });
-      });
-
-      try {
-        // Delete existing attendance for this class/date, then insert new
-        await supabase
-          .from('attendance')
-          .delete()
-          .eq('class_period_id', classPeriodId)
-          .eq('class_date', classDate);
-
-        const { error } = await supabase.from('attendance').insert(records);
-
-        if (error) {
-          alert('Error saving attendance: ' + error.message);
-          console.error(error);
-          return;
-        }
-
-        alert('Attendance saved successfully!');
-        closeAttendanceModal();
-
-        // Refresh data
-        await fetchAll();
-        renderAttendanceCalendar();
-      } catch (err) {
-        console.error('Save attendance error:', err);
-        alert('Error saving attendance');
       }
     }
 
@@ -1262,6 +1391,105 @@
     }
 
     async function logout(){ await supabase.auth.signOut(); window.location.href='login.html'; }
+
+    // === EMAIL FUNCTIONALITY ===
+    let selectedParents = new Set();
+
+    function toggleSelectAllRoster() {
+      const selectAll = document.getElementById('selectAllRoster');
+      const checkboxes = document.querySelectorAll('.roster-check');
+      checkboxes.forEach(cb => {
+        cb.checked = selectAll.checked;
+      });
+      updateEmailButton();
+    }
+
+    function updateEmailButton() {
+      const checkboxes = document.querySelectorAll('.roster-check:checked');
+      selectedParents.clear();
+
+      checkboxes.forEach(cb => {
+        const parentId = cb.dataset.parentId;
+        const parentEmail = cb.dataset.parentEmail;
+        const parentName = cb.dataset.parentName;
+        if (parentEmail) {
+          selectedParents.add(JSON.stringify({ id: parentId, email: parentEmail, name: parentName }));
+        }
+      });
+
+      const btn = document.getElementById('emailSelectedBtn');
+      btn.disabled = selectedParents.size === 0;
+
+      if (selectedParents.size > 0) {
+        btn.textContent = `Email Selected Parents (${selectedParents.size})`;
+      } else {
+        btn.textContent = 'Email Selected Parents';
+      }
+    }
+
+    function openEmailModal() {
+      if (selectedParents.size === 0) return;
+
+      const parents = Array.from(selectedParents).map(p => JSON.parse(p));
+
+      // Deduplicate by email
+      const uniqueParents = Array.from(
+        new Map(parents.map(p => [p.email, p])).values()
+      );
+
+      document.getElementById('recipientCount').textContent = uniqueParents.length;
+      document.getElementById('recipientList').innerHTML = uniqueParents
+        .map(p => `<div>${p.name} &lt;${p.email}&gt;</div>`)
+        .join('');
+
+      // Pre-fill with suggested subject
+      document.getElementById('emailSubject').value = '3D Jumpstart Class Information';
+      document.getElementById('emailBody').value = '';
+
+      document.getElementById('emailModal').classList.add('show');
+    }
+
+    function closeEmailModal() {
+      document.getElementById('emailModal').classList.remove('show');
+    }
+
+    function draftEmail() {
+      const subject = document.getElementById('emailSubject').value;
+      const body = document.getElementById('emailBody').value;
+
+      if (!subject.trim()) {
+        alert('Please enter a subject line');
+        return;
+      }
+
+      if (!body.trim()) {
+        alert('Please enter a message');
+        return;
+      }
+
+      const parents = Array.from(selectedParents).map(p => JSON.parse(p));
+      const uniqueParents = Array.from(
+        new Map(parents.map(p => [p.email, p])).values()
+      );
+
+      // Create mailto link with BCC
+      const bccList = uniqueParents.map(p => p.email).join(',');
+      const encodedSubject = encodeURIComponent(subject);
+      const encodedBody = encodeURIComponent(body);
+
+      const mailtoLink = `mailto:?bcc=${encodeURIComponent(bccList)}&subject=${encodedSubject}&body=${encodedBody}`;
+
+      // Open in email client
+      window.location.href = mailtoLink;
+
+      // Close modal
+      closeEmailModal();
+
+      // Show confirmation
+      setTimeout(() => {
+        alert(`Email draft opened with ${uniqueParents.length} parent(s) in BCC.\n\nIf your email client didn't open, you can manually copy the email addresses from the recipient list.`);
+      }, 500);
+    }
   </script>
 </body>
 </html>
