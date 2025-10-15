@@ -230,7 +230,8 @@
                         <p style="color: #16a34a;">✓ Payment successful! Redirecting to your portal...</p>
                     `;
 
-                    // Redirect to portal after 2 seconds
+                    // Set flag for celebration banner, then redirect to portal after 2 seconds
+                    sessionStorage.setItem('just_enrolled', 'true');
                     setTimeout(() => {
                         window.location.href = 'portal.html';
                     }, 2000);

@@ -415,6 +415,26 @@
         <p style="color:#166534;">Want to enroll another child? Click "Add Student".</p>
       </div>
 
+      <!-- Post-Enrollment Celebration Banner -->
+      <div id="enrollmentCelebration" class="success-card" style="display:none; border: 2px solid #16a34a;">
+        <h3 style="color:#166534; margin-bottom: 1rem; font-size: 1.5rem;">🎉 Enrollment Complete!</h3>
+        <div id="celebrationContent"></div>
+        <div style="margin-top: 1.5rem; padding: 1rem; background: #f0fdf4; border-radius: 0.5rem; border: 1px solid #86efac;">
+          <h4 style="color: #166534; margin: 0 0 0.5rem; font-size: 1.05rem;">📋 What's Next?</h4>
+          <ul style="margin: 0; padding-left: 1.5rem; line-height: 1.8; color: #166534;">
+            <li>Check your email for confirmation and class details</li>
+            <li>Class location will be sent before October 25th</li>
+            <li>Get <a href="https://a.co/d/7BT1kL0" style="color: #166534; text-decoration: underline;">dial calipers</a> ($15 on Amazon)</li>
+            <li>We'll bill $40 automatically on Saturdays for weeks attended</li>
+          </ul>
+        </div>
+        <button onclick="document.getElementById('enrollmentCelebration').style.display='none';"
+                class="btn btn-primary"
+                style="margin-top: 1rem; background: #16a34a;">
+          Got it! →
+        </button>
+      </div>
+
       <!-- First-Time User Welcome Banner -->
       <div id="welcomeBanner" class="card" style="display:none; background: linear-gradient(135deg, #eff6ff 0%, #dbeafe 100%); border: 2px solid #3b82f6;">
         <h3 style="color: #1e40af; margin-bottom: 1rem; display: flex; align-items: center; gap: 0.5rem;">
@@ -461,8 +481,11 @@
         </div>
 
         <div class="student-actions" style="gap:10px;margin-top:12px;flex-wrap:wrap">
-          <button id="payWeeklyBtn" class="btn btn-primary" type="button" disabled>Pay for First Week</button>
+          <button id="payWeeklyBtn" class="btn btn-primary" type="button" disabled>Pay $40 to Complete Enrollment</button>
         </div>
+        <p style="color: #6b7280; font-size: 0.875rem; margin-top: 0.75rem; margin-bottom: 0;">
+          Your payment method will be securely saved for attendance-based weekly billing
+        </p>
       </div>
     </section>
 
@@ -631,14 +654,6 @@
           <label class="label" for="grade">Grade</label>
           <select id="grade" class="select"></select>
         </div>
-        <div class="field">
-          <label class="label" for="experience">Prior Experience</label>
-          <select id="experience" class="select">
-            <option value="Beginner">Beginner</option>
-            <option value="Some Experience">Some Experience</option>
-            <option value="Advanced">Advanced</option>
-          </select>
-        </div>
         <div class="field" style="grid-column:1/-1;">
           <label class="label" for="special">Special Considerations</label>
           <textarea id="special" class="textarea" placeholder="Allergies, learning accommodations, etc."></textarea>
@@ -714,7 +729,7 @@
         currentUser = session.user;
         document.getElementById('parent-name').textContent = currentUser.email || 'Parent';
 
-        // Check if returning from payment method setup
+        // Check if returning from payment method setup or enrollment
         const urlParams = new URLSearchParams(window.location.search);
         if (urlParams.get('payment_method') === 'added') {
           // Show success message briefly
@@ -723,6 +738,39 @@
             // Clean up URL
             window.history.replaceState({}, document.title, window.location.pathname);
           }, 500);
+        }
+
+        // Check if just completed enrollment (coming from payment-success.html)
+        const justEnrolled = sessionStorage.getItem('just_enrolled');
+        if (justEnrolled) {
+          // Show celebration banner after data loads
+          setTimeout(async () => {
+            const enrollments = await sbListAllEnrollments();
+            const students = await sbListStudents();
+            const newlyEnrolled = enrollments.filter(e =>
+              e.status === 'enrolled' &&
+              new Date(e.updated_at) > new Date(Date.now() - 60000) // Within last minute
+            );
+
+            if (newlyEnrolled.length > 0) {
+              const names = newlyEnrolled.map(e => {
+                const student = students.find(s => s.id === e.student_id);
+                return `${student?.first_name || 'Student'} in ${e.class_time}`;
+              }).join(', ');
+
+              document.getElementById('celebrationContent').innerHTML = `
+                <p style="color: #166534; font-size: 1.05rem; margin-bottom: 0.5rem;">
+                  <strong>${names}</strong> ${newlyEnrolled.length === 1 ? 'is' : 'are'} enrolled and ready to start learning!
+                </p>
+              `;
+              document.getElementById('enrollmentCelebration').style.display = 'block';
+
+              // Scroll to top to see banner
+              window.scrollTo({ top: 0, behavior: 'smooth' });
+            }
+
+            sessionStorage.removeItem('just_enrolled');
+          }, 1000);
         }
 
         bindUI();
@@ -1233,11 +1281,14 @@
           
           enrollmentContent = `
             <div class="field" style="margin-top:.4rem;max-width:420px">
+              <label class="label" style="margin-bottom: 0.5rem; font-weight: 600; color: #111827;">
+                Select a class time for ${s.first_name}:
+              </label>
               <select class="select classSelect highlight" data-student="${s.id}">
                 ${options}
               </select>
               ${!allowed.length ? `<div class="muted" style="margin-top:.35rem;">No class available for grade <strong>${s.grade}</strong>.</div>` : ''}
-              <div id="added-${s.id}" style="display:none;" class="added-indicator">✓ Added to cart!</div>
+              <div id="added-${s.id}" style="display:none;" class="added-indicator">✓ Class selected! Ready to enroll.</div>
             </div>
           `;
         }
@@ -1292,7 +1343,7 @@
                 }, 2000);
               }
               
-              toast('Added to cart');
+              toast('Class selected!');
               
               // Force re-render to update payment section
               await render();
@@ -1618,7 +1669,6 @@
         document.getElementById('lastName').value = s?.last_name || '';
         document.getElementById('age').value = s?.age || AGE_OPTIONS[0];
         document.getElementById('grade').value = s?.grade || GRADE_OPTIONS[0];
-        document.getElementById('experience').value = s?.experience || 'Beginner';
         document.getElementById('special').value = s?.special || '';
 
         document.getElementById('studentModal').classList.add('show');
@@ -1635,21 +1685,20 @@
       const last  = document.getElementById('lastName').value.trim();
       const age   = document.getElementById('age').value;
       const grade = document.getElementById('grade').value;
-      const exp   = document.getElementById('experience').value;
       const spec  = document.getElementById('special').value.trim();
-      
-      if(!first || !last || !age || !grade){ 
-        alert('Please complete First/Last, Age, and Grade.'); 
-        return; 
+
+      if(!first || !last || !age || !grade){
+        alert('Please complete First/Last, Age, and Grade.');
+        return;
       }
 
       const payload = {
         id: editingId,
-        first_name:first, 
-        last_name:last, 
-        age:age, 
-        grade:grade, 
-        experience:exp,
+        first_name:first,
+        last_name:last,
+        age:age,
+        grade:grade,
+        experience:'Beginner', // Default to Beginner for Level 1 class
         special:spec
      };
 
