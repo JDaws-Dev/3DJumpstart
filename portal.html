@@ -1001,16 +1001,22 @@
         const { data: blackoutDates } = await sb.from('blackout_dates').select('*').order('date', { ascending: true });
         const blackoutSet = new Set((blackoutDates || []).map(b => b.date));
 
-        // Generate next 4 weeks of class dates
+        // Classes start on October 25, 2025
+        const classStartDate = new Date(2025, 9, 25); // Month is 0-indexed, so 9 = October
         const today = new Date();
+        today.setHours(0, 0, 0, 0);
+
+        // Use the later of today or class start date
+        const startFrom = today > classStartDate ? today : classStartDate;
+
         const dates = [];
 
         for (let week = 0; week < 4; week++) {
           // Calculate Monday of this week
-          const monday = new Date(today);
-          const dayOfWeek = today.getDay();
+          const monday = new Date(startFrom);
+          const dayOfWeek = startFrom.getDay();
           const daysToMonday = dayOfWeek === 0 ? -6 : 1 - dayOfWeek;
-          monday.setDate(today.getDate() + daysToMonday + (week * 7));
+          monday.setDate(startFrom.getDate() + daysToMonday + (week * 7));
 
           // Saturday (offset 5 from Monday)
           const saturday = new Date(monday);
@@ -1023,8 +1029,8 @@
           dates.push({ date: nextMonday, day: 'Monday', classes: ['4:30-5:30pm', '5:30-6:30pm'] });
         }
 
-        // Filter to future dates and check blackouts
-        const futureDates = dates.filter(d => d.date >= today);
+        // Filter to dates on or after the start date
+        const futureDates = dates.filter(d => d.date >= startFrom);
 
         let html = '';
         futureDates.forEach(d => {
