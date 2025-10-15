@@ -1015,6 +1015,19 @@
     /* ====== UPCOMING CLASS DATES ====== */
     async function renderUpcomingDates() {
       try {
+        // Get enrolled classes for this parent
+        const activeEnrollments = allEnrollments.filter(e =>
+          e.status === 'enrolled' || e.status === 'pending'
+        );
+
+        // Determine which days have classes
+        const hasSaturday = activeEnrollments.some(e =>
+          e.class_time && e.class_time.toLowerCase().includes('saturday')
+        );
+        const hasMonday = activeEnrollments.some(e =>
+          e.class_time && e.class_time.toLowerCase().includes('monday')
+        );
+
         // Fetch blackout dates
         const { data: blackoutDates } = await sb.from('blackout_dates').select('*').order('date', { ascending: true });
         const blackoutSet = new Set((blackoutDates || []).map(b => b.date));
@@ -1043,8 +1056,13 @@
           // Monday (offset 0)
           const nextMonday = new Date(monday);
 
-          dates.push({ date: saturday, day: 'Saturday', classes: ['9:30-10:30am', '10:30-11:30am'] });
-          dates.push({ date: nextMonday, day: 'Monday', classes: ['4:30-5:30pm', '5:30-6:30pm'] });
+          // Only add dates for days that have enrolled classes
+          if (hasSaturday) {
+            dates.push({ date: saturday, day: 'Saturday', classes: ['9:30-10:30am', '10:30-11:30am'] });
+          }
+          if (hasMonday) {
+            dates.push({ date: nextMonday, day: 'Monday', classes: ['4:30-5:30pm', '5:30-6:30pm'] });
+          }
         }
 
         // Filter to dates on or after the start date
