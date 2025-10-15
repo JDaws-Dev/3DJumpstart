@@ -1,0 +1,21 @@
+# Documentation and guide files
+*.md
+!README.md
+
+# SQL setup and migration files
+*.sql
+
+# Supabase local development
+supabase/.branches/
+supabase/.temp/
+
+# Node modules (if you add any)
+node_modules/
+
+# Environment files
+.env
+.env.local
+
+# OS files
+.DS_Store
+Thumbs.db
