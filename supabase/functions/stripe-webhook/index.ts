@@ -113,6 +113,94 @@ async function sendConfirmationEmail(parentEmail: string, studentNames: string[]
   }
 }
 
+// Admin notification email for new enrollments
+async function sendAdminNotification(parentEmail: string, parentName: string, studentNames: string[], classDetails: string[], totalAmount: number) {
+  const RESEND_API_KEY = Deno.env.get('RESEND_API_KEY')
+  const FROM_EMAIL = Deno.env.get('FROM_EMAIL') || 'noreply@3djumpstart.com'
+  const ADMIN_EMAIL = 'jeremiah@3djumpstart.com'
+
+  if (!RESEND_API_KEY) {
+    console.log('RESEND_API_KEY not set, skipping admin notification')
+    return
+  }
+
+  const studentList = studentNames.map((name, i) => `
+    <li style="margin-bottom: 10px;">
+      <strong>${name}</strong> - ${classDetails[i]}
+    </li>
+  `).join('')
+
+  const htmlContent = `
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+</head>
+<body style="margin: 0; padding: 0; font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background-color: #f8fafc;">
+  <div style="max-width: 600px; margin: 0 auto; padding: 20px;">
+    <div style="background: white; border-radius: 12px; padding: 40px; box-shadow: 0 4px 6px rgba(0,0,0,0.1);">
+
+      <div style="text-align: center; margin-bottom: 30px;">
+        <div style="font-size: 48px; color: #ea580c; margin-bottom: 10px;">🎉</div>
+        <h1 style="color: #0f172a; margin: 0; font-size: 28px;">New Enrollment!</h1>
+      </div>
+
+      <div style="background: #f1f5f9; border-radius: 8px; padding: 20px; margin: 20px 0;">
+        <h2 style="color: #0f172a; font-size: 18px; margin-top: 0; margin-bottom: 15px;">Enrollment Details:</h2>
+
+        <p style="color: #334155; margin: 10px 0;">
+          <strong>Parent:</strong> ${parentName}<br>
+          <strong>Email:</strong> ${parentEmail}<br>
+          <strong>Amount Paid:</strong> $${totalAmount}
+        </p>
+
+        <p style="color: #0f172a; font-weight: 600; margin-top: 20px; margin-bottom: 10px;">Students Enrolled:</p>
+        <ul style="list-style: none; padding: 0; margin: 0; color: #334155;">
+          ${studentList}
+        </ul>
+      </div>
+
+      <div style="background: #dbeafe; border-left: 4px solid #3b82f6; padding: 15px; margin: 20px 0; border-radius: 4px;">
+        <p style="margin: 0; color: #1e40af; font-size: 14px;">
+          View full details in the <a href="https://3djumpstart.com/admin.html" style="color: #ea580c; text-decoration: none; font-weight: 600;">Admin Dashboard</a>
+        </p>
+      </div>
+
+    </div>
+  </div>
+</body>
+</html>
+  `
+
+  try {
+    const response = await fetch('https://api.resend.com/emails', {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${RESEND_API_KEY}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        from: FROM_EMAIL,
+        to: ADMIN_EMAIL,
+        subject: `🎉 New Enrollment: ${parentName} - ${studentNames.join(', ')}`,
+        html: htmlContent,
+      }),
+    })
+
+    if (!response.ok) {
+      const error = await response.text()
+      console.error('Resend API error for admin notification:', error)
+      throw new Error(`Resend API error: ${error}`)
+    }
+
+    const data = await response.json()
+    console.log('Admin notification sent successfully:', data.id)
+  } catch (error) {
+    console.error('Failed to send admin notification:', error)
+  }
+}
+
 // Email function for payment method not saved
 async function sendPaymentMethodNeededEmail(parentEmail: string, parentName: string) {
   const RESEND_API_KEY = Deno.env.get('RESEND_API_KEY')
@@ -340,20 +428,24 @@ Deno.serve(async (req) => {
           const studentNames = enrollmentData.map(e => `${e.students.first_name} ${e.students.last_name}`)
           const classDetails = enrollmentData.map(e => e.class_time || 'TBD')
 
+          // Get parent name for notifications
+          const { data: parentData } = await supabase
+            .from('parents')
+            .select('name')
+            .eq('id', parentId)
+            .single()
+
+          const parentName = parentData?.name || parentEmail || 'New Parent'
+
+          // Send parent confirmation email
           await sendConfirmationEmail(parentEmail, studentNames, classDetails, totalAmount)
+
+          // Send admin notification email
+          await sendAdminNotification(parentEmail, parentName, studentNames, classDetails, totalAmount)
 
           // If payment method wasn't saved, send notification
           if (!paymentMethodSaved && parentId) {
             console.log('Payment method not saved, sending notification email')
-
-            // Get parent name
-            const { data: parentData } = await supabase
-              .from('parents')
-              .select('name')
-              .eq('id', parentId)
-              .single()
-
-            const parentName = parentData?.name || 'there'
             await sendPaymentMethodNeededEmail(parentEmail, parentName)
           }
         } else {
