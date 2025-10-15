@@ -224,7 +224,19 @@ Deno.serve(async (req) => {
   if (event.type === 'checkout.session.completed') {
     const session = event.data.object as Stripe.Checkout.Session
     const parentId = session.client_reference_id
-    const parentEmail = session.customer_email || null
+
+    // Get email from session or fetch from customer
+    let parentEmail = session.customer_email || null
+    if (!parentEmail && session.customer) {
+      try {
+        const customerId = typeof session.customer === 'string' ? session.customer : session.customer.id
+        const customer = await stripe.customers.retrieve(customerId) as Stripe.Customer
+        parentEmail = customer.email || null
+      } catch (err) {
+        console.error('Failed to fetch customer email:', err)
+      }
+    }
+
     const metadata = session.metadata || {}
     const enrollmentIds = JSON.parse(metadata.enrollment_ids || '[]')
     const totalAmount = Number(metadata.total_amount || 0)
