@@ -415,6 +415,26 @@
         <p style="color:#166534;">Want to enroll another child? Click "Add Student".</p>
       </div>
 
+      <!-- First-Time User Welcome Banner -->
+      <div id="welcomeBanner" class="card" style="display:none; background: linear-gradient(135deg, #eff6ff 0%, #dbeafe 100%); border: 2px solid #3b82f6;">
+        <h3 style="color: #1e40af; margin-bottom: 1rem; display: flex; align-items: center; gap: 0.5rem;">
+          👋 Welcome to 3D Jumpstart!
+        </h3>
+        <p style="color: #1e40af; margin-bottom: 1rem; font-size: 1.05rem;">
+          Let's get your first student enrolled. Follow these 3 simple steps:
+        </p>
+        <ol style="margin: 0 0 1.5rem 1.5rem; padding: 0; color: #1e40af; line-height: 1.8;">
+          <li><strong>Click "+ Add Student"</strong> below to enter your child's information</li>
+          <li><strong>Select a class time</strong> that works for your schedule</li>
+          <li><strong>Pay $40</strong> to reserve your spot for the first week</li>
+        </ol>
+        <button onclick="document.getElementById('addStudentBtn').click(); document.getElementById('welcomeBanner').style.display='none';"
+                class="btn btn-primary"
+                style="background: #3b82f6; box-shadow: 0 4px 6px rgba(59, 130, 246, 0.25);">
+          Get Started - Add Your First Student →
+        </button>
+      </div>
+
       <div class="card">
         <div style="display:flex;align-items:center;justify-content:space-between;gap:12px;">
           <h2 class="card-title" style="margin:0">Your Students</h2>
@@ -1143,14 +1163,25 @@
 
     function renderStudents(list, enrollments){
       const wrap = document.getElementById('studentsList');
+      const welcomeBanner = document.getElementById('welcomeBanner');
 
       if (!list.length){
+        // Show welcome banner for first-time users
+        if (welcomeBanner) {
+          welcomeBanner.style.display = 'block';
+        }
+
         wrap.innerHTML = `
           <div class="card pop-in" style="text-align:center;background:#f8fafc;border:1px dashed var(--line)">
             <p class="muted" style="margin:.25rem 0 1rem;">No students yet.</p>
             <button class="btn btn-primary" type="button" onclick="openModal()">+ Add Your First Student</button>
           </div>`;
         return;
+      }
+
+      // Hide welcome banner once they have students
+      if (welcomeBanner) {
+        welcomeBanner.style.display = 'none';
       }
 
       wrap.innerHTML = list.map(s=>{
