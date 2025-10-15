@@ -148,6 +148,12 @@ Deno.serve(async (req) => {
       payment_intent_data: {
         setup_future_usage: 'off_session', // Save payment method for future off-session charges
       },
+      payment_method_collection: 'always', // Ensure payment method is collected
+      payment_method_options: {
+        card: {
+          setup_future_usage: 'off_session', // Also set on card payment method
+        },
+      },
       metadata: {
         parent_id,
         enrollment_ids: JSON.stringify(enrollment_ids),

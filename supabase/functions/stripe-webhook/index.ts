@@ -307,7 +307,7 @@ Deno.serve(async (req) => {
         // Get enrollment details with student info
         const { data: enrollmentData, error: enrollmentError } = await supabase
           .from('enrollments')
-          .select('*, students!fk_student(first_name, last_name)')
+          .select('*, students(first_name, last_name)')
           .in('id', enrollmentIds)
 
         if (enrollmentError) {
