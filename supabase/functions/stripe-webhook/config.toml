@@ -1,0 +1,3 @@
+# Allow Stripe to call this webhook without authentication
+# The webhook is secured by Stripe's signature verification instead
+verify_jwt = false
