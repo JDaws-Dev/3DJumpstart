@@ -749,7 +749,10 @@
           <td>${parentContact}</td>
           <td>${status}</td>
           <td>${s.special||'-'}</td>
-          <td><button class="btn" onclick="openEditStudentModal('${s.id}', '${e.id}', '${p.id}')" style="background:#3b82f6;color:#fff;padding:0.35rem 0.75rem;font-size:0.875rem;">Edit</button></td>
+          <td>
+            <button class="btn" onclick="openEditStudentModal('${s.id}', '${e.id}', '${p.id}')" style="background:#3b82f6;color:#fff;padding:0.35rem 0.75rem;font-size:0.875rem;margin-right:0.5rem;">Edit</button>
+            <button class="btn" onclick="removeStudentFromClass('${e.id}', '${s.first_name||''} ${s.last_name||''}')" style="background:#dc2626;color:#fff;padding:0.35rem 0.75rem;font-size:0.875rem;">Remove</button>
+          </td>
         </tr>`;
       }).join('');
     }
@@ -1469,6 +1472,39 @@
     }
 
     async function logout(){ await supabase.auth.signOut(); window.location.href='login.html'; }
+
+    // === REMOVE STUDENT FROM CLASS ===
+    async function removeStudentFromClass(enrollmentId, studentName) {
+      if (!confirm(`Are you sure you want to remove ${studentName} from this class?\n\nThis will:\n- Change their enrollment status to "withdrawn"\n- Free up their spot in the class\n- Keep their data for records\n\nYou can re-enroll them later if needed.`)) {
+        return;
+      }
+
+      try {
+        // Update enrollment status to withdrawn
+        const { error } = await supabase
+          .from('enrollments')
+          .update({ status: 'withdrawn' })
+          .eq('id', enrollmentId);
+
+        if (error) {
+          alert('Error removing student: ' + error.message);
+          console.error(error);
+          return;
+        }
+
+        alert(`${studentName} has been removed from the class.`);
+
+        // Refresh data and views
+        await fetchAll();
+        buildClassDropdown();
+        updateStats();
+        renderRoster();
+
+      } catch (err) {
+        console.error('Remove student error:', err);
+        alert('Failed to remove student: ' + err.message);
+      }
+    }
 
     // === EDIT STUDENT FUNCTIONALITY ===
     function openEditStudentModal(studentId, enrollmentId, parentId) {
