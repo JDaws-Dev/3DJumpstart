@@ -788,6 +788,16 @@
             p[style*="font-size: 1.05rem"] {
                 font-size: 1rem !important;
             }
+
+            /* Lead magnet inline form - better spacing on mobile */
+            #inline-lead-magnet-form input {
+                font-size: 0.9375rem !important;
+                padding: 0.875rem !important;
+            }
+
+            #inline-lead-magnet-form button {
+                padding: 0.875rem 1.5rem !important;
+            }
         }
     </style>
 </head>
@@ -854,13 +864,19 @@
                     Learn professional 3D modeling and printing. Turn your ideas into real objects you can hold.
                 </p>
 
-                <p style="font-size: 1rem; color: #6b7280; margin-bottom: 2rem;">
-                    <strong>$40/week</strong> • Saturday mornings & Monday evenings • Grades 4-12 • Suwanee, GA
+                <p style="font-size: 1.5rem; color: #111827; margin-bottom: 0.5rem; font-weight: 700;">
+                    <span style="color: #ea580c; font-size: 2rem;">$40/week</span> • No contracts • Pay as you go
+                </p>
+                <p style="font-size: 1rem; color: #6b7280; margin-bottom: 1rem;">
+                    Saturday mornings & Monday evenings • Grades 4-12 • Suwanee, GA
+                </p>
+                <p style="font-size: 0.95rem; color: #dc2626; font-weight: 600; margin-bottom: 2rem;">
+                    ⚠️ Limited to 10 students per class
                 </p>
 
                 <div class="hero-actions">
                     <a href="login.html" class="btn btn-primary" style="font-size: 1.125rem; padding: 1rem 2rem;">
-                        Create Free Account & Enroll
+                        Browse Available Times & Sign Up
                     </a>
                     <a href="#projects" class="btn btn-outline">
                         See Student Projects ↓
@@ -882,6 +898,89 @@
                         Complete enrollment
                     </div>
                 </div>
+
+                <!-- Scroll indicator -->
+                <div style="margin-top: 3rem; text-align: center;">
+                    <p style="color: #6b7280; font-size: 0.95rem; margin-bottom: 0.5rem; font-weight: 600;">
+                        Not sure yet? See what makes us different ↓
+                    </p>
+                    <div style="animation: bounce 2s infinite;">
+                        <svg xmlns="http://www.w3.org/2000/svg" style="width: 32px; height: 32px; margin: 0 auto; color: #ea580c;" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M19 14l-7 7m0 0l-7-7m7 7V3" />
+                        </svg>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <style>
+        @keyframes bounce {
+            0%, 100% {
+                transform: translateY(0);
+            }
+            50% {
+                transform: translateY(-10px);
+            }
+        }
+    </style>
+
+    <!-- Value Comparison Section -->
+    <section class="section" style="background: #fff9f5; padding: 3rem 0;">
+        <div class="container">
+            <h3 style="text-align: center; font-size: 1.5rem; color: #111827; margin-bottom: 2rem; font-weight: 700;">
+                Compare the Value
+            </h3>
+            <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 1.5rem; max-width: 900px; margin: 0 auto;">
+                <div class="card" style="text-align: center; opacity: 0.7;">
+                    <p style="color: #6b7280; font-size: 0.875rem; margin-bottom: 0.5rem;">Traditional Coding Camps</p>
+                    <p style="font-size: 2rem; font-weight: 700; color: #dc2626;">$400+</p>
+                    <p style="color: #6b7280; font-size: 0.875rem;">per week</p>
+                </div>
+                <div class="card" style="text-align: center; opacity: 0.7;">
+                    <p style="color: #6b7280; font-size: 0.875rem; margin-bottom: 0.5rem;">Private CAD Tutoring</p>
+                    <p style="font-size: 2rem; font-weight: 700; color: #dc2626;">$80+</p>
+                    <p style="color: #6b7280; font-size: 0.875rem;">per hour</p>
+                </div>
+                <div class="card" style="text-align: center; border: 3px solid #ea580c; transform: scale(1.05); background: white;">
+                    <p style="color: #ea580c; font-size: 0.875rem; margin-bottom: 0.5rem; font-weight: 600;">3D Jumpstart</p>
+                    <p style="font-size: 2rem; font-weight: 700; color: #ea580c;">$40</p>
+                    <p style="color: #6b7280; font-size: 0.875rem;">per week</p>
+                    <p style="color: #059669; font-size: 0.875rem; font-weight: 600; margin-top: 0.5rem;">✓ Best Value</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Lead Magnet CTA Section -->
+    <section class="section" style="background: linear-gradient(135deg, #fef3c7 0%, #fed7aa 100%); padding: 4rem 0;">
+        <div class="container">
+            <div style="max-width: 700px; margin: 0 auto; text-align: center;">
+                <div style="font-size: 3rem; margin-bottom: 1rem;">📚</div>
+                <h2 style="font-size: 2rem; font-weight: 800; color: #111827; margin-bottom: 1rem;">
+                    Not Ready to Enroll Yet?
+                </h2>
+                <p style="font-size: 1.125rem; color: #374151; margin-bottom: 2rem; line-height: 1.6;">
+                    Get our free guide: <strong style="color: #ea580c;">"5 Signs Your Kid is Ready for 3D Printing"</strong>
+                </p>
+
+                <form id="inline-lead-magnet-form" style="max-width: 500px; margin: 0 auto;">
+                    <div style="display: flex; gap: 0.75rem; flex-direction: column;">
+                        <input
+                            type="email"
+                            id="inline-email"
+                            placeholder="Enter your email"
+                            required
+                            style="flex: 1; padding: 1rem; border: 2px solid #e5e7eb; border-radius: 0.5rem; font-size: 1rem; width: 100%;">
+                        <button type="submit" class="btn btn-primary" style="font-size: 1rem; padding: 1rem 2rem; white-space: nowrap;">
+                            Send Me The Free Guide
+                        </button>
+                    </div>
+                </form>
+
+                <p style="color: #6b7280; font-size: 0.875rem; margin-top: 1rem;">
+                    Learn if your child is ready for professional CAD training • Free, no spam
+                </p>
             </div>
         </div>
     </section>
@@ -1090,9 +1189,17 @@
                         <li style="padding: 0.5rem 0; color: #374151;">✓ Learn to operate your own 3D printer</li>
                     </ul>
                     <a href="login.html" class="btn btn-primary" style="width: 100%; margin-bottom: 1rem;">
-                        Create Free Account & Enroll
+                        Browse Available Times & Sign Up
                     </a>
-                    <p style="color: #6b7280; font-size: 0.875rem; margin: 0;">
+                    <div style="background: #ecfdf5; border: 2px solid #059669; border-radius: 0.5rem; padding: 1rem; margin-top: 1rem;">
+                        <p style="color: #059669; font-weight: 600; font-size: 0.95rem; margin: 0;">
+                            ✓ First Class Satisfaction Guarantee
+                        </p>
+                        <p style="color: #047857; font-size: 0.875rem; margin: 0.5rem 0 0 0;">
+                            If your child doesn't love their first class, we'll refund you in full. No questions asked.
+                        </p>
+                    </div>
+                    <p style="color: #6b7280; font-size: 0.875rem; margin: 1rem 0 0 0;">
                         Next session starts October 25th
                     </p>
                 </div>
@@ -1104,6 +1211,7 @@
     <section class="section" style="background: #ffffff;">
         <div class="container">
             <h2 class="section-title">Class Schedule</h2>
+            <p class="section-subtitle" style="margin-bottom: 2rem;">Choose whichever day works best for your family's schedule</p>
 
             <div style="max-width: 1000px; margin: 0 auto;">
                 <h3 style="color: #ea580c; font-size: 1.5rem; text-align: center; margin-bottom: 1.5rem;">Saturday Morning</h3>
@@ -1117,6 +1225,10 @@
                         <h3 style="color: #ea580c; font-size: 1.25rem; margin-bottom: 0.5rem;">10:30-11:30 AM</h3>
                         <p style="color: #374151;">Grades 8-12</p>
                     </div>
+                </div>
+
+                <div style="text-align: center; margin-bottom: 3rem;">
+                    <p style="color: #111827; font-size: 1.125rem; font-weight: 600;">— OR —</p>
                 </div>
 
                 <h3 style="color: #ea580c; font-size: 1.5rem; text-align: center; margin-bottom: 1.5rem;">Monday Evening</h3>
@@ -1251,10 +1363,13 @@
 
             <div style="display: flex; flex-direction: column; gap: 1rem; align-items: center; margin-bottom: 2rem;">
                 <a href="login.html" class="btn" style="background: white; color: #ea580c; font-size: 1.125rem; padding: 1rem 2rem; border: none;">
-                    Create Free Account & Enroll
+                    Browse Available Times & Sign Up
                 </a>
                 <p style="color: rgba(255, 255, 255, 0.9); font-size: 0.95rem; margin: 0;">
                     Takes 2 minutes • No payment required to browse availability
+                </p>
+                <p style="color: white; font-size: 1rem; margin: 0.5rem 0; font-weight: 600;">
+                    ✓ First Class Satisfaction Guarantee - Full refund if they don't love it
                 </p>
                 <a href="mailto:jeremiah@3djumpstart.com" class="btn btn-outline" style="border-color: white; color: white;">
                     Have Questions? Email Me
@@ -1279,6 +1394,31 @@
             </div>
         </div>
     </footer>
+
+    <!-- Exit Intent Popup -->
+    <div id="exit-popup" style="display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.7); z-index: 9999; align-items: center; justify-content: center;">
+        <div style="background: white; border-radius: 1rem; max-width: 500px; margin: 2rem; padding: 2.5rem; position: relative; box-shadow: 0 25px 50px -12px rgba(0,0,0,0.5);">
+            <button onclick="closeExitPopup()" style="position: absolute; top: 1rem; right: 1rem; background: none; border: none; font-size: 1.5rem; color: #6b7280; cursor: pointer; padding: 0.5rem; line-height: 1;">&times;</button>
+
+            <h3 style="font-size: 1.75rem; font-weight: 700; color: #111827; margin-bottom: 1rem;">
+                Wait! Before You Go...
+            </h3>
+            <p style="color: #6b7280; margin-bottom: 1.5rem; line-height: 1.6;">
+                Not ready to enroll yet? Get our free guide: <strong style="color: #ea580c;">"5 Signs Your Kid is Ready for 3D Printing"</strong>
+            </p>
+
+            <form id="lead-magnet-form" style="margin-bottom: 1rem;">
+                <input type="email" id="popup-email" placeholder="Enter your email" required style="width: 100%; padding: 0.75rem; border: 2px solid #e5e7eb; border-radius: 0.5rem; font-size: 1rem; margin-bottom: 1rem;">
+                <button type="submit" class="btn btn-primary" style="width: 100%; font-size: 1rem; padding: 0.875rem;">
+                    Send Me The Free Guide
+                </button>
+            </form>
+
+            <p style="color: #9ca3af; font-size: 0.875rem; text-align: center; margin: 0;">
+                We respect your privacy. Unsubscribe anytime.
+            </p>
+        </div>
+    </div>
 
     <script>
         // Smooth scrolling for anchor links
@@ -1308,9 +1448,159 @@
         document.addEventListener('click', function(e) {
             const menu = document.getElementById('mobile-menu');
             const toggle = document.querySelector('.mobile-menu-toggle');
-            
+
             if (!menu.contains(e.target) && !toggle.contains(e.target)) {
                 menu.classList.remove('active');
+            }
+        });
+
+        // Exit Intent Popup
+        let exitPopupShown = false;
+
+        function closeExitPopup() {
+            document.getElementById('exit-popup').style.display = 'none';
+            sessionStorage.setItem('exitPopupClosed', 'true');
+        }
+
+        function showExitPopup() {
+            if (!exitPopupShown && !sessionStorage.getItem('exitPopupClosed')) {
+                document.getElementById('exit-popup').style.display = 'flex';
+                exitPopupShown = true;
+            }
+        }
+
+        // Detect exit intent (mouse leaving top of page)
+        document.addEventListener('mouseout', function(e) {
+            if (e.clientY < 50 && e.relatedTarget == null && !exitPopupShown) {
+                showExitPopup();
+            }
+        });
+
+        // Close popup when clicking outside
+        document.getElementById('exit-popup').addEventListener('click', function(e) {
+            if (e.target === this) {
+                closeExitPopup();
+            }
+        });
+
+        // Handle inline lead magnet form
+        document.getElementById('inline-lead-magnet-form').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            const email = document.getElementById('inline-email').value;
+            const submitButton = e.target.querySelector('button[type="submit"]');
+            const originalText = submitButton.textContent;
+
+            // Disable button and show loading state
+            submitButton.disabled = true;
+            submitButton.textContent = 'Sending...';
+
+            try {
+                // Call Supabase Edge Function to send email
+                const response = await fetch('https://hucjmggkasahwpjgnwia.supabase.co/functions/v1/send-lead-magnet', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ email: email })
+                });
+
+                const data = await response.json();
+
+                if (!response.ok || !data.success) {
+                    throw new Error(data.error || 'Failed to send email');
+                }
+
+                // Track with Facebook Pixel
+                if (typeof fbq !== 'undefined') {
+                    fbq('track', 'Lead', {
+                        content_name: '5 Signs Lead Magnet - Inline',
+                        status: 'success'
+                    });
+                }
+
+                // Show success message
+                const form = document.getElementById('inline-lead-magnet-form');
+                form.innerHTML = `
+                    <div style="background: #ecfdf5; border: 2px solid #059669; border-radius: 0.75rem; padding: 2rem; text-align: center;">
+                        <div style="font-size: 3rem; margin-bottom: 1rem;">✓</div>
+                        <h3 style="font-size: 1.5rem; font-weight: 700; color: #059669; margin-bottom: 0.75rem;">
+                            Check Your Email!
+                        </h3>
+                        <p style="color: #047857; margin: 0;">
+                            We've sent the guide to <strong>${email}</strong><br>
+                            <span style="font-size: 0.875rem;">(Check spam if you don't see it in a few minutes)</span>
+                        </p>
+                    </div>
+                `;
+            } catch (error) {
+                console.error('Error sending lead magnet:', error);
+
+                // Show error message
+                submitButton.disabled = false;
+                submitButton.textContent = originalText;
+
+                alert('Oops! Something went wrong. Please try again or email jeremiah@3djumpstart.com directly.');
+            }
+        });
+
+        // Handle exit popup form submission
+        document.getElementById('lead-magnet-form').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            const email = document.getElementById('popup-email').value;
+            const submitButton = e.target.querySelector('button[type="submit"]');
+
+            // Disable button and show loading state
+            submitButton.disabled = true;
+            submitButton.textContent = 'Sending...';
+
+            try {
+                // Call Supabase Edge Function to send email
+                const response = await fetch('https://hucjmggkasahwpjgnwia.supabase.co/functions/v1/send-lead-magnet', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ email: email })
+                });
+
+                const data = await response.json();
+
+                if (!response.ok || !data.success) {
+                    throw new Error(data.error || 'Failed to send email');
+                }
+
+                // Track with Facebook Pixel
+                if (typeof fbq !== 'undefined') {
+                    fbq('track', 'Lead', {
+                        content_name: '5 Signs Lead Magnet',
+                        status: 'success'
+                    });
+                }
+
+                // Show success message
+                const popup = document.getElementById('exit-popup').querySelector('div');
+                popup.innerHTML = `
+                    <h3 style="font-size: 1.75rem; font-weight: 700; color: #059669; margin-bottom: 1rem; text-align: center;">
+                        ✓ Check Your Email!
+                    </h3>
+                    <p style="color: #6b7280; margin-bottom: 1.5rem; line-height: 1.6; text-align: center;">
+                        We've sent the "5 Signs Your Kid is Ready for 3D Printing" guide to <strong>${email}</strong>
+                    </p>
+                    <p style="color: #6b7280; margin-bottom: 1.5rem; line-height: 1.6; text-align: center;">
+                        Check your spam folder if you don't see it in a few minutes.
+                    </p>
+                    <button onclick="closeExitPopup()" class="btn btn-primary" style="width: 100%;">
+                        Close
+                    </button>
+                `;
+            } catch (error) {
+                console.error('Error sending lead magnet:', error);
+
+                // Show error message
+                submitButton.disabled = false;
+                submitButton.textContent = 'Send Me The Free Guide';
+
+                alert('Oops! Something went wrong. Please try again or email jeremiah@3djumpstart.com directly.');
             }
         });
     </script>
