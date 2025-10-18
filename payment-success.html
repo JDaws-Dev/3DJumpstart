@@ -224,8 +224,9 @@
         // Get session ID from URL
         const urlParams = new URLSearchParams(window.location.search);
         const sessionId = urlParams.get('session_id');
+        const isFirstTime = urlParams.get('first_time') === 'true';
 
-        async function checkPayment() {
+        async function showSuccess() {
             if (!sessionId) {
                 document.getElementById('receiptId').textContent = 'No session ID';
                 document.getElementById('enrollmentInfo').innerHTML = '<p style="color: red;">Missing session ID</p>';
@@ -233,12 +234,36 @@
             }
 
             document.getElementById('receiptId').textContent = sessionId.substring(0, 20) + '...';
-            
-            // Wait 5 seconds for webhook to complete
-            await new Promise(resolve => setTimeout(resolve, 5000));
-            
+
+            // For first-time enrollments, show simple success message
+            if (isFirstTime) {
+                document.getElementById('statusBadge').textContent = 'Complete';
+                document.getElementById('statusBadge').className = 'status-badge status-complete';
+                document.getElementById('totalPaid').textContent = '$40.00';
+                document.getElementById('enrollmentInfo').innerHTML = `
+                    <h3 style="color: #16a34a; margin-bottom: 1rem;">✓ Enrollment Complete!</h3>
+                    <div style="background: #eff6ff; padding: 1.5rem; border-radius: 0.5rem; border: 1px solid #3b82f6;">
+                        <h4 style="color: #1e40af; margin-bottom: 0.75rem; font-size: 1.1rem;">📧 Check Your Email</h4>
+                        <p style="color: #1e3a8a; line-height: 1.6; margin-bottom: 0.75rem;">
+                            We've sent a confirmation email with:
+                        </p>
+                        <ul style="color: #1e3a8a; line-height: 1.8; margin: 0; padding-left: 1.5rem;">
+                            <li>Your student enrollment details</li>
+                            <li>Class time and what to bring</li>
+                            <li>Link to access your parent portal</li>
+                        </ul>
+                        <p style="color: #1e3a8a; margin-top: 1rem; font-weight: 600;">
+                            You can log in to your parent portal anytime at <a href="portal.html" style="color: #ea580c; text-decoration: underline;">3djumpstart.com/portal</a>
+                        </p>
+                    </div>
+                `;
+                return;
+            }
+
+            // For existing customers (portal enrollments), check database and redirect
+            await new Promise(resolve => setTimeout(resolve, 3000));
+
             try {
-                // Get payment
                 const { data: payment } = await supabase
                     .from('payments')
                     .select('*')
@@ -246,23 +271,19 @@
                     .maybeSingle();
 
                 if (payment) {
-                    // Payment found - show success and redirect to portal
                     document.getElementById('statusBadge').textContent = 'Complete';
                     document.getElementById('statusBadge').className = 'status-badge status-complete';
                     document.getElementById('totalPaid').textContent = `$${payment.amount || 0}`;
                     document.getElementById('enrollmentInfo').innerHTML = `
                         <p style="color: #16a34a;">✓ Payment successful! Redirecting to your portal...</p>
                     `;
-
-                    // Set flag for celebration banner, then redirect to portal after 2 seconds
                     sessionStorage.setItem('just_enrolled', 'true');
                     setTimeout(() => {
                         window.location.href = 'portal.html';
                     }, 2000);
                 } else {
-                    // Payment not found yet - webhook may still be processing
                     document.getElementById('enrollmentInfo').innerHTML = `
-                        <p style="color: #f59e0b;">Payment is being processed. Auto-refreshing...</p>
+                        <p style="color: #f59e0b;">Processing... Please wait.</p>
                     `;
                     setTimeout(() => location.reload(), 5000);
                 }
@@ -273,7 +294,7 @@
         }
 
         // Check on load
-        checkPayment();
+        showSuccess();
     </script>
 </body>
 </html>

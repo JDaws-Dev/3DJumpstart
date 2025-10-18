@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Debug Portal Issue</title>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.39.3/dist/umd/supabase.min.js"></script>
+</head>
+<body>
+  <h1>Portal Debug</h1>
+  <div id="output"></div>
+
+  <script>
+    const sb = window.supabase.createClient(
+      'https://hucjmggkasahwpjgnwia.supabase.co',
+      'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imh1Y2ptZ2drYXNhaHdwamdud2lhIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTQ2MTI2MDIsImV4cCI6MjA3MDE4ODYwMn0.hxFmoZexaKverih9crJfP9fjWItOTfC_6D_CM7hr_Rg'
+    );
+
+    async function debug() {
+      const output = document.getElementById('output');
+      let html = '';
+
+      // Check session
+      const { data: { session }, error: sessionError } = await sb.auth.getSession();
+
+      if (sessionError) {
+        html += `<p style="color: red;">Session Error: ${sessionError.message}</p>`;
+      } else if (!session) {
+        html += `<p style="color: red;">NOT LOGGED IN - Please log in at portal.html first</p>`;
+      } else {
+        const userId = session.user.id;
+        const userEmail = session.user.email;
+
+        html += `<h2>Current Session:</h2>`;
+        html += `<p><strong>User ID:</strong> ${userId}</p>`;
+        html += `<p><strong>Email:</strong> ${userEmail}</p>`;
+
+        // Check parent record
+        const { data: parent, error: parentError } = await sb
+          .from('parents')
+          .select('*')
+          .eq('id', userId)
+          .single();
+
+        html += `<h2>Parent Record:</h2>`;
+        if (parentError) {
+          html += `<p style="color: red;">Error: ${parentError.message}</p>`;
+        } else if (!parent) {
+          html += `<p style="color: red;">No parent record found for this user ID</p>`;
+        } else {
+          html += `<pre>${JSON.stringify(parent, null, 2)}</pre>`;
+        }
+
+        // Check students
+        const { data: students, error: studentsError } = await sb
+          .from('students')
+          .select('*')
+          .eq('parent_id', userId);
+
+        html += `<h2>Students (parent_id = ${userId}):</h2>`;
+        if (studentsError) {
+          html += `<p style="color: red;">Error: ${studentsError.message}</p>`;
+        } else if (!students || students.length === 0) {
+          html += `<p style="color: orange;">No students found for this parent_id</p>`;
+
+          // Check if there are ANY students in the database with different parent_id
+          const { data: allStudents } = await sb
+            .from('students')
+            .select('id, parent_id, first_name, last_name')
+            .limit(10);
+
+          if (allStudents && allStudents.length > 0) {
+            html += `<h3>Found ${allStudents.length} student(s) in database (but with different parent_id):</h3>`;
+            html += `<pre>${JSON.stringify(allStudents, null, 2)}</pre>`;
+            html += `<p style="color: orange;"><strong>ISSUE FOUND:</strong> Students exist but their parent_id doesn't match your logged-in user ID (${userId})</p>`;
+          }
+        } else {
+          html += `<p style="color: green;">Found ${students.length} student(s)</p>`;
+          html += `<pre>${JSON.stringify(students, null, 2)}</pre>`;
+        }
+
+        // Check enrollments
+        const { data: enrollments, error: enrollmentsError } = await sb
+          .from('enrollments')
+          .select('*')
+          .eq('parent_id', userId);
+
+        html += `<h2>Enrollments (parent_id = ${userId}):</h2>`;
+        if (enrollmentsError) {
+          html += `<p style="color: red;">Error: ${enrollmentsError.message}</p>`;
+        } else if (!enrollments || enrollments.length === 0) {
+          html += `<p style="color: orange;">No enrollments found for this parent_id</p>`;
+        } else {
+          html += `<p style="color: green;">Found ${enrollments.length} enrollment(s)</p>`;
+          html += `<pre>${JSON.stringify(enrollments, null, 2)}</pre>`;
+        }
+      }
+
+      output.innerHTML = html;
+    }
+
+    debug();
+  </script>
+</body>
+</html>

@@ -305,43 +305,79 @@ async function handleFirstTimeEnrollment(session: Stripe.Checkout.Session) {
     console.log('First-time enrollment for:', parentEmail)
     console.log('Students:', studentsData.length)
 
-    // STEP 1: Create Supabase Auth User
-    const { data: authData, error: authError } = await supabase.auth.admin.createUser({
-      email: parentEmail,
-      email_confirm: true,
-      user_metadata: {
-        name: parentName,
-        phone: parentPhone,
-        first_enrollment: true,
-        enrolled_at: new Date().toISOString()
-      }
-    })
+    // STEP 1: Get or Create Supabase Auth User
+    let userId: string
 
-    if (authError || !authData.user) {
-      console.error('Failed to create auth user:', authError)
-      throw new Error(`Failed to create auth user: ${authError?.message}`)
-    }
+    // First, try to find existing user by email
+    const { data: existingUsers } = await supabase.auth.admin.listUsers()
+    const existingUser = existingUsers?.users?.find(u => u.email === parentEmail)
 
-    const userId = authData.user.id
-    console.log('Created auth user:', userId)
-
-    // STEP 2: Create parent record
-    const { error: parentError } = await supabase
-      .from('parents')
-      .insert({
-        id: userId,
+    if (existingUser) {
+      console.log('User already exists:', existingUser.id)
+      userId = existingUser.id
+    } else {
+      // Create new auth user
+      const { data: authData, error: authError } = await supabase.auth.admin.createUser({
         email: parentEmail,
-        name: parentName,
-        phone: parentPhone,
-        stripe_customer_id: typeof session.customer === 'string' ? session.customer : session.customer?.id || null
+        email_confirm: true,
+        user_metadata: {
+          name: parentName,
+          phone: parentPhone,
+          first_enrollment: true,
+          enrolled_at: new Date().toISOString()
+        }
       })
 
-    if (parentError) {
-      console.error('Failed to create parent:', parentError)
-      throw new Error(`Failed to create parent: ${parentError.message}`)
+      if (authError || !authData.user) {
+        console.error('Failed to create auth user:', authError)
+        throw new Error(`Failed to create auth user: ${authError?.message}`)
+      }
+
+      userId = authData.user.id
+      console.log('Created new auth user:', userId)
     }
 
-    console.log('Created parent record')
+    // STEP 2: Create or update parent record
+    const { data: existingParent } = await supabase
+      .from('parents')
+      .select('id')
+      .eq('id', userId)
+      .single()
+
+    if (existingParent) {
+      console.log('Parent record already exists, updating...')
+      const { error: updateError } = await supabase
+        .from('parents')
+        .update({
+          name: parentName,
+          phone: parentPhone,
+          stripe_customer_id: typeof session.customer === 'string' ? session.customer : session.customer?.id || null
+        })
+        .eq('id', userId)
+
+      if (updateError) {
+        console.error('Failed to update parent:', updateError)
+        throw new Error(`Failed to update parent: ${updateError.message}`)
+      }
+      console.log('Updated parent record')
+    } else {
+      console.log('Creating new parent record...')
+      const { error: parentError } = await supabase
+        .from('parents')
+        .insert({
+          id: userId,
+          email: parentEmail,
+          name: parentName,
+          phone: parentPhone,
+          stripe_customer_id: typeof session.customer === 'string' ? session.customer : session.customer?.id || null
+        })
+
+      if (parentError) {
+        console.error('Failed to create parent:', parentError)
+        throw new Error(`Failed to create parent: ${parentError.message}`)
+      }
+      console.log('Created parent record')
+    }
 
     // STEP 3: Create students and enrollments
     const enrollmentIds = []
@@ -457,20 +493,37 @@ Deno.serve(async (req) => {
     return new Response('ok', { headers: corsHeaders })
   }
 
-  const sig = req.headers.get('Stripe-Signature')!
+  console.log('Webhook received from Stripe')
+
+  const sig = req.headers.get('Stripe-Signature')
   const body = await req.text()
+
+  if (!sig) {
+    console.error('No Stripe-Signature header found')
+    return new Response('No signature header', { status: 400, headers: corsHeaders })
+  }
+
+  const webhookSecret = Deno.env.get('STRIPE_WEBHOOK_SIGNING_SECRET')
+  if (!webhookSecret) {
+    console.error('STRIPE_WEBHOOK_SIGNING_SECRET not configured')
+    return new Response('Webhook secret not configured', { status: 500, headers: corsHeaders })
+  }
+
+  console.log('Verifying webhook signature...')
   let event: Stripe.Event
 
   try {
     event = await stripe.webhooks.constructEventAsync(
       body,
       sig,
-      Deno.env.get('STRIPE_WEBHOOK_SIGNING_SECRET')!,
+      webhookSecret,
       undefined,
       cryptoProvider
     )
+    console.log('Webhook signature verified successfully')
   } catch (err) {
-    return new Response((err as Error).message, { status: 400, headers: corsHeaders })
+    console.error('Webhook signature verification failed:', (err as Error).message)
+    return new Response(`Webhook Error: ${(err as Error).message}`, { status: 400, headers: corsHeaders })
   }
 
   if (event.type === 'checkout.session.completed') {
@@ -480,8 +533,14 @@ Deno.serve(async (req) => {
     // Check if this is a first-time guest enrollment
     if (metadata.first_time === 'true') {
       console.log('Processing FIRST-TIME guest enrollment')
-      await handleFirstTimeEnrollment(session)
-      return new Response(JSON.stringify({ ok: true }), { status: 200, headers: corsHeaders })
+      try {
+        await handleFirstTimeEnrollment(session)
+        console.log('First-time enrollment completed successfully')
+        return new Response(JSON.stringify({ ok: true, message: 'Enrollment processed' }), { status: 200, headers: corsHeaders })
+      } catch (enrollmentError) {
+        console.error('FATAL: First-time enrollment failed:', enrollmentError)
+        return new Response(JSON.stringify({ error: (enrollmentError as Error).message }), { status: 500, headers: corsHeaders })
+      }
     }
 
     // Existing customer flow (from portal)
