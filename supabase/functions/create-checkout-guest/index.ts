@@ -59,6 +59,9 @@ Deno.serve(async (req) => {
       mode: 'payment' as const,
       line_items,
       customer_email: parent_email,
+      payment_intent_data: {
+        setup_future_usage: 'off_session', // Save payment method for future charges
+      },
       metadata: {
         parent_email,
         parent_name,
