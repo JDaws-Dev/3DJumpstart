@@ -445,7 +445,18 @@ async function handleFirstTimeEnrollment(session: Stripe.Checkout.Session) {
   }
 }
 
+const corsHeaders = {
+  'Access-Control-Allow-Origin': '*',
+  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type, stripe-signature',
+  'Access-Control-Allow-Methods': 'POST, OPTIONS'
+}
+
 Deno.serve(async (req) => {
+  // Handle CORS preflight
+  if (req.method === 'OPTIONS') {
+    return new Response('ok', { headers: corsHeaders })
+  }
+
   const sig = req.headers.get('Stripe-Signature')!
   const body = await req.text()
   let event: Stripe.Event
@@ -459,7 +470,7 @@ Deno.serve(async (req) => {
       cryptoProvider
     )
   } catch (err) {
-    return new Response((err as Error).message, { status: 400 })
+    return new Response((err as Error).message, { status: 400, headers: corsHeaders })
   }
 
   if (event.type === 'checkout.session.completed') {
@@ -470,7 +481,7 @@ Deno.serve(async (req) => {
     if (metadata.first_time === 'true') {
       console.log('Processing FIRST-TIME guest enrollment')
       await handleFirstTimeEnrollment(session)
-      return new Response(JSON.stringify({ ok: true }), { status: 200 })
+      return new Response(JSON.stringify({ ok: true }), { status: 200, headers: corsHeaders })
     }
 
     // Existing customer flow (from portal)
@@ -619,9 +630,9 @@ Deno.serve(async (req) => {
 
     } catch (err) {
       console.error('Error processing webhook:', err)
-      return new Response(JSON.stringify({ error: (err as Error).message }), { status: 500 })
+      return new Response(JSON.stringify({ error: (err as Error).message }), { status: 500, headers: corsHeaders })
     }
   }
 
-  return new Response(JSON.stringify({ ok: true }), { status: 200 })
+  return new Response(JSON.stringify({ ok: true }), { status: 200, headers: corsHeaders })
 })
