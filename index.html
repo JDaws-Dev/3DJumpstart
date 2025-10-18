@@ -447,6 +447,26 @@
             .hero-content div[style*="flex-wrap: wrap"] span {
                 font-size: 0.8rem !important;
             }
+
+            /* Social proof stats - stack on mobile */
+            section[style*="background: linear-gradient(135deg, #fed7aa"] div[style*="grid-template-columns: repeat(3, 1fr)"] {
+                grid-template-columns: 1fr !important;
+                gap: 2rem !important;
+            }
+
+            /* Guarantee section - stack on mobile */
+            section[style*="background: linear-gradient(135deg, #ecfdf5"] div[style*="grid-template-columns: repeat(3, 1fr)"] {
+                grid-template-columns: 1fr !important;
+                gap: 1.5rem !important;
+            }
+
+            section[style*="background: linear-gradient(135deg, #ecfdf5"] h2 {
+                font-size: 1.75rem !important;
+            }
+
+            section[style*="background: linear-gradient(135deg, #ecfdf5"] > div > div {
+                padding: 2rem 1.5rem !important;
+            }
         }
 
         .feature-card {
@@ -938,6 +958,29 @@
         }
     </style>
 
+    <!-- Social Proof Stats -->
+    <section class="section" style="background: linear-gradient(135deg, #fed7aa 0%, #ffffff 100%); padding: 3rem 0;">
+        <div class="container">
+            <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 3rem; max-width: 900px; margin: 0 auto;">
+                <div style="text-align: center;">
+                    <div style="font-size: 3rem; font-weight: 800; color: #ea580c; margin-bottom: 0.5rem;">50+</div>
+                    <p style="font-size: 1.125rem; color: #374151; font-weight: 600; margin: 0;">Students Taught</p>
+                    <p style="font-size: 0.875rem; color: #6b7280; margin-top: 0.25rem;">Since 2023</p>
+                </div>
+                <div style="text-align: center;">
+                    <div style="font-size: 3rem; font-weight: 800; color: #ea580c; margin-bottom: 0.5rem;">100%</div>
+                    <p style="font-size: 1.125rem; color: #374151; font-weight: 600; margin: 0;">Money-Back</p>
+                    <p style="font-size: 0.875rem; color: #6b7280; margin-top: 0.25rem;">Guarantee</p>
+                </div>
+                <div style="text-align: center;">
+                    <div style="font-size: 3rem; font-weight: 800; color: #ea580c; margin-bottom: 0.5rem;">$40</div>
+                    <p style="font-size: 1.125rem; color: #374151; font-weight: 600; margin: 0;">Per Week</p>
+                    <p style="font-size: 0.875rem; color: #6b7280; margin-top: 0.25rem;">No contracts</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
     <!-- Local Testimonials Section -->
     <section class="section" style="background: #f0fdf4; padding: 3rem 0;">
         <div class="container">
@@ -1279,6 +1322,46 @@
                         Rolling enrollment - start anytime
                     </p>
                 </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Risk Reversal Guarantee Section -->
+    <section class="section" style="background: linear-gradient(135deg, #ecfdf5 0%, #d1fae5 100%); padding: 4rem 0;">
+        <div class="container">
+            <div style="max-width: 800px; margin: 0 auto; text-align: center; background: white; padding: 3rem; border-radius: 1rem; box-shadow: 0 10px 25px -5px rgba(0,0,0,0.1); border: 3px solid #059669;">
+                <div style="font-size: 4rem; margin-bottom: 1rem;">🛡️</div>
+                <h2 style="font-size: 2.5rem; font-weight: 800; color: #111827; margin-bottom: 1rem;">
+                    Our Promise to You
+                </h2>
+                <div style="background: #ecfdf5; border: 2px solid #059669; border-radius: 0.75rem; padding: 2rem; margin-bottom: 1.5rem;">
+                    <p style="font-size: 1.375rem; font-weight: 700; color: #059669; margin-bottom: 1rem; line-height: 1.4;">
+                        Try the first class 100% risk-free
+                    </p>
+                    <p style="font-size: 1.125rem; color: #047857; line-height: 1.6; margin: 0;">
+                        If your child doesn't absolutely love their first class, we'll refund you in full. No questions asked. No hassle. No fine print.
+                    </p>
+                </div>
+                <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 2rem; margin-top: 2rem;">
+                    <div>
+                        <div style="font-size: 2.5rem; margin-bottom: 0.5rem;">✓</div>
+                        <p style="font-size: 0.95rem; color: #374151; font-weight: 600;">Full Refund</p>
+                        <p style="font-size: 0.875rem; color: #6b7280;">100% money back</p>
+                    </div>
+                    <div>
+                        <div style="font-size: 2.5rem; margin-bottom: 0.5rem;">✓</div>
+                        <p style="font-size: 0.95rem; color: #374151; font-weight: 600;">No Questions</p>
+                        <p style="font-size: 0.875rem; color: #6b7280;">Simple process</p>
+                    </div>
+                    <div>
+                        <div style="font-size: 2.5rem; margin-bottom: 0.5rem;">✓</div>
+                        <p style="font-size: 0.95rem; color: #374151; font-weight: 600;">Zero Risk</p>
+                        <p style="font-size: 0.875rem; color: #6b7280;">Try with confidence</p>
+                    </div>
+                </div>
+                <a href="login.html" class="btn btn-primary" style="font-size: 1.125rem; padding: 1rem 2rem; margin-top: 2rem;">
+                    Reserve Your Child's Spot Now →
+                </a>
             </div>
         </div>
     </section>
