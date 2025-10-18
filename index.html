@@ -607,12 +607,18 @@
         .instructor-image {
             position: relative;
             min-width: 0;
+            overflow: hidden;
+            border-radius: 1rem;
         }
 
         .instructor-image img {
-            width: 100%;
+            width: 180%;
+            height: auto;
             border-radius: 1rem;
             box-shadow: 0 25px 50px -12px rgba(0,0,0,0.25);
+            object-fit: cover;
+            object-position: left center;
+            margin-left: -30%;
         }
 
         .instructor-badge {
