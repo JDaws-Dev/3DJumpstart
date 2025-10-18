@@ -13,7 +13,7 @@
 
     <!-- Open Graph for Facebook/LinkedIn -->
     <meta property="og:title" content="3D Jumpstart - Professional 3D Design Classes | Suwanee, Georgia">
-    <meta property="og:description" content="Saturday morning and Monday evening 3D design classes for students grades 4-12 in Suwanee. Learn Fusion360 CAD software. $40/week, no contracts.">
+    <meta property="og:description" content="In-person 3D design classes in Suwanee, GA for North Gwinnett students grades 4-12. Saturday mornings & Monday evenings. $40/week, no contracts.">
     <meta property="og:image" content="https://3djumpstart.com/3d-jumpstart-social-thumbnail.jpg">
     <meta property="og:image:width" content="1200">
     <meta property="og:image:height" content="630">
@@ -25,7 +25,7 @@
     <!-- Twitter Cards -->
     <meta name="twitter:card" content="summary_large_image">
     <meta name="twitter:title" content="3D Jumpstart - Professional 3D Design Classes">
-    <meta name="twitter:description" content="Saturday morning and Monday evening 3D design classes for students grades 4-12. Learn Fusion360 CAD software. $40/week, no contracts.">
+    <meta name="twitter:description" content="In-person 3D design classes in Suwanee, GA for North Gwinnett students grades 4-12. Saturday mornings & Monday evenings. $40/week, no contracts.">
     <meta name="twitter:image" content="https://3djumpstart.com/3d-jumpstart-social-thumbnail.jpg">
 
     
@@ -419,6 +419,24 @@
             /* Stack schedule times on mobile */
             div[style*="grid-template-columns: repeat(3, 1fr)"] {
                 grid-template-columns: 1fr !important;
+            }
+
+            /* Stack testimonials on mobile */
+            section[style*="background: #f0fdf4"] div[style*="grid-template-columns: repeat(2, 1fr)"] {
+                grid-template-columns: 1fr !important;
+            }
+
+            /* Key info box - better mobile spacing */
+            .hero-content > div[style*="max-width: 750px"] {
+                padding: 1.5rem 1rem !important;
+            }
+
+            .hero-content > div[style*="max-width: 750px"] p {
+                font-size: 0.95rem !important;
+            }
+
+            .hero-content > div[style*="max-width: 750px"] p span[style*="font-size: 2rem"] {
+                font-size: 1.75rem !important;
             }
         }
 
@@ -816,7 +834,7 @@
                         <li><a href="#instructor">Instructor</a></li>
                         <li><a href="#pricing">Pricing</a></li>
                         <li><a href="#faq">FAQ</a></li>
-                        <li><a href="login.html" class="btn btn-primary">Parent Login / Sign Up</a></li>
+                        <li><a href="login.html" class="btn btn-primary">Reserve Spot</a></li>
                     </ul>
                     
                     <button class="mobile-menu-toggle" onclick="toggleMobileMenu()">☰</button>
@@ -827,7 +845,7 @@
                         <a href="#instructor" onclick="closeMobileMenu()">Instructor</a>
                         <a href="#pricing" onclick="closeMobileMenu()">Pricing</a>
                         <a href="#faq" onclick="closeMobileMenu()">FAQ</a>
-                        <a href="login.html" class="btn btn-primary" style="margin-top: 0.5rem;">Sign Up / Login</a>
+                        <a href="login.html" class="btn btn-primary" style="margin-top: 0.5rem;">Reserve Spot</a>
                     </div>
                 </nav>
             </div>
@@ -839,64 +857,50 @@
         <div class="container">
             <div class="hero-content" style="max-width: 1000px; margin: 0 auto;">
                 <div class="hero-badge">
-                    The Only Program Like This in North Gwinnett
+                    🏫 Local In-Person Classes in Suwanee, GA — Serving North Gwinnett Students
                 </div>
 
-                <h1 style="margin-bottom: 1.5rem;">
+                <h1 style="margin-bottom: 2rem;">
                     Learn to 3D Design & 3D Print<br>
                     <span class="hero-highlight">Hands-On Classes for Students</span>
                 </h1>
 
-                <!-- Video Hero -->
-                <div style="max-width: 900px; margin: 2rem auto; position: relative; border-radius: 1rem; overflow: hidden; box-shadow: 0 25px 50px -12px rgba(0,0,0,0.25);">
-                    <div style="position: relative; padding-bottom: 56.25%; height: 0;">
-                        <iframe
-                            style="position: absolute; top: 0; left: 0; width: 100%; height: 100%;"
-                            src="https://www.youtube.com/embed/FTib2OkXpBA?autoplay=1&mute=1&loop=1&playlist=FTib2OkXpBA&rel=0&modestbranding=1&controls=0"
-                            frameborder="0"
-                            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                            allowfullscreen>
-                        </iframe>
+                <!-- Key Info Box -->
+                <div style="max-width: 750px; margin: 0 auto 2.5rem; background: white; padding: 2rem; border-radius: 1rem; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1); border: 2px solid #e5e7eb;">
+                    <p style="font-size: 1.5rem; color: #111827; margin-bottom: 1rem; font-weight: 700; text-align: center;">
+                        <span style="color: #ea580c; font-size: 2rem;">$40/week</span> • No contracts • Pay as you go
+                    </p>
+                    <p style="font-size: 1.125rem; color: #374151; margin-bottom: 1rem; text-align: center; font-weight: 600;">
+                        📍 In-Person Classes in Suwanee, GA
+                    </p>
+                    <p style="font-size: 1rem; color: #6b7280; margin-bottom: 1.5rem; text-align: center;">
+                        Saturday OR Monday classes • Grades 4-12 • Max 10 students per class
+                    </p>
+
+                    <!-- Trust Badges Inline -->
+                    <div style="display: flex; justify-content: center; gap: 2rem; flex-wrap: wrap; padding-top: 1rem; border-top: 1px solid #e5e7eb;">
+                        <div style="display: flex; align-items: center; gap: 0.5rem;">
+                            <span style="color: #059669; font-size: 1.25rem;">✓</span>
+                            <span style="font-size: 0.875rem; color: #374151; font-weight: 500;">Money-Back Guarantee</span>
+                        </div>
+                        <div style="display: flex; align-items: center; gap: 0.5rem;">
+                            <span style="color: #059669; font-size: 1.25rem;">✓</span>
+                            <span style="font-size: 0.875rem; color: #374151; font-weight: 500;">No Contracts</span>
+                        </div>
+                        <div style="display: flex; align-items: center; gap: 0.5rem;">
+                            <span style="color: #059669; font-size: 1.25rem;">✓</span>
+                            <span style="font-size: 0.875rem; color: #374151; font-weight: 500;">Cancel Anytime</span>
+                        </div>
                     </div>
                 </div>
 
-                <p style="font-size: 1.25rem; color: #374151; margin-bottom: 1.5rem; line-height: 1.6; max-width: 700px; margin-left: auto; margin-right: auto;">
-                    Learn professional 3D modeling and printing. Turn your ideas into real objects you can hold.
-                </p>
-
-                <p style="font-size: 1.5rem; color: #111827; margin-bottom: 0.5rem; font-weight: 700;">
-                    <span style="color: #ea580c; font-size: 2rem;">$40/week</span> • No contracts • Pay as you go
-                </p>
-                <p style="font-size: 1rem; color: #6b7280; margin-bottom: 1rem;">
-                    Saturday mornings & Monday evenings • Grades 4-12 • Suwanee, GA
-                </p>
-                <p style="font-size: 0.95rem; color: #dc2626; font-weight: 600; margin-bottom: 2rem;">
-                    ⚠️ Limited to 10 students per class
-                </p>
-
                 <div class="hero-actions">
                     <a href="login.html" class="btn btn-primary" style="font-size: 1.125rem; padding: 1rem 2rem;">
-                        Browse Available Times & Sign Up
+                        Reserve Your Child's Spot →
                     </a>
                     <a href="#projects" class="btn btn-outline">
                         See Student Projects ↓
                     </a>
-                </div>
-
-                <!-- Process indicators -->
-                <div style="display: flex; justify-content: center; gap: 2rem; margin-top: 1.5rem; flex-wrap: wrap;">
-                    <div style="display: flex; align-items: center; gap: 0.5rem; color: #6b7280; font-size: 0.95rem;">
-                        <span style="background: #dbeafe; color: #1e40af; border-radius: 50%; width: 24px; height: 24px; display: inline-flex; align-items: center; justify-content: center; font-weight: 600; font-size: 0.875rem;">1</span>
-                        Create free account
-                    </div>
-                    <div style="display: flex; align-items: center; gap: 0.5rem; color: #6b7280; font-size: 0.95rem;">
-                        <span style="background: #dbeafe; color: #1e40af; border-radius: 50%; width: 24px; height: 24px; display: inline-flex; align-items: center; justify-content: center; font-weight: 600; font-size: 0.875rem;">2</span>
-                        Browse availability
-                    </div>
-                    <div style="display: flex; align-items: center; gap: 0.5rem; color: #6b7280; font-size: 0.95rem;">
-                        <span style="background: #dbeafe; color: #1e40af; border-radius: 50%; width: 24px; height: 24px; display: inline-flex; align-items: center; justify-content: center; font-weight: 600; font-size: 0.875rem;">3</span>
-                        Complete enrollment
-                    </div>
                 </div>
 
                 <!-- Scroll indicator -->
@@ -924,6 +928,56 @@
             }
         }
     </style>
+
+    <!-- Local Testimonials Section -->
+    <section class="section" style="background: #f0fdf4; padding: 3rem 0;">
+        <div class="container">
+            <h3 style="text-align: center; font-size: 1.75rem; color: #111827; margin-bottom: 1rem; font-weight: 700;">
+                What North Gwinnett Parents Are Saying
+            </h3>
+            <p style="text-align: center; color: #6b7280; margin-bottom: 2rem; font-size: 1rem;">
+                Real feedback from local families in Suwanee, Buford, and Duluth
+            </p>
+            <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 2rem; max-width: 900px; margin: 0 auto 3rem;">
+                <div class="card" style="background: white;">
+                    <div style="color: #fbbf24; font-size: 1.25rem; margin-bottom: 0.75rem;">★★★★★</div>
+                    <p style="color: #374151; line-height: 1.6; margin-bottom: 1rem; font-style: italic;">
+                        "James is constantly designing new things. He'll spend hours working on his projects and can't wait to show us what he's created."
+                    </p>
+                    <p style="color: #6b7280; font-size: 0.875rem; font-weight: 600;">
+                        — Mary F., Suwanee
+                    </p>
+                </div>
+                <div class="card" style="background: white;">
+                    <div style="color: #fbbf24; font-size: 1.25rem; margin-bottom: 0.75rem;">★★★★★</div>
+                    <p style="color: #374151; line-height: 1.6; margin-bottom: 1rem; font-style: italic;">
+                        "I'm so excited to see Ruth developing real STEM skills. She's designing things I never imagined she could create at her age!"
+                    </p>
+                    <p style="color: #6b7280; font-size: 0.875rem; font-weight: 600;">
+                        — Jennifer K., Cumming
+                    </p>
+                </div>
+                <div class="card" style="background: white;">
+                    <div style="color: #fbbf24; font-size: 1.25rem; margin-bottom: 0.75rem;">★★★★★</div>
+                    <p style="color: #374151; line-height: 1.6; margin-bottom: 1rem; font-style: italic;">
+                        "Levi never spends much time on homework, but he spent 3 hours designing a lightsaber in Fusion360. Finally found something he's genuinely passionate about!"
+                    </p>
+                    <p style="color: #6b7280; font-size: 0.875rem; font-weight: 600;">
+                        — Sarah, Buford
+                    </p>
+                </div>
+                <div class="card" style="background: white;">
+                    <div style="color: #fbbf24; font-size: 1.25rem; margin-bottom: 0.75rem;">★★★★★</div>
+                    <p style="color: #374151; line-height: 1.6; margin-bottom: 1rem; font-style: italic;">
+                        "We bought Grayson a 3D printer that just collected dust. Now he's designing and printing his own original creations all the time!"
+                    </p>
+                    <p style="color: #6b7280; font-size: 0.875rem; font-weight: 600;">
+                        — Rachel M., Sugar Hill
+                    </p>
+                </div>
+            </div>
+        </div>
+    </section>
 
     <!-- Value Comparison Section -->
     <section class="section" style="background: #fff9f5; padding: 3rem 0;">
@@ -992,6 +1046,19 @@
             <p class="section-subtitle">
                 Professional CAD software. Real 3D printing. Small classes. Portfolio projects.
             </p>
+
+            <!-- Video -->
+            <div style="max-width: 800px; margin: 0 auto 3rem; position: relative; border-radius: 1rem; overflow: hidden; box-shadow: 0 25px 50px -12px rgba(0,0,0,0.25);">
+                <div style="position: relative; padding-bottom: 56.25%; height: 0;">
+                    <iframe
+                        style="position: absolute; top: 0; left: 0; width: 100%; height: 100%;"
+                        src="https://www.youtube.com/embed/FTib2OkXpBA?autoplay=1&mute=1&loop=1&playlist=FTib2OkXpBA&rel=0&modestbranding=1"
+                        frameborder="0"
+                        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                        allowfullscreen>
+                    </iframe>
+                </div>
+            </div>
 
             <div class="feature-grid">
                 <div class="feature-card">
@@ -1189,7 +1256,7 @@
                         <li style="padding: 0.5rem 0; color: #374151;">✓ Learn to operate your own 3D printer</li>
                     </ul>
                     <a href="login.html" class="btn btn-primary" style="width: 100%; margin-bottom: 1rem;">
-                        Browse Available Times & Sign Up
+                        Reserve Your Child's Spot Now →
                     </a>
                     <div style="background: #ecfdf5; border: 2px solid #059669; border-radius: 0.5rem; padding: 1rem; margin-top: 1rem;">
                         <p style="color: #059669; font-weight: 600; font-size: 0.95rem; margin: 0;">
@@ -1200,7 +1267,7 @@
                         </p>
                     </div>
                     <p style="color: #6b7280; font-size: 0.875rem; margin: 1rem 0 0 0;">
-                        Next session starts October 25th
+                        Rolling enrollment - start anytime
                     </p>
                 </div>
             </div>
@@ -1220,7 +1287,7 @@
                         <h3 style="color: #ea580c; font-size: 1.25rem; margin-bottom: 0.5rem;">9:30-10:30 AM</h3>
                         <p style="color: #374151; margin-bottom: 1rem;">Grades 4-7</p>
                         <div class="btn btn-outline" style="display: inline-block; padding: 0.5rem 1rem; font-size: 0.875rem;">
-                            Enroll in This Time →
+                            Reserve This Time →
                         </div>
                     </a>
 
@@ -1228,7 +1295,7 @@
                         <h3 style="color: #ea580c; font-size: 1.25rem; margin-bottom: 0.5rem;">10:30-11:30 AM</h3>
                         <p style="color: #374151; margin-bottom: 1rem;">Grades 8-12</p>
                         <div class="btn btn-outline" style="display: inline-block; padding: 0.5rem 1rem; font-size: 0.875rem;">
-                            Enroll in This Time →
+                            Reserve This Time →
                         </div>
                     </a>
                 </div>
@@ -1243,7 +1310,7 @@
                         <h3 style="color: #ea580c; font-size: 1.25rem; margin-bottom: 0.5rem;">4:30-5:30 PM</h3>
                         <p style="color: #374151; margin-bottom: 1rem;">Grades 4-7</p>
                         <div class="btn btn-outline" style="display: inline-block; padding: 0.5rem 1rem; font-size: 0.875rem;">
-                            Enroll in This Time →
+                            Reserve This Time →
                         </div>
                     </a>
 
@@ -1251,16 +1318,22 @@
                         <h3 style="color: #ea580c; font-size: 1.25rem; margin-bottom: 0.5rem;">5:30-6:30 PM</h3>
                         <p style="color: #374151; margin-bottom: 1rem;">Grades 8-12</p>
                         <div class="btn btn-outline" style="display: inline-block; padding: 0.5rem 1rem; font-size: 0.875rem;">
-                            Enroll in This Time →
+                            Reserve This Time →
                         </div>
                     </a>
                 </div>
             </div>
 
             <div style="text-align: center; margin-top: 2rem;">
-                <p style="color: #6b7280; font-size: 1rem;">
-                    <strong>Location:</strong> Suwanee, GA
-                </p>
+                <div class="card" style="max-width: 600px; margin: 0 auto; background: linear-gradient(135deg, #fef3c7 0%, #fed7aa 100%); border: 2px solid #ea580c;">
+                    <p style="color: #111827; font-size: 1.125rem; font-weight: 700; margin-bottom: 0.5rem;">
+                        📍 In-Person Classes Held in North Suwanee
+                    </p>
+                    <p style="color: #374151; font-size: 0.95rem; margin: 0;">
+                        Exact address sent via email after enrollment for safety.<br>
+                        <span style="font-weight: 600;">Easily accessible from Suwanee, Buford, Duluth, Cumming, Sugar Hill, and Johns Creek</span>
+                    </p>
+                </div>
             </div>
         </div>
     </section>
@@ -1400,12 +1473,12 @@
                 Ready to Get Started?
             </h2>
             <p style="font-size: 1.25rem; margin-bottom: 3rem; color: rgba(255, 255, 255, 0.9);">
-                Next session starts October 25th • $40/week
+                Rolling enrollment - start anytime • $40/week
             </p>
 
             <div style="display: flex; flex-direction: column; gap: 1rem; align-items: center; margin-bottom: 2rem;">
                 <a href="login.html" class="btn" style="background: white; color: #ea580c; font-size: 1.125rem; padding: 1rem 2rem; border: none;">
-                    Browse Available Times & Sign Up
+                    Reserve Your Child's Spot →
                 </a>
                 <p style="color: rgba(255, 255, 255, 0.9); font-size: 0.95rem; margin: 0;">
                     Takes 2 minutes • No payment required to browse availability
@@ -1431,7 +1504,7 @@
                 <div style="display: flex; align-items: center; justify-content: center; gap: 0.75rem; margin-bottom: 1rem;">
                     <img src="https://raw.githubusercontent.com/JDaws-Dev/3DJumpstart/main/3d-jumpstart-logo.png" alt="3D Jumpstart Logo" style="height: 10rem; width: auto;">
                 </div>
-                <p style="color: #6b7280; margin-bottom: 0.5rem;">Professional 3D Design & 3D Printing Education • North Gwinnett Area</p>
+                <p style="color: #6b7280; margin-bottom: 0.5rem;">In-Person 3D Design & 3D Printing Classes • Suwanee, GA • Serving North Gwinnett</p>
                 <p style="color: #9ca3af; font-size: 0.875rem;">© 2025 3D Jumpstart. All rights reserved.</p>
             </div>
         </div>
