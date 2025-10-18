@@ -32,17 +32,17 @@ async function sendConfirmationEmail(parentEmail: string, studentNames: string[]
   // Add password setup section for first-time users
   const passwordSection = passwordResetLink ? `
     <div style="background: #eff6ff; border-left: 4px solid #3b82f6; padding: 20px; margin: 20px 0; border-radius: 4px;">
-      <h2 style="color: #1e40af; font-size: 18px; margin-top: 0; margin-bottom: 10px;">🔐 Access Your Parent Portal</h2>
+      <h2 style="color: #1e40af; font-size: 18px; margin-top: 0; margin-bottom: 10px;">🔐 Set Up Your Password</h2>
       <p style="margin: 0 0 15px 0; color: #1e3a8a; font-size: 15px; line-height: 1.6;">
-        <strong>For your first login:</strong> Click the button below and you'll be automatically logged in. Save this link to access your portal anytime!
+        Click the button below to create your password and access your Parent Portal:
       </p>
       <div style="text-align: center; margin: 20px 0;">
         <a href="${passwordResetLink}" style="display: inline-block; background: #3b82f6; color: white; padding: 14px 32px; border-radius: 8px; text-decoration: none; font-weight: 600; font-size: 16px;">
-          Access Parent Portal Now
+          Create Password & Access Portal
         </a>
       </div>
       <p style="margin: 15px 0 0 0; color: #1e3a8a; font-size: 14px; line-height: 1.6;">
-        <strong>For future logins:</strong> Go to <a href="https://3djumpstart.com/portal.html" style="color: #ea580c; text-decoration: underline;">3djumpstart.com/portal</a> and click "Forgot Password" to receive a login link via email.
+        Once you set your password, you can log in anytime at <a href="https://3djumpstart.com/portal.html" style="color: #ea580c; text-decoration: underline;">3djumpstart.com/portal</a>
       </p>
     </div>
   ` : '';
@@ -494,19 +494,17 @@ async function handleFirstTimeEnrollment(session: Stripe.Checkout.Session) {
     // STEP 4: Generate magic link for new users to set password
     let passwordResetLink: string | undefined = undefined
     if (isNewUser) {
-      // Use 'magiclink' type which will prompt for password setup
+      // Generate magic link that redirects to password setup page
       const { data: linkData, error: linkError } = await supabase.auth.admin.generateLink({
         type: 'magiclink',
         email: parentEmail,
         options: {
-          redirectTo: 'https://3djumpstart.com/portal.html?setup=true'
+          redirectTo: 'https://3djumpstart.com/set-password.html'
         }
       })
 
       if (linkError) {
         console.error('Failed to generate magic link:', linkError)
-        // Fallback: provide portal URL with password reset instructions
-        passwordResetLink = 'https://3djumpstart.com/reset-password.html'
       } else {
         passwordResetLink = linkData.properties.action_link
         console.log('Generated magic link for new user')
