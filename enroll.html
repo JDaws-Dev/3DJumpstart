@@ -1,0 +1,1239 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Enroll Your Child - 3D Jumpstart</title>
+
+    <!-- Facebook Pixel Code -->
+    <script>
+    !function(f,b,e,v,n,t,s)
+    {if(f.fbq)return;n=f.fbq=function(){n.callMethod?
+    n.callMethod.apply(n,arguments):n.queue.push(arguments)};
+    if(!f._fbq)f._fbq=n;n.push=n;n.loaded=!0;n.version='2.0';
+    n.queue=[];t=b.createElement(e);t.async=!0;
+    t.src=v;s=b.getElementsByTagName(e)[0];
+    s.parentNode.insertBefore(t,s)}(window, document,'script',
+    'https://connect.facebook.net/en_US/fbevents.js');
+    fbq('init', '706593848457946');
+    fbq('track', 'PageView');
+    </script>
+    <noscript><img height="1" width="1" style="display:none"
+    src="https://www.facebook.com/tr?id=706593848457946&ev=PageView&noscript=1"
+    /></noscript>
+    <!-- End Facebook Pixel Code -->
+
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.39.3/dist/umd/supabase.min.js"></script>
+    <script src="https://js.stripe.com/v3/"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
+            line-height: 1.6;
+            color: #111827;
+            background: linear-gradient(135deg, #fed7aa 0%, #ffffff 50%, #fed7aa 100%);
+            min-height: 100vh;
+            padding: 2rem 1rem;
+        }
+
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 2rem;
+        }
+
+        .logo-image {
+            height: 6rem;
+            width: auto;
+            margin-bottom: 1rem;
+        }
+
+        .header h1 {
+            font-size: 2rem;
+            font-weight: 800;
+            color: #111827;
+            margin-bottom: 0.5rem;
+        }
+
+        .header p {
+            font-size: 1.125rem;
+            color: #6b7280;
+        }
+
+        .progress-bar {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 3rem;
+            position: relative;
+        }
+
+        .progress-bar::before {
+            content: '';
+            position: absolute;
+            top: 1.5rem;
+            left: 0;
+            right: 0;
+            height: 2px;
+            background: #e5e7eb;
+            z-index: 0;
+        }
+
+        .progress-step {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 0.5rem;
+            position: relative;
+            z-index: 1;
+            flex: 1;
+        }
+
+        .progress-circle {
+            width: 3rem;
+            height: 3rem;
+            border-radius: 50%;
+            background: white;
+            border: 3px solid #e5e7eb;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 700;
+            color: #9ca3af;
+            transition: all 0.3s;
+        }
+
+        .progress-step.active .progress-circle {
+            background: linear-gradient(135deg, #ea580c 0%, #dc2626 100%);
+            border-color: #ea580c;
+            color: white;
+        }
+
+        .progress-step.completed .progress-circle {
+            background: #059669;
+            border-color: #059669;
+            color: white;
+        }
+
+        .progress-label {
+            font-size: 0.875rem;
+            color: #6b7280;
+            font-weight: 500;
+            text-align: center;
+        }
+
+        .progress-step.active .progress-label {
+            color: #ea580c;
+            font-weight: 600;
+        }
+
+        .enrollment-card {
+            background: white;
+            border-radius: 1.5rem;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+            padding: 3rem;
+            margin-bottom: 2rem;
+        }
+
+        .step {
+            display: none;
+        }
+
+        .step.active {
+            display: block;
+            animation: fadeIn 0.3s ease;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .step-title {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: #111827;
+            margin-bottom: 1rem;
+        }
+
+        .step-subtitle {
+            font-size: 1rem;
+            color: #6b7280;
+            margin-bottom: 2rem;
+        }
+
+        .form-group {
+            margin-bottom: 1.5rem;
+        }
+
+        .form-label {
+            display: block;
+            font-weight: 600;
+            color: #374151;
+            margin-bottom: 0.5rem;
+            font-size: 0.875rem;
+        }
+
+        .form-input, .form-select {
+            width: 100%;
+            padding: 0.875rem;
+            border: 2px solid #e5e7eb;
+            border-radius: 0.5rem;
+            font-size: 1rem;
+            transition: all 0.2s;
+            font-family: inherit;
+        }
+
+        .form-input:focus, .form-select:focus {
+            outline: none;
+            border-color: #ea580c;
+            box-shadow: 0 0 0 3px rgba(234, 88, 12, 0.1);
+        }
+
+        .time-slot-grid {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 1rem;
+            margin-bottom: 2rem;
+        }
+
+        .time-slot-card {
+            border: 2px solid #e5e7eb;
+            border-radius: 1rem;
+            padding: 1.5rem;
+            cursor: pointer;
+            transition: all 0.2s;
+            position: relative;
+        }
+
+        .time-slot-card:hover {
+            border-color: #fed7aa;
+            transform: translateY(-2px);
+        }
+
+        .time-slot-card.selected {
+            border-color: #ea580c;
+            background: linear-gradient(135deg, #fff7ed 0%, #ffedd5 100%);
+        }
+
+        .time-slot-card input[type="radio"] {
+            position: absolute;
+            opacity: 0;
+        }
+
+        .time-slot-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 0.5rem;
+        }
+
+        .time-slot-day {
+            font-size: 1.125rem;
+            font-weight: 700;
+            color: #111827;
+        }
+
+        .time-slot-time {
+            font-size: 1rem;
+            color: #ea580c;
+            font-weight: 600;
+        }
+
+        .time-slot-grade {
+            color: #6b7280;
+            font-size: 0.875rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .time-slot-spots {
+            display: inline-block;
+            background: #ecfdf5;
+            color: #059669;
+            padding: 0.25rem 0.75rem;
+            border-radius: 9999px;
+            font-size: 0.75rem;
+            font-weight: 600;
+        }
+
+        .time-slot-spots.limited {
+            background: #fef3c7;
+            color: #d97706;
+        }
+
+        .time-slot-spots.full {
+            background: #fef2f2;
+            color: #dc2626;
+        }
+
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
+            padding: 1rem 2rem;
+            border-radius: 0.5rem;
+            font-weight: 600;
+            text-decoration: none;
+            border: none;
+            cursor: pointer;
+            transition: all 0.2s;
+            font-size: 1rem;
+            width: 100%;
+            font-family: inherit;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #ea580c 0%, #dc2626 100%);
+            color: white;
+            box-shadow: 0 4px 6px -1px rgba(234, 88, 12, 0.25);
+        }
+
+        .btn-primary:hover:not(:disabled) {
+            transform: translateY(-1px);
+            box-shadow: 0 10px 15px -3px rgba(234, 88, 12, 0.25);
+        }
+
+        .btn-primary:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .btn-secondary {
+            background: white;
+            color: #6b7280;
+            border: 2px solid #e5e7eb;
+        }
+
+        .btn-secondary:hover {
+            background: #f9fafb;
+        }
+
+        .button-group {
+            display: flex;
+            gap: 1rem;
+            margin-top: 2rem;
+        }
+
+        .trust-badge {
+            background: #ecfdf5;
+            border: 2px solid #059669;
+            border-radius: 0.75rem;
+            padding: 1.5rem;
+            text-align: center;
+            margin-top: 2rem;
+        }
+
+        .trust-badge p {
+            color: #059669;
+            font-weight: 600;
+            margin: 0;
+        }
+
+        .summary-box {
+            background: #f9fafb;
+            border-radius: 1rem;
+            padding: 1.5rem;
+            margin-bottom: 2rem;
+        }
+
+        .summary-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: start;
+            padding: 0.75rem 0;
+            border-bottom: 1px solid #e5e7eb;
+        }
+
+        .summary-item:last-child {
+            border-bottom: none;
+        }
+
+        .summary-label {
+            font-weight: 600;
+            color: #6b7280;
+            font-size: 0.875rem;
+        }
+
+        .summary-value {
+            color: #111827;
+            font-weight: 600;
+            text-align: right;
+        }
+
+        .total-row {
+            border-top: 2px solid #e5e7eb;
+            padding-top: 1rem;
+            margin-top: 1rem;
+        }
+
+        .total-row .summary-label {
+            font-size: 1.125rem;
+            color: #111827;
+        }
+
+        .total-row .summary-value {
+            font-size: 1.5rem;
+            color: #ea580c;
+        }
+
+        .error-message {
+            background: #fef2f2;
+            border: 1px solid #fca5a5;
+            color: #dc2626;
+            padding: 1rem;
+            border-radius: 0.5rem;
+            margin-bottom: 1rem;
+            animation: slideIn 0.3s ease;
+        }
+
+        .back-link {
+            text-align: center;
+            margin-top: 2rem;
+        }
+
+        .back-link a {
+            color: #6b7280;
+            text-decoration: none;
+            font-size: 0.875rem;
+        }
+
+        .back-link a:hover {
+            color: #ea580c;
+            text-decoration: underline;
+        }
+
+        .student-list {
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+            margin-bottom: 2rem;
+        }
+
+        .student-card {
+            background: #f9fafb;
+            border: 2px solid #e5e7eb;
+            border-radius: 1rem;
+            padding: 1.5rem;
+            position: relative;
+        }
+
+        .student-card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: start;
+            margin-bottom: 1rem;
+        }
+
+        .student-card-title {
+            font-weight: 700;
+            color: #111827;
+            font-size: 1.125rem;
+        }
+
+        .student-card-remove {
+            background: #fef2f2;
+            color: #dc2626;
+            border: none;
+            padding: 0.5rem 1rem;
+            border-radius: 0.5rem;
+            font-size: 0.875rem;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.2s;
+        }
+
+        .student-card-remove:hover {
+            background: #fee2e2;
+        }
+
+        .student-card-info {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 0.75rem;
+        }
+
+        .student-card-field {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .student-card-field-label {
+            font-size: 0.75rem;
+            color: #6b7280;
+            font-weight: 600;
+            margin-bottom: 0.25rem;
+        }
+
+        .student-card-field-value {
+            color: #111827;
+            font-weight: 500;
+        }
+
+        .btn-add-child {
+            background: white;
+            color: #ea580c;
+            border: 2px dashed #ea580c;
+        }
+
+        .btn-add-child:hover {
+            background: #fff7ed;
+            border-color: #dc2626;
+        }
+
+        @media (max-width: 768px) {
+            body {
+                padding: 1rem 0.5rem;
+            }
+
+            .enrollment-card {
+                padding: 2rem 1.5rem;
+            }
+
+            .logo-image {
+                height: 4rem;
+            }
+
+            .header h1 {
+                font-size: 1.5rem;
+            }
+
+            .header p {
+                font-size: 1rem;
+            }
+
+            .progress-label {
+                font-size: 0.75rem;
+            }
+
+            .progress-circle {
+                width: 2.5rem;
+                height: 2.5rem;
+                font-size: 0.875rem;
+            }
+
+            .button-group {
+                flex-direction: column-reverse;
+            }
+
+            .step-title {
+                font-size: 1.25rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <img src="https://raw.githubusercontent.com/JDaws-Dev/3DJumpstart/main/3d-jumpstart-logo.png" alt="3D Jumpstart" class="logo-image">
+            <h1>Reserve Your Child's Spot</h1>
+            <p>Complete your enrollment in 3 easy steps</p>
+        </div>
+
+        <div class="progress-bar">
+            <div class="progress-step active" id="progress-1">
+                <div class="progress-circle">1</div>
+                <div class="progress-label">Parent Info</div>
+            </div>
+            <div class="progress-step" id="progress-2">
+                <div class="progress-circle">2</div>
+                <div class="progress-label">Add Students</div>
+            </div>
+            <div class="progress-step" id="progress-3">
+                <div class="progress-circle">3</div>
+                <div class="progress-label">Review & Pay</div>
+            </div>
+        </div>
+
+        <div class="enrollment-card">
+            <div id="error-container"></div>
+
+            <!-- Step 1: Parent Info -->
+            <div class="step active" id="step-1">
+                <h2 class="step-title">Parent Information</h2>
+                <p class="step-subtitle">Start by telling us about yourself</p>
+
+                <form id="parent-info-form">
+                    <div class="form-group">
+                        <label for="parent-name" class="form-label">Parent/Guardian Name *</label>
+                        <input type="text" id="parent-name" class="form-input" required placeholder="Your full name">
+                    </div>
+
+                    <div class="form-group">
+                        <label for="parent-email" class="form-label">Email Address *</label>
+                        <input type="email" id="parent-email" class="form-input" required placeholder="parent@example.com">
+                    </div>
+
+                    <div class="form-group">
+                        <label for="parent-phone" class="form-label">Phone Number *</label>
+                        <input type="tel" id="parent-phone" class="form-input" required placeholder="(555) 123-4567">
+                    </div>
+
+                    <div class="button-group">
+                        <button type="submit" class="btn btn-primary">Continue to Add Students →</button>
+                    </div>
+                </form>
+
+                <div class="trust-badge">
+                    <p>✓ First Class Satisfaction Guarantee - Full refund if they don't love it</p>
+                </div>
+            </div>
+
+            <!-- Step 2: Add Students -->
+            <div class="step" id="step-2">
+                <h2 class="step-title">Add Your Students</h2>
+                <p class="step-subtitle">Add one or more students and select their class times</p>
+
+                <!-- List of added students -->
+                <div class="student-list" id="student-list">
+                    <!-- Student cards will be added here dynamically -->
+                </div>
+
+                <!-- Add student form (initially visible) -->
+                <div id="add-student-section">
+                    <form id="student-form">
+                        <div class="form-group">
+                            <label for="student-name" class="form-label">Student Name *</label>
+                            <input type="text" id="student-name" class="form-input" required placeholder="Student's full name">
+                        </div>
+
+                        <div class="form-group">
+                            <label for="student-grade" class="form-label">Current Grade *</label>
+                            <select id="student-grade" class="form-select" required>
+                                <option value="">Select grade...</option>
+                                <option value="4">4th Grade</option>
+                                <option value="5">5th Grade</option>
+                                <option value="6">6th Grade</option>
+                                <option value="7">7th Grade</option>
+                                <option value="8">8th Grade</option>
+                                <option value="9">9th Grade</option>
+                                <option value="10">10th Grade</option>
+                                <option value="11">11th Grade</option>
+                                <option value="12">12th Grade</option>
+                            </select>
+                        </div>
+
+                        <div class="form-group">
+                            <label class="form-label">Select Class Time *</label>
+                            <div class="time-slot-grid" id="time-slot-container">
+                                <!-- Time slots will be dynamically inserted here based on grade -->
+                                <p style="text-align: center; color: #6b7280; padding: 2rem;">Select a grade to see available class times</p>
+                            </div>
+                        </div>
+
+                        <div style="text-align: center; margin: 1.5rem 0; padding: 1.5rem; background: #f9fafb; border-radius: 1rem;">
+                            <p style="color: #6b7280; margin-bottom: 0.5rem; font-weight: 600;">Not seeing the time you need?</p>
+                            <a href="#" class="btn btn-secondary" style="display: inline-flex; width: auto; margin-top: 0.5rem;"
+                               onclick="openRequestTimeEmail(); return false;">
+                                📧 Email to Request Different Time
+                            </a>
+                        </div>
+
+                        <div class="button-group">
+                            <button type="submit" class="btn btn-primary">Add This Student</button>
+                        </div>
+                    </form>
+                </div>
+
+                <!-- Add Another Student button (hidden initially) -->
+                <div id="add-another-button-section" style="display: none; margin-bottom: 2rem;">
+                    <button type="button" class="btn btn-add-child" onclick="showAddStudentForm()">+ Add Another Student</button>
+                </div>
+
+                <div class="button-group" style="margin-top: 2rem;">
+                    <button type="button" class="btn btn-secondary" onclick="goToStep(1)">← Back</button>
+                    <button type="button" class="btn btn-primary" id="continue-to-review" onclick="continueToReview()" style="display: none;">Continue to Review →</button>
+                </div>
+            </div>
+
+            <!-- Step 3: Review & Payment -->
+            <div class="step" id="step-3">
+                <h2 class="step-title">Review & Complete Enrollment</h2>
+                <p class="step-subtitle">Review your enrollment details and complete payment</p>
+
+                <div class="summary-box">
+                    <div class="summary-item">
+                        <span class="summary-label">Parent Name</span>
+                        <span class="summary-value" id="review-parent-name">-</span>
+                    </div>
+                    <div class="summary-item">
+                        <span class="summary-label">Email</span>
+                        <span class="summary-value" id="review-email">-</span>
+                    </div>
+                    <div class="summary-item">
+                        <span class="summary-label">Phone</span>
+                        <span class="summary-value" id="review-phone">-</span>
+                    </div>
+                </div>
+
+                <h3 style="font-size: 1.125rem; font-weight: 700; margin: 2rem 0 1rem 0; color: #111827;">Enrolled Students</h3>
+                <div id="review-students-list">
+                    <!-- Student enrollment summary will be added here -->
+                </div>
+
+                <div class="summary-box" style="margin-top: 2rem;">
+                    <div class="summary-item total-row">
+                        <span class="summary-label">Total First Week Payment</span>
+                        <span class="summary-value" id="review-total">$0</span>
+                    </div>
+                    <p style="color: #6b7280; font-size: 0.875rem; margin-top: 1rem; margin-bottom: 0;">
+                        You'll be charged weekly based on attendance. No contracts, cancel anytime.
+                    </p>
+                </div>
+
+                <form id="payment-form">
+                    <div class="button-group" style="margin-top: 2rem;">
+                        <button type="button" class="btn btn-secondary" onclick="goToStep(2)">← Back to Edit</button>
+                        <button type="submit" class="btn btn-primary" id="submit-payment">Complete Enrollment</button>
+                    </div>
+                </form>
+
+                <div class="trust-badge">
+                    <p>🔒 Secure payment powered by Stripe • 100% Money-Back Guarantee</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="back-link">
+            <a href="index.html">← Back to homepage</a> •
+            <a href="mailto:jeremiah@3djumpstart.com">Questions? Email me</a>
+        </div>
+    </div>
+
+    <script>
+        // Initialize Supabase
+        const supabase = window.supabase.createClient(
+            'https://hucjmggkasahwpjgnwia.supabase.co',
+            'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imh1Y2ptZ2drYXNhaHdwamdud2lhIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTQ2MTI2MDIsImV4cCI6MjA3MDE4ODYwMn0.hxFmoZexaKverih9crJfP9fjWItOTfC_6D_CM7hr_Rg'
+        );
+
+        // Constants
+        const CLASS_PERIODS = {
+            'sat_930am': { label: 'Saturday 9:30-10:30 AM', time: 'Saturday 9:30-10:30am', gradeMin: 4, gradeMax: 7 },
+            'sat_1030am': { label: 'Saturday 10:30-11:30 AM', time: 'Saturday 10:30-11:30am', gradeMin: 8, gradeMax: 12 },
+            'mon_430pm': { label: 'Monday 4:30-5:30 PM', time: 'Monday 4:30-5:30pm', gradeMin: 4, gradeMax: 7 },
+            'mon_530pm': { label: 'Monday 5:30-6:30 PM', time: 'Monday 5:30-6:30pm', gradeMin: 8, gradeMax: 12 }
+        };
+
+        const MAX_STUDENTS_PER_CLASS = 10;
+        const PRICE_PER_WEEK = 40;
+        const CURRENT_SEASON = 'Fall 2025';
+
+        // Store parent and student data
+        let parentData = {
+            name: '',
+            email: '',
+            phone: ''
+        };
+
+        let students = []; // Array of {name, grade, timeSlot}
+
+        // Store availability counts globally
+        let availabilityCounts = {};
+
+        // Step 1: Parent Info Form
+        document.getElementById('parent-info-form').addEventListener('submit', function(e) {
+            e.preventDefault();
+            parentData.name = document.getElementById('parent-name').value;
+            parentData.email = document.getElementById('parent-email').value;
+            parentData.phone = document.getElementById('parent-phone').value;
+            goToStep(2);
+        });
+
+        // Step 2: Student Form - Add Student
+        document.getElementById('student-form').addEventListener('submit', function(e) {
+            e.preventDefault();
+
+            const selectedSlot = document.querySelector('input[name="time-slot"]:checked');
+            if (!selectedSlot) {
+                showError('Please select a class time for this student.');
+                return;
+            }
+
+            const studentName = document.getElementById('student-name').value;
+            const studentGrade = document.getElementById('student-grade').value;
+            const timeSlot = selectedSlot.value;
+
+            // Add student to array
+            students.push({
+                name: studentName,
+                grade: parseInt(studentGrade),
+                timeSlot: timeSlot
+            });
+
+            // Clear form
+            document.getElementById('student-form').reset();
+            document.getElementById('time-slot-container').innerHTML = '<p style="text-align: center; color: #6b7280; padding: 2rem;">Select a grade to see available class times</p>';
+
+            // Hide the form, show "Add Another Student" button
+            document.getElementById('add-student-section').style.display = 'none';
+            document.getElementById('add-another-button-section').style.display = 'block';
+
+            // Update student list display
+            renderStudentList();
+
+            // Show continue button
+            document.getElementById('continue-to-review').style.display = 'flex';
+
+            // Scroll to top to see the added student
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        });
+
+        // Function to show the add student form again
+        function showAddStudentForm() {
+            document.getElementById('add-student-section').style.display = 'block';
+            document.getElementById('add-another-button-section').style.display = 'none';
+            // Scroll to the form
+            document.getElementById('add-student-section').scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }
+
+        // When grade changes, load time slots
+        document.getElementById('student-grade').addEventListener('change', function(e) {
+            const grade = parseInt(e.target.value);
+            if (grade) {
+                showAvailableTimeSlotsForGrade(grade);
+            }
+        });
+
+        // Continue to review
+        function continueToReview() {
+            if (students.length === 0) {
+                showError('Please add at least one student to continue.');
+                return;
+            }
+            updateReviewPage();
+            goToStep(3);
+        }
+
+        // Step 3: Payment Form
+        document.getElementById('payment-form').addEventListener('submit', async function(e) {
+            e.preventDefault();
+
+            const submitButton = document.getElementById('submit-payment');
+            submitButton.disabled = true;
+            submitButton.textContent = 'Creating enrollments...';
+
+            try {
+                // Track conversion initiation
+                if (typeof fbq !== 'undefined') {
+                    fbq('track', 'InitiateCheckout', {
+                        value: students.length * PRICE_PER_WEEK,
+                        currency: 'USD',
+                        content_name: '3D Jumpstart Enrollment'
+                    });
+                }
+
+                // NEW APPROACH: Don't create ANY database records until after payment
+                // Just send all the data to Stripe, webhook will handle database creation
+                submitButton.textContent = 'Redirecting to payment...';
+
+                // Call create-checkout with all enrollment data (no database records yet)
+                const checkoutResponse = await fetch('https://hucjmggkasahwpjgnwia.supabase.co/functions/v1/create-checkout-guest', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': 'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imh1Y2ptZ2drYXNhaHdwamdud2lhIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTQ2MTI2MDIsImV4cCI6MjA3MDE4ODYwMn0.hxFmoZexaKverih9crJfP9fjWItOTfC_6D_CM7hr_Rg'
+                    },
+                    body: JSON.stringify({
+                        parent_email: parentData.email,
+                        parent_name: parentData.name,
+                        parent_phone: parentData.phone,
+                        students: students, // Send full student array
+                        success_url: `https://3djumpstart.com/payment-success.html?session_id={CHECKOUT_SESSION_ID}&first_time=true`,
+                        cancel_url: `https://3djumpstart.com/enroll.html`
+                    })
+                });
+
+                const checkoutData = await checkoutResponse.json();
+
+                if (!checkoutResponse.ok || !checkoutData.url) {
+                    throw new Error(checkoutData.error || 'Failed to create checkout session');
+                }
+
+                // Redirect to Stripe Checkout
+                window.location.href = checkoutData.url;
+
+            } catch (error) {
+                console.error('Enrollment error:', error);
+                showError(error.message || 'Enrollment failed. Please try again.');
+                submitButton.disabled = false;
+                submitButton.textContent = 'Complete Enrollment';
+            }
+        });
+
+        // Load real-time availability
+        async function loadAvailability() {
+            try {
+                // Query enrollments to get count per class period
+                const { data: enrollments, error } = await supabase
+                    .from('enrollments')
+                    .select('class_period_id')
+                    .in('status', ['enrolled', 'pending']);
+
+                if (error) {
+                    console.error('Error loading availability:', error);
+                    availabilityCounts = {};
+                    return {};
+                }
+
+                // Count enrollments per class period
+                const counts = {};
+                enrollments.forEach(e => {
+                    counts[e.class_period_id] = (counts[e.class_period_id] || 0) + 1;
+                });
+
+                availabilityCounts = counts;
+                return counts;
+            } catch (error) {
+                console.error('Error loading availability:', error);
+                availabilityCounts = {};
+                return {};
+            }
+        }
+
+        function updateAvailabilityDisplay(counts) {
+            Object.keys(CLASS_PERIODS).forEach(slotId => {
+                const enrolled = counts[slotId] || 0;
+                const available = MAX_STUDENTS_PER_CLASS - enrolled;
+                const spotElement = document.querySelector(`[data-slot="${slotId}"]`);
+
+                if (spotElement) {
+                    if (available <= 0) {
+                        spotElement.textContent = 'Full';
+                        spotElement.className = 'time-slot-spots full';
+                        // Disable the radio button
+                        const radio = spotElement.closest('.time-slot-card').querySelector('input[type="radio"]');
+                        radio.disabled = true;
+                        spotElement.closest('.time-slot-card').style.opacity = '0.5';
+                    } else if (available <= 3) {
+                        spotElement.textContent = `Only ${available} spot${available === 1 ? '' : 's'} left!`;
+                        spotElement.className = 'time-slot-spots limited';
+                    } else {
+                        spotElement.textContent = `${available} spots available`;
+                        spotElement.className = 'time-slot-spots';
+                    }
+                }
+            });
+        }
+
+        async function showAvailableTimeSlotsForGrade(grade) {
+            const container = document.getElementById('time-slot-container');
+            container.innerHTML = '<p style="text-align: center; color: #6b7280; padding: 2rem;">Loading available time slots...</p>';
+
+            // Filter time slots by grade
+            const availableSlots = Object.entries(CLASS_PERIODS).filter(([id, period]) => {
+                return grade >= period.gradeMin && grade <= period.gradeMax;
+            });
+
+            if (availableSlots.length === 0) {
+                container.innerHTML = '<p style="text-align: center; color: #6b7280;">No classes available for this grade level. Please contact us.</p>';
+                return;
+            }
+
+            // Get current availability counts
+            await loadAvailability();
+
+            // Clear loading message
+            container.innerHTML = '';
+
+            // Determine grade range label
+            const gradeRange = grade <= 7 ? 'Grades 4-7' : 'Grades 8-12';
+
+            // Render time slot cards
+            availableSlots.forEach(([slotId, period]) => {
+                const enrolled = availabilityCounts[slotId] || 0;
+                const available = MAX_STUDENTS_PER_CLASS - enrolled;
+
+                // Determine spot text and class
+                let spotText, spotClass;
+                if (available <= 0) {
+                    spotText = 'Full';
+                    spotClass = 'time-slot-spots full';
+                } else if (available <= 3) {
+                    spotText = `Only ${available} spot${available === 1 ? '' : 's'} left!`;
+                    spotClass = 'time-slot-spots limited';
+                } else {
+                    spotText = `${available} spots available`;
+                    spotClass = 'time-slot-spots';
+                }
+
+                const [day, ...timeParts] = period.label.split(' ');
+                const fullTime = timeParts.join(' ');
+
+                const card = document.createElement('label');
+                card.className = 'time-slot-card';
+                if (available <= 0) {
+                    card.style.opacity = '0.5';
+                    card.style.cursor = 'not-allowed';
+                }
+
+                card.innerHTML = `
+                    <input type="radio" name="time-slot" value="${slotId}" ${available <= 0 ? 'disabled' : ''} required>
+                    <div class="time-slot-header">
+                        <span class="time-slot-day">${day}</span>
+                        <span class="time-slot-time">${fullTime}</span>
+                    </div>
+                    <div class="time-slot-grade">${gradeRange}</div>
+                    <span class="${spotClass}">${spotText}</span>
+                `;
+
+                // Add click handler (only if not full)
+                if (available > 0) {
+                    card.addEventListener('click', function() {
+                        document.querySelectorAll('.time-slot-card').forEach(c => c.classList.remove('selected'));
+                        this.classList.add('selected');
+                        this.querySelector('input[type="radio"]').checked = true;
+                    });
+                }
+
+                container.appendChild(card);
+            });
+        }
+
+        // NEW: Create enrollments WITHOUT creating auth user
+        // Auth user will be created AFTER successful payment
+        async function createEnrollmentsWithoutAuth() {
+            try {
+                console.log('Creating enrollments for', students.length, 'student(s)');
+
+                // Generate a temporary parent ID (will be replaced with real auth ID after payment)
+                const tempParentId = `temp_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+
+                // Store parent info in a temporary table or metadata
+                // We'll create the parent record with temp ID, then the webhook will update it
+                const { error: parentError } = await supabase
+                    .from('parents')
+                    .insert({
+                        id: tempParentId,
+                        email: parentData.email,
+                        name: parentData.name,
+                        phone: parentData.phone
+                    });
+
+                if (parentError) {
+                    console.error('Parent insert error:', parentError);
+                    throw new Error('Failed to create parent record');
+                }
+
+                console.log('Created temp parent record:', tempParentId);
+
+                const enrollmentIds = [];
+
+                // Create student and enrollment records for each student
+                for (let i = 0; i < students.length; i++) {
+                    const student = students[i];
+
+                    // Parse student name
+                    const [firstName, ...lastNameParts] = student.name.trim().split(' ');
+                    const lastName = lastNameParts.join(' ') || firstName;
+                    const age = student.grade + 5; // Rough estimate
+
+                    // Create student record
+                    const { data: studentRecord, error: studentError } = await supabase
+                        .from('students')
+                        .insert({
+                            parent_id: tempParentId,
+                            first_name: firstName,
+                            last_name: lastName,
+                            age: age,
+                            grade: `${student.grade}th`,
+                            experience: 'Beginner'
+                        })
+                        .select()
+                        .single();
+
+                    if (studentError) {
+                        console.error('Student insert error:', studentError);
+                        throw new Error(`Failed to create student record for ${student.name}`);
+                    }
+
+                    console.log('Created student:', studentRecord.id);
+
+                    // Create enrollment record
+                    const period = CLASS_PERIODS[student.timeSlot];
+                    const { data: enrollment, error: enrollmentError } = await supabase
+                        .from('enrollments')
+                        .insert({
+                            parent_id: tempParentId,
+                            student_id: studentRecord.id,
+                            level: 'Level 1',
+                            season: CURRENT_SEASON,
+                            class_period_id: student.timeSlot,
+                            class_time: period.time,
+                            payment_plan: 'weekly',
+                            amount_list: PRICE_PER_WEEK,
+                            status: 'pending_payment' // Will be updated to 'enrolled' after successful payment
+                        })
+                        .select()
+                        .single();
+
+                    if (enrollmentError) {
+                        console.error('Enrollment insert error:', enrollmentError);
+                        throw new Error(`Failed to create enrollment for ${student.name}`);
+                    }
+
+                    console.log('Created enrollment:', enrollment.id);
+                    enrollmentIds.push(enrollment.id);
+                }
+
+                console.log('All enrollments created:', enrollmentIds);
+                return enrollmentIds;
+
+            } catch (error) {
+                console.error('Error creating enrollments:', error);
+                throw new Error(`Failed to create enrollments: ${error.message}`);
+            }
+        }
+
+        // Render the list of added students
+        function renderStudentList() {
+            const container = document.getElementById('student-list');
+
+            if (students.length === 0) {
+                container.innerHTML = '';
+                return;
+            }
+
+            container.innerHTML = students.map((student, index) => {
+                const period = CLASS_PERIODS[student.timeSlot];
+                return `
+                    <div class="student-card">
+                        <div class="student-card-header">
+                            <div class="student-card-title">${student.name}</div>
+                            <button type="button" class="student-card-remove" onclick="removeStudent(${index})">Remove</button>
+                        </div>
+                        <div class="student-card-info">
+                            <div class="student-card-field">
+                                <div class="student-card-field-label">GRADE</div>
+                                <div class="student-card-field-value">${student.grade}th Grade</div>
+                            </div>
+                            <div class="student-card-field">
+                                <div class="student-card-field-label">CLASS TIME</div>
+                                <div class="student-card-field-value">${period.label}</div>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        // Remove a student from the list
+        function removeStudent(index) {
+            students.splice(index, 1);
+            renderStudentList();
+
+            if (students.length === 0) {
+                // No students left - show the form again and hide continue button
+                document.getElementById('continue-to-review').style.display = 'none';
+                document.getElementById('add-student-section').style.display = 'block';
+                document.getElementById('add-another-button-section').style.display = 'none';
+            }
+        }
+
+        // Update review page with all students
+        function updateReviewPage() {
+            document.getElementById('review-parent-name').textContent = parentData.name;
+            document.getElementById('review-email').textContent = parentData.email;
+            document.getElementById('review-phone').textContent = parentData.phone;
+
+            const studentsList = document.getElementById('review-students-list');
+            studentsList.innerHTML = students.map((student, index) => {
+                const period = CLASS_PERIODS[student.timeSlot];
+                return `
+                    <div class="summary-box" style="margin-bottom: 1rem;">
+                        <div class="summary-item">
+                            <span class="summary-label">Student ${index + 1}</span>
+                            <span class="summary-value">${student.name} (Grade ${student.grade})</span>
+                        </div>
+                        <div class="summary-item">
+                            <span class="summary-label">Class Time</span>
+                            <span class="summary-value">${period.label}</span>
+                        </div>
+                        <div class="summary-item">
+                            <span class="summary-label">Weekly Cost</span>
+                            <span class="summary-value">$${PRICE_PER_WEEK}</span>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+
+            const total = students.length * PRICE_PER_WEEK;
+            document.getElementById('review-total').textContent = `$${total}`;
+            document.getElementById('submit-payment').textContent = `Complete Enrollment - $${total}`;
+        }
+
+        function goToStep(stepNumber) {
+            // Update steps
+            document.querySelectorAll('.step').forEach(step => step.classList.remove('active'));
+            document.getElementById(`step-${stepNumber}`).classList.add('active');
+
+            // Update progress
+            document.querySelectorAll('.progress-step').forEach((step, index) => {
+                step.classList.remove('active', 'completed');
+                if (index + 1 < stepNumber) {
+                    step.classList.add('completed');
+                } else if (index + 1 === stepNumber) {
+                    step.classList.add('active');
+                }
+            });
+
+            // Scroll to top
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+
+        function showError(message) {
+            const errorContainer = document.getElementById('error-container');
+            errorContainer.innerHTML = `
+                <div class="error-message">
+                    ${message}
+                </div>
+            `;
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+
+        function openRequestTimeEmail() {
+            const subject = encodeURIComponent('Request Different Class Time');
+
+            // Build student info string
+            let studentsInfo = '';
+            if (students.length > 0) {
+                students.forEach((s, i) => {
+                    studentsInfo += `Student ${i+1}: ${s.name}, Grade ${s.grade}\n`;
+                });
+            } else {
+                const studentName = document.getElementById('student-name').value;
+                const studentGrade = document.getElementById('student-grade').value;
+                if (studentName && studentGrade) {
+                    studentsInfo = `Student: ${studentName}, Grade ${studentGrade}\n`;
+                }
+            }
+
+            const body = encodeURIComponent(
+                studentsInfo +
+                `Parent Name: ${parentData.name || document.getElementById('parent-name').value || ''}\n` +
+                `Parent Email: ${parentData.email || document.getElementById('parent-email').value || ''}\n` +
+                `Parent Phone: ${parentData.phone || document.getElementById('parent-phone').value || ''}\n\n` +
+                `Preferred Day/Time: \n\n` +
+                `Additional Notes: `
+            );
+            window.location.href = `mailto:jeremiah@3djumpstart.com?subject=${subject}&body=${body}`;
+        }
+    </script>
+</body>
+</html>

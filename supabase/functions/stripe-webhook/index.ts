@@ -292,6 +292,159 @@ async function sendPaymentMethodNeededEmail(parentEmail: string, parentName: str
   }
 }
 
+// Handle first-time guest enrollments (no existing auth user)
+async function handleFirstTimeEnrollment(session: Stripe.Checkout.Session) {
+  try {
+    const metadata = session.metadata || {}
+    const parentEmail = metadata.parent_email
+    const parentName = metadata.parent_name
+    const parentPhone = metadata.parent_phone
+    const studentsData = JSON.parse(metadata.students_data || '[]')
+    const totalAmount = Number(metadata.total_amount || 0)
+
+    console.log('First-time enrollment for:', parentEmail)
+    console.log('Students:', studentsData.length)
+
+    // STEP 1: Create Supabase Auth User
+    const { data: authData, error: authError } = await supabase.auth.admin.createUser({
+      email: parentEmail,
+      email_confirm: true,
+      user_metadata: {
+        name: parentName,
+        phone: parentPhone,
+        first_enrollment: true,
+        enrolled_at: new Date().toISOString()
+      }
+    })
+
+    if (authError || !authData.user) {
+      console.error('Failed to create auth user:', authError)
+      throw new Error(`Failed to create auth user: ${authError?.message}`)
+    }
+
+    const userId = authData.user.id
+    console.log('Created auth user:', userId)
+
+    // STEP 2: Create parent record
+    const { error: parentError } = await supabase
+      .from('parents')
+      .insert({
+        id: userId,
+        email: parentEmail,
+        name: parentName,
+        phone: parentPhone,
+        stripe_customer_id: typeof session.customer === 'string' ? session.customer : session.customer?.id || null
+      })
+
+    if (parentError) {
+      console.error('Failed to create parent:', parentError)
+      throw new Error(`Failed to create parent: ${parentError.message}`)
+    }
+
+    console.log('Created parent record')
+
+    // STEP 3: Create students and enrollments
+    const enrollmentIds = []
+    const studentNames = []
+    const classDetails = []
+
+    for (const studentData of studentsData) {
+      // Parse student name
+      const [firstName, ...lastNameParts] = studentData.name.trim().split(' ')
+      const lastName = lastNameParts.join(' ') || firstName
+      const age = studentData.grade + 5 // Rough estimate
+
+      // Create student
+      const { data: student, error: studentError } = await supabase
+        .from('students')
+        .insert({
+          parent_id: userId,
+          first_name: firstName,
+          last_name: lastName,
+          age: age,
+          grade: `${studentData.grade}th`,
+          experience: 'Beginner'
+        })
+        .select()
+        .single()
+
+      if (studentError) {
+        console.error('Failed to create student:', studentError)
+        throw new Error(`Failed to create student: ${studentError.message}`)
+      }
+
+      console.log('Created student:', student.id)
+
+      // Get class period details
+      const CLASS_PERIODS: Record<string, any> = {
+        'sat_930am': { label: 'Saturday 9:30-10:30 AM', time: 'Saturday 9:30-10:30am' },
+        'sat_1030am': { label: 'Saturday 10:30-11:30 AM', time: 'Saturday 10:30-11:30am' },
+        'mon_430pm': { label: 'Monday 4:30-5:30 PM', time: 'Monday 4:30-5:30pm' },
+        'mon_530pm': { label: 'Monday 5:30-6:30 PM', time: 'Monday 5:30-6:30pm' }
+      }
+
+      const period = CLASS_PERIODS[studentData.timeSlot]
+
+      // Create enrollment
+      const { data: enrollment, error: enrollmentError } = await supabase
+        .from('enrollments')
+        .insert({
+          parent_id: userId,
+          student_id: student.id,
+          level: 'Level 1',
+          season: 'Fall 2025',
+          class_period_id: studentData.timeSlot,
+          class_time: period.time,
+          payment_plan: 'weekly',
+          amount_list: 40,
+          status: 'enrolled',
+          balance_due: 0
+        })
+        .select()
+        .single()
+
+      if (enrollmentError) {
+        console.error('Failed to create enrollment:', enrollmentError)
+        throw new Error(`Failed to create enrollment: ${enrollmentError.message}`)
+      }
+
+      console.log('Created enrollment:', enrollment.id)
+
+      // Record payment
+      const { error: paymentError } = await supabase
+        .from('payments')
+        .insert({
+          parent_id: userId,
+          enrollment_id: enrollment.id,
+          amount: 40,
+          event_type: 'First Week',
+          stripe_object_id: session.id,
+          created_at: new Date().toISOString()
+        })
+
+      if (paymentError) {
+        console.error('Failed to record payment:', paymentError)
+      }
+
+      enrollmentIds.push(enrollment.id)
+      studentNames.push(`${firstName} ${lastName}`)
+      classDetails.push(period.label)
+    }
+
+    console.log('Successfully created all enrollments')
+
+    // STEP 4: Send confirmation emails
+    await sendConfirmationEmail(parentEmail, studentNames, classDetails, totalAmount)
+    await sendAdminNotification(parentEmail, parentName, studentNames, classDetails, totalAmount)
+
+    console.log('First-time enrollment completed successfully!')
+
+  } catch (error) {
+    console.error('Error handling first-time enrollment:', error)
+    throw error
+  }
+}
+
 Deno.serve(async (req) => {
   const sig = req.headers.get('Stripe-Signature')!
   const body = await req.text()
@@ -311,6 +464,16 @@ Deno.serve(async (req) => {
 
   if (event.type === 'checkout.session.completed') {
     const session = event.data.object as Stripe.Checkout.Session
+    const metadata = session.metadata || {}
+
+    // Check if this is a first-time guest enrollment
+    if (metadata.first_time === 'true') {
+      console.log('Processing FIRST-TIME guest enrollment')
+      await handleFirstTimeEnrollment(session)
+      return new Response(JSON.stringify({ ok: true }), { status: 200 })
+    }
+
+    // Existing customer flow (from portal)
     const parentId = session.client_reference_id
 
     // Get email from session - check multiple sources
@@ -334,11 +497,10 @@ Deno.serve(async (req) => {
 
     console.log('Parent email resolved to:', parentEmail)
 
-    const metadata = session.metadata || {}
     const enrollmentIds = JSON.parse(metadata.enrollment_ids || '[]')
     const totalAmount = Number(metadata.total_amount || 0)
 
-    console.log('Processing checkout for parent:', parentId)
+    console.log('Processing checkout for EXISTING parent:', parentId)
     console.log('Enrollment IDs:', enrollmentIds)
     console.log('Total amount:', totalAmount)
 
