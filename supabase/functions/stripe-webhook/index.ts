@@ -13,7 +13,7 @@ const supabase = createClient(
 )
 
 // Email sending function
-async function sendConfirmationEmail(parentEmail: string, studentNames: string[], classDetails: string[], totalAmount: number) {
+async function sendConfirmationEmail(parentEmail: string, studentNames: string[], classDetails: string[], totalAmount: number, passwordResetLink?: string) {
   const RESEND_API_KEY = Deno.env.get('RESEND_API_KEY')
   const FROM_EMAIL = Deno.env.get('FROM_EMAIL') || 'noreply@3djumpstart.com'
 
@@ -28,6 +28,24 @@ async function sendConfirmationEmail(parentEmail: string, studentNames: string[]
       <span style="color: #64748b;">${classDetails[i]}</span>
     </li>
   `).join('')
+
+  // Add password setup section for first-time users
+  const passwordSection = passwordResetLink ? `
+    <div style="background: #eff6ff; border-left: 4px solid #3b82f6; padding: 20px; margin: 20px 0; border-radius: 4px;">
+      <h2 style="color: #1e40af; font-size: 18px; margin-top: 0; margin-bottom: 10px;">🔐 Set Up Your Parent Portal Access</h2>
+      <p style="margin: 0 0 15px 0; color: #1e3a8a; font-size: 15px; line-height: 1.6;">
+        This is your first time enrolling! Click the button below to set up your password and access your Parent Portal:
+      </p>
+      <div style="text-align: center; margin: 20px 0;">
+        <a href="${passwordResetLink}" style="display: inline-block; background: #3b82f6; color: white; padding: 14px 32px; border-radius: 8px; text-decoration: none; font-weight: 600; font-size: 16px;">
+          Set Up Password & Access Portal
+        </a>
+      </div>
+      <p style="margin: 15px 0 0 0; color: #1e3a8a; font-size: 14px;">
+        Once you set your password, you can log in anytime at <a href="https://3djumpstart.com/portal.html" style="color: #ea580c; text-decoration: underline;">3djumpstart.com/portal</a>
+      </p>
+    </div>
+  ` : '';
 
   const htmlContent = `
 <!DOCTYPE html>
@@ -55,6 +73,8 @@ async function sendConfirmationEmail(parentEmail: string, studentNames: string[]
           ${studentList}
         </ul>
       </div>
+
+      ${passwordSection}
 
       <div style="background: #fef3c7; border-left: 4px solid #f59e0b; padding: 15px; margin: 20px 0; border-radius: 4px;">
         <p style="margin: 0; color: #92400e; font-size: 14px;">
@@ -307,6 +327,7 @@ async function handleFirstTimeEnrollment(session: Stripe.Checkout.Session) {
 
     // STEP 1: Get or Create Supabase Auth User
     let userId: string
+    let isNewUser = false
 
     // First, try to find existing user by email
     const { data: existingUsers } = await supabase.auth.admin.listUsers()
@@ -334,6 +355,7 @@ async function handleFirstTimeEnrollment(session: Stripe.Checkout.Session) {
       }
 
       userId = authData.user.id
+      isNewUser = true
       console.log('Created new auth user:', userId)
     }
 
@@ -469,8 +491,24 @@ async function handleFirstTimeEnrollment(session: Stripe.Checkout.Session) {
 
     console.log('Successfully created all enrollments')
 
-    // STEP 4: Send confirmation emails
-    await sendConfirmationEmail(parentEmail, studentNames, classDetails, totalAmount)
+    // STEP 4: Generate password reset link for new users
+    let passwordResetLink: string | undefined = undefined
+    if (isNewUser) {
+      const { data: linkData, error: linkError } = await supabase.auth.admin.generateLink({
+        type: 'recovery',
+        email: parentEmail,
+      })
+
+      if (linkError) {
+        console.error('Failed to generate password reset link:', linkError)
+      } else {
+        passwordResetLink = linkData.properties.action_link
+        console.log('Generated password reset link for new user')
+      }
+    }
+
+    // STEP 5: Send confirmation emails
+    await sendConfirmationEmail(parentEmail, studentNames, classDetails, totalAmount, passwordResetLink)
     await sendAdminNotification(parentEmail, parentName, studentNames, classDetails, totalAmount)
 
     console.log('First-time enrollment completed successfully!')
