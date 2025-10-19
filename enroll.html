@@ -788,6 +788,9 @@
                 timeSlot: timeSlot
             });
 
+            // Update local availability count (optimistic update)
+            availabilityCounts[timeSlot] = (availabilityCounts[timeSlot] || 0) + 1;
+
             // Clear form
             document.getElementById('student-form').reset();
             document.getElementById('time-slot-container').innerHTML = '<p style="text-align: center; color: #6b7280; padding: 2rem;">Select a grade to see available class times</p>';
@@ -1163,6 +1166,13 @@
 
         // Remove a student from the list
         function removeStudent(index) {
+            const removedStudent = students[index];
+
+            // Update local availability count (decrease by 1)
+            if (removedStudent && availabilityCounts[removedStudent.timeSlot]) {
+                availabilityCounts[removedStudent.timeSlot] = Math.max(0, availabilityCounts[removedStudent.timeSlot] - 1);
+            }
+
             students.splice(index, 1);
             renderStudentList();
 
