@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Payment Success - 3D Jumpstart</title>
+    <title>Enrollment Confirmed - 3D Jumpstart</title>
 
     <!-- Facebook Pixel Code -->
     <script>
@@ -28,273 +28,259 @@
     /></noscript>
     <!-- End Facebook Pixel Code -->
 
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
+
         body {
             font-family: 'Inter', system-ui, -apple-system, sans-serif;
-            background: #f8fafc;
+            background: linear-gradient(180deg, #fff, #f8fafc);
             color: #0f172a;
-            padding: 2rem;
-            min-height: 100vh;
+            line-height: 1.6;
+        }
+
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 3rem 1.5rem;
+        }
+
+        .success-header {
+            text-align: center;
+            margin-bottom: 3rem;
+            padding-bottom: 2rem;
+            border-bottom: 1px solid #e2e8f0;
+        }
+
+        .checkmark {
+            width: 80px;
+            height: 80px;
+            background: linear-gradient(135deg, #16a34a, #22c55e);
+            border-radius: 50%;
             display: flex;
             align-items: center;
             justify-content: center;
+            margin: 0 auto 1.5rem;
+            box-shadow: 0 10px 30px rgba(22, 163, 74, 0.2);
         }
-        .container {
-            max-width: 600px;
-            width: 100%;
-            background: white;
-            border-radius: 1rem;
-            padding: 2rem;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+
+        .checkmark svg {
+            width: 50px;
+            height: 50px;
+            stroke: white;
+            stroke-width: 3;
+            fill: none;
         }
-        .header {
-            text-align: center;
-            margin-bottom: 2rem;
-        }
-        .success-icon {
-            color: #16a34a;
-            font-size: 3rem;
-            margin-bottom: 1rem;
-        }
+
         h1 {
-            font-size: 2rem;
+            font-size: 2.5rem;
+            font-weight: 900;
             margin-bottom: 0.5rem;
+            background: linear-gradient(135deg, #0f172a, #1f2937);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
         }
-        .status-badge {
-            display: inline-block;
-            padding: 0.5rem 1rem;
-            border-radius: 999px;
-            font-weight: 600;
-            margin-bottom: 1rem;
+
+        .subtitle {
+            font-size: 1.125rem;
+            color: #64748b;
         }
-        .status-processing {
-            background: #fef3c7;
-            color: #92400e;
+
+        .receipt-info {
+            background: #f8fafc;
+            border-radius: 12px;
+            padding: 1.5rem;
+            margin-bottom: 2rem;
+            border: 1px solid #e2e8f0;
         }
-        .status-complete {
-            background: #dcfce7;
-            color: #166534;
-        }
-        .info-box {
-            background: #f1f5f9;
-            padding: 1rem;
-            border-radius: 0.5rem;
-            margin: 1rem 0;
-        }
-        .info-row {
+
+        .receipt-row {
             display: flex;
             justify-content: space-between;
-            padding: 0.5rem 0;
+            padding: 0.75rem 0;
         }
-        .label {
+
+        .receipt-row:not(:last-child) {
+            border-bottom: 1px solid #e2e8f0;
+        }
+
+        .receipt-label {
             color: #64748b;
+            font-weight: 500;
         }
-        .value {
-            font-weight: 600;
+
+        .receipt-value {
+            font-weight: 700;
+            color: #0f172a;
         }
-        .btn {
-            display: inline-block;
-            padding: 0.75rem 1.5rem;
-            background: #ea580c;
+
+        .email-banner {
+            background: linear-gradient(135deg, #3b82f6, #2563eb);
             color: white;
+            border-radius: 12px;
+            padding: 2rem;
+            margin-bottom: 2rem;
+            box-shadow: 0 10px 30px rgba(59, 130, 246, 0.2);
+        }
+
+        .email-banner h2 {
+            font-size: 1.75rem;
+            font-weight: 800;
+            margin-bottom: 1rem;
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+        }
+
+        .email-banner p {
+            font-size: 1.125rem;
+            opacity: 0.95;
+            line-height: 1.7;
+        }
+
+        .info-card {
+            background: white;
+            border: 2px solid #e2e8f0;
+            border-radius: 12px;
+            padding: 1.75rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .info-card h3 {
+            font-size: 1.25rem;
+            font-weight: 700;
+            margin-bottom: 1rem;
+            color: #0f172a;
+        }
+
+        .info-card ul {
+            list-style: none;
+            padding: 0;
+        }
+
+        .info-card li {
+            padding: 0.75rem 0;
+            padding-left: 2rem;
+            position: relative;
+            color: #334155;
+        }
+
+        .info-card li:before {
+            content: "✓";
+            position: absolute;
+            left: 0;
+            color: #16a34a;
+            font-weight: 700;
+            font-size: 1.25rem;
+        }
+
+        .info-card a {
+            color: #ea580c;
             text-decoration: none;
-            border-radius: 0.5rem;
             font-weight: 600;
-            margin-top: 1rem;
-        }
-        .btn:hover {
-            background: #dc2626;
-        }
-        .loading {
-            color: #64748b;
-            font-style: italic;
-        }
-        .notice {
-            background: #fef3c7;
-            border: 1px solid #f59e0b;
-            padding: 1rem;
-            border-radius: 0.5rem;
-            margin: 1rem 0;
         }
 
-        /* Mobile Responsive */
+        .info-card a:hover {
+            text-decoration: underline;
+        }
+
         @media (max-width: 768px) {
-            body {
-                padding: 1rem;
-            }
             .container {
-                padding: 1.5rem;
+                padding: 2rem 1rem;
             }
-            h1 {
-                font-size: 1.75rem;
-            }
-            .success-icon {
-                font-size: 2.5rem;
-            }
-            .info-row {
-                flex-direction: column;
-                gap: 0.25rem;
-                padding: 0.75rem 0;
-                border-bottom: 1px solid #e2e8f0;
-            }
-            .info-row:last-child {
-                border-bottom: none;
-            }
-        }
 
-        @media (max-width: 480px) {
-            body {
-                padding: 0.5rem;
-            }
-            .container {
-                padding: 1rem;
-            }
             h1 {
+                font-size: 2rem;
+            }
+
+            .checkmark {
+                width: 60px;
+                height: 60px;
+            }
+
+            .checkmark svg {
+                width: 35px;
+                height: 35px;
+            }
+
+            .email-banner h2 {
                 font-size: 1.5rem;
             }
-            .btn {
-                width: 100%;
-                text-align: center;
-                display: block;
-                margin-top: 1.5rem;
-            }
-            .status-badge {
-                font-size: 0.875rem;
-                padding: 0.375rem 0.75rem;
+
+            .email-banner p {
+                font-size: 1rem;
             }
         }
     </style>
 </head>
 <body>
     <div class="container">
-        <div class="header">
-            <div class="success-icon">✓</div>
-            <h1>Thank you!</h1>
-            <span class="status-badge status-processing" id="statusBadge">Processing</span>
-        </div>
-
-        <div class="info-box">
-            <div class="info-row">
-                <span class="label">Receipt #</span>
-                <span class="value" id="receiptId">Loading...</span>
+        <div class="success-header">
+            <div class="checkmark">
+                <svg viewBox="0 0 52 52">
+                    <path d="M14 27l7 7 16-16" stroke-linecap="round" stroke-linejoin="round"/>
+                </svg>
             </div>
-            <div class="info-row">
-                <span class="label">Total Paid</span>
-                <span class="value" id="totalPaid">Processing...</span>
-            </div>
+            <h1>Enrollment Confirmed!</h1>
+            <p class="subtitle">Your payment of <strong id="totalAmount">$40.00</strong> has been processed</p>
         </div>
 
-        <div class="notice">
-            Your enrollment is confirmed! You'll receive a confirmation email with class details shortly.
-        </div>
-
-        <!-- What Happens Next -->
-        <div class="notice" style="background: #eff6ff; border-color: #3b82f6; margin-top: 1.5rem;">
-            <h3 style="color: #1e40af; margin-bottom: 1rem; font-size: 1.25rem;">📋 What Happens Next?</h3>
-            <ul style="margin: 0; padding-left: 1.5rem; line-height: 2; color: #1e40af;">
-                <li><strong>Confirmation Email</strong> - Check your inbox in the next few minutes</li>
-                <li><strong>Class Location</strong> - You'll receive the exact address via email before the first class on <strong>October 25th</strong></li>
-                <li><strong>What to Bring</strong> - Just a set of <a href="https://a.co/d/7BT1kL0" style="color: #1e40af; text-decoration: underline;">dial calipers (~$15 on Amazon)</a>. We provide all computers and equipment!</li>
-                <li><strong>Weekly Billing</strong> - You'll automatically be charged $40 for each class your child attends (billed on Saturdays)</li>
-            </ul>
-            <p style="margin: 1rem 0 0; color: #1e40af; font-weight: 600;">
-                Questions? Email <a href="mailto:jeremiah@3djumpstart.com" style="color: #1e40af; text-decoration: underline;">jeremiah@3djumpstart.com</a>
+        <div class="email-banner">
+            <h2>
+                <span style="font-size: 2rem;">📧</span>
+                Check Your Email
+            </h2>
+            <p>
+                <strong>Important:</strong> We've sent a confirmation email with a link to set up your password and access your Parent Portal. Please check your inbox now!
             </p>
         </div>
 
-        <div id="enrollmentInfo">
-            <h3>Enrolled Students:</h3>
-            <p class="loading">Payment is being processed. Please refresh in a moment.</p>
+        <div class="info-card">
+            <h3>What Happens Next</h3>
+            <ul>
+                <li><strong>Check your email</strong> for your confirmation and password setup link</li>
+                <li><strong>Set your password</strong> using the link in the email</li>
+                <li><strong>Access your Parent Portal</strong> to view enrollment details and manage your account</li>
+            </ul>
         </div>
 
-        <div style="display: flex; gap: 1rem; margin-top: 2rem; flex-wrap: wrap;">
-            <a href="portal.html" class="btn">Back to Parent Portal</a>
-            <button class="btn" onclick="location.reload()" style="background: #64748b; border: none; cursor: pointer;">Refresh</button>
+        <div class="info-card">
+            <h3>Class Information</h3>
+            <ul>
+                <li><strong>First class:</strong> October 27th</li>
+                <li><strong>Location:</strong> You'll receive the address via email before the first class</li>
+                <li><strong>What to bring:</strong> <a href="https://a.co/d/7BT1kL0" target="_blank">Dial calipers (~$15 on Amazon)</a> - all other materials provided</li>
+                <li><strong>Billing:</strong> $40 per class, charged automatically on Saturdays</li>
+            </ul>
         </div>
+
+        <div class="receipt-info">
+            <div class="receipt-row">
+                <span class="receipt-label">Receipt</span>
+                <span class="receipt-value" id="receiptId">Loading...</span>
+            </div>
+            <div class="receipt-row">
+                <span class="receipt-label">Amount Paid</span>
+                <span class="receipt-value" id="totalPaid">$40.00</span>
+            </div>
+        </div>
+
+        <p style="text-align: center; color: #64748b; font-size: 0.95rem;">
+            Questions? Email <a href="mailto:jeremiah@3djumpstart.com" style="color: #ea580c; text-decoration: none; font-weight: 600;">jeremiah@3djumpstart.com</a>
+        </p>
     </div>
 
     <script>
-        const SUPABASE_URL = 'https://hucjmggkasahwpjgnwia.supabase.co';
-        const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imh1Y2ptZ2drYXNhaHdwamdud2lhIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTQ2MTI2MDIsImV4cCI6MjA3MDE4ODYwMn0.hxFmoZexaKverih9crJfP9fjWItOTfC_6D_CM7hr_Rg';
-        
-        const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-
-        // Get session ID from URL
         const urlParams = new URLSearchParams(window.location.search);
         const sessionId = urlParams.get('session_id');
-        const isFirstTime = urlParams.get('first_time') === 'true';
 
-        async function showSuccess() {
-            if (!sessionId) {
-                document.getElementById('receiptId').textContent = 'No session ID';
-                document.getElementById('enrollmentInfo').innerHTML = '<p style="color: red;">Missing session ID</p>';
-                return;
-            }
-
-            document.getElementById('receiptId').textContent = sessionId.substring(0, 20) + '...';
-
-            // For first-time enrollments, show simple success message
-            if (isFirstTime) {
-                document.getElementById('statusBadge').textContent = 'Complete';
-                document.getElementById('statusBadge').className = 'status-badge status-complete';
-                document.getElementById('totalPaid').textContent = '$40.00';
-                document.getElementById('enrollmentInfo').innerHTML = `
-                    <h3 style="color: #16a34a; margin-bottom: 1rem;">✓ Enrollment Complete!</h3>
-                    <div style="background: #eff6ff; padding: 1.5rem; border-radius: 0.5rem; border: 1px solid #3b82f6;">
-                        <h4 style="color: #1e40af; margin-bottom: 0.75rem; font-size: 1.1rem;">📧 Check Your Email</h4>
-                        <p style="color: #1e3a8a; line-height: 1.6; margin-bottom: 0.75rem;">
-                            We've sent a confirmation email with:
-                        </p>
-                        <ul style="color: #1e3a8a; line-height: 1.8; margin: 0; padding-left: 1.5rem;">
-                            <li>Your student enrollment details</li>
-                            <li>Class time and what to bring</li>
-                            <li>Link to access your parent portal</li>
-                        </ul>
-                        <p style="color: #1e3a8a; margin-top: 1rem; font-weight: 600;">
-                            You can log in to your parent portal anytime at <a href="portal.html" style="color: #ea580c; text-decoration: underline;">3djumpstart.com/portal</a>
-                        </p>
-                    </div>
-                `;
-                return;
-            }
-
-            // For existing customers (portal enrollments), check database and redirect
-            await new Promise(resolve => setTimeout(resolve, 3000));
-
-            try {
-                const { data: payment } = await supabase
-                    .from('payments')
-                    .select('*')
-                    .eq('stripe_object_id', sessionId)
-                    .maybeSingle();
-
-                if (payment) {
-                    document.getElementById('statusBadge').textContent = 'Complete';
-                    document.getElementById('statusBadge').className = 'status-badge status-complete';
-                    document.getElementById('totalPaid').textContent = `$${payment.amount || 0}`;
-                    document.getElementById('enrollmentInfo').innerHTML = `
-                        <p style="color: #16a34a;">✓ Payment successful! Redirecting to your portal...</p>
-                    `;
-                    sessionStorage.setItem('just_enrolled', 'true');
-                    setTimeout(() => {
-                        window.location.href = 'portal.html';
-                    }, 2000);
-                } else {
-                    document.getElementById('enrollmentInfo').innerHTML = `
-                        <p style="color: #f59e0b;">Processing... Please wait.</p>
-                    `;
-                    setTimeout(() => location.reload(), 5000);
-                }
-            } catch (error) {
-                console.error('Error:', error);
-                setTimeout(() => location.reload(), 5000);
-            }
+        if (sessionId) {
+            document.getElementById('receiptId').textContent = sessionId.substring(0, 24) + '...';
+        } else {
+            document.getElementById('receiptId').textContent = 'N/A';
         }
-
-        // Check on load
-        showSuccess();
     </script>
 </body>
 </html>
