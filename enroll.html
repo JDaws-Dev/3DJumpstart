@@ -568,20 +568,16 @@
         <div class="header">
             <img src="3d-jumpstart-logo.png" alt="3D Jumpstart" class="logo-image">
             <h1>Reserve Your Child's Spot</h1>
-            <p>Complete your enrollment in 3 easy steps</p>
+            <p>Complete your enrollment in 2 easy steps</p>
         </div>
 
         <div class="progress-bar">
             <div class="progress-step active" id="progress-1">
                 <div class="progress-circle">1</div>
-                <div class="progress-label">Parent Info</div>
+                <div class="progress-label">Your Information</div>
             </div>
             <div class="progress-step" id="progress-2">
                 <div class="progress-circle">2</div>
-                <div class="progress-label">Add Students</div>
-            </div>
-            <div class="progress-step" id="progress-3">
-                <div class="progress-circle">3</div>
                 <div class="progress-label">Review & Pay</div>
             </div>
         </div>
@@ -589,41 +585,34 @@
         <div class="enrollment-card">
             <div id="error-container"></div>
 
-            <!-- Step 1: Parent Info -->
+            <!-- Step 1: Your Information (Parent + Students Combined) -->
             <div class="step active" id="step-1">
-                <h2 class="step-title">Parent Information</h2>
-                <p class="step-subtitle">Start by telling us about yourself</p>
+                <h2 class="step-title">Your Information</h2>
+                <p class="step-subtitle">Tell us about yourself and your student(s)</p>
 
-                <form id="parent-info-form">
-                    <div class="form-group">
-                        <label for="parent-name" class="form-label">Parent/Guardian Name *</label>
-                        <input type="text" id="parent-name" class="form-input" required placeholder="Your full name">
-                    </div>
+                <!-- Parent Info Section -->
+                <div style="background: #f9fafb; border-radius: 1rem; padding: 1.5rem; margin-bottom: 2rem;">
+                    <h3 style="font-size: 1.125rem; font-weight: 700; color: #111827; margin-bottom: 1rem;">Parent Information</h3>
+                    <form id="parent-info-form">
+                        <div class="form-group">
+                            <label for="parent-name" class="form-label">Parent/Guardian Name *</label>
+                            <input type="text" id="parent-name" class="form-input" required placeholder="Your full name">
+                        </div>
 
-                    <div class="form-group">
-                        <label for="parent-email" class="form-label">Email Address *</label>
-                        <input type="email" id="parent-email" class="form-input" required placeholder="parent@example.com">
-                    </div>
+                        <div class="form-group">
+                            <label for="parent-email" class="form-label">Email Address *</label>
+                            <input type="email" id="parent-email" class="form-input" required placeholder="parent@example.com">
+                        </div>
 
-                    <div class="form-group">
-                        <label for="parent-phone" class="form-label">Phone Number *</label>
-                        <input type="tel" id="parent-phone" class="form-input" required placeholder="(555) 123-4567">
-                    </div>
-
-                    <div class="button-group">
-                        <button type="submit" class="btn btn-primary">Continue to Add Students →</button>
-                    </div>
-                </form>
-
-                <div class="trust-badge">
-                    <p>✓ First Class Satisfaction Guarantee - Full refund if they don't love it</p>
+                        <div class="form-group" style="margin-bottom: 0;">
+                            <label for="parent-phone" class="form-label">Phone Number *</label>
+                            <input type="tel" id="parent-phone" class="form-input" required placeholder="(555) 123-4567">
+                        </div>
+                    </form>
                 </div>
-            </div>
 
-            <!-- Step 2: Add Students -->
-            <div class="step" id="step-2">
-                <h2 class="step-title">Add Your Students</h2>
-                <p class="step-subtitle">Add one or more students and select their class times</p>
+                <!-- Students Section -->
+                <h3 style="font-size: 1.125rem; font-weight: 700; color: #111827; margin-bottom: 1rem;">Student Information</h3>
 
                 <!-- List of added students -->
                 <div class="student-list" id="student-list">
@@ -682,13 +671,16 @@
                 </div>
 
                 <div class="button-group" style="margin-top: 2rem;">
-                    <button type="button" class="btn btn-secondary" onclick="goToStep(1)">← Back</button>
-                    <button type="button" class="btn btn-primary" id="continue-to-review" onclick="continueToReview()" style="display: none;">Continue to Review →</button>
+                    <button type="button" class="btn btn-primary" id="continue-to-review" onclick="continueToReview()" style="display: none;">Continue to Review & Pay →</button>
+                </div>
+
+                <div class="trust-badge">
+                    <p>✓ First Class Satisfaction Guarantee - Full refund if they don't love it</p>
                 </div>
             </div>
 
-            <!-- Step 3: Review & Payment -->
-            <div class="step" id="step-3">
+            <!-- Step 2: Review & Payment -->
+            <div class="step" id="step-2">
                 <h2 class="step-title">Review & Complete Enrollment</h2>
                 <p class="step-subtitle">Review your enrollment details and complete payment</p>
 
@@ -724,7 +716,7 @@
 
                 <form id="payment-form">
                     <div class="button-group" style="margin-top: 2rem;">
-                        <button type="button" class="btn btn-secondary" onclick="goToStep(2)">← Back to Edit</button>
+                        <button type="button" class="btn btn-secondary" onclick="goToStep(1)">← Back to Edit</button>
                         <button type="submit" class="btn btn-primary" id="submit-payment">Complete Enrollment</button>
                     </div>
                 </form>
@@ -772,14 +764,8 @@
         // Store availability counts globally
         let availabilityCounts = {};
 
-        // Step 1: Parent Info Form
-        document.getElementById('parent-info-form').addEventListener('submit', function(e) {
-            e.preventDefault();
-            parentData.name = document.getElementById('parent-name').value;
-            parentData.email = document.getElementById('parent-email').value;
-            parentData.phone = document.getElementById('parent-phone').value;
-            goToStep(2);
-        });
+        // Parent Info: Save data when filled (no submit, same page)
+        // We'll validate parent info when user tries to continue to review
 
         // Step 2: Student Form - Add Student
         document.getElementById('student-form').addEventListener('submit', function(e) {
@@ -838,12 +824,29 @@
 
         // Continue to review
         function continueToReview() {
+            // Validate parent info first
+            const parentName = document.getElementById('parent-name').value.trim();
+            const parentEmail = document.getElementById('parent-email').value.trim();
+            const parentPhone = document.getElementById('parent-phone').value.trim();
+
+            if (!parentName || !parentEmail || !parentPhone) {
+                showError('Please fill out all parent information fields.');
+                window.scrollTo({ top: 0, behavior: 'smooth' });
+                return;
+            }
+
+            // Save parent data
+            parentData.name = parentName;
+            parentData.email = parentEmail;
+            parentData.phone = parentPhone;
+
             if (students.length === 0) {
                 showError('Please add at least one student to continue.');
                 return;
             }
+
             updateReviewPage();
-            goToStep(3);
+            goToStep(2);
         }
 
         // Step 3: Payment Form
