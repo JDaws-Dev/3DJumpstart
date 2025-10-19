@@ -50,15 +50,27 @@ Deno.serve(async (req) => {
     }))
     console.log('Line items created:', line_items.length)
 
-    // Create Stripe Checkout Session WITHOUT a customer
-    // Customer will be created after successful payment by the webhook
+    // Create Stripe Customer first so we can attach payment method
+    console.log('Creating Stripe customer...')
+    const customer = await stripe.customers.create({
+      email: parent_email,
+      name: parent_name,
+      phone: parent_phone,
+      metadata: {
+        parent_name,
+        first_enrollment: 'true'
+      }
+    })
+    console.log('Stripe customer created:', customer.id)
+
+    // Create Stripe Checkout Session with the customer
     console.log('Creating Stripe session...')
     console.log('STRIPE_API_KEY exists:', !!Deno.env.get('STRIPE_API_KEY'))
 
     const sessionData = {
       mode: 'payment' as const,
       line_items,
-      customer_email: parent_email,
+      customer: customer.id, // Link to the customer we just created
       payment_intent_data: {
         setup_future_usage: 'off_session', // Save payment method for future charges
       },
