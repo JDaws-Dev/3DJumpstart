@@ -887,14 +887,25 @@
 
     // === ATTENDANCE FUNCTIONS ===
 
+    // Season start date (first Monday of the season)
+    const SEASON_START_DATE = new Date('2025-10-27T00:00:00'); // October 27, 2025 (Monday)
+
     // Initialize current week to this week's Monday
     function initCurrentWeek() {
       const today = new Date();
       const day = today.getDay();
       const diff = day === 0 ? -6 : 1 - day; // Move to Monday
-      currentWeekStart = new Date(today);
-      currentWeekStart.setDate(today.getDate() + diff);
-      currentWeekStart.setHours(0, 0, 0, 0);
+      const thisWeekMonday = new Date(today);
+      thisWeekMonday.setDate(today.getDate() + diff);
+      thisWeekMonday.setHours(0, 0, 0, 0);
+
+      // If we're before the season start, show the season start week
+      // Otherwise show current week
+      if (thisWeekMonday < SEASON_START_DATE) {
+        currentWeekStart = new Date(SEASON_START_DATE);
+      } else {
+        currentWeekStart = thisWeekMonday;
+      }
     }
 
     function changeWeek(delta) {
