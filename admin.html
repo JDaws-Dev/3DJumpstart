@@ -632,8 +632,8 @@
       const fixedClasses = [
         { id: 'sat_930am', label: 'Saturday 9:30-10:30am (Grades 4-7)' },
         { id: 'sat_1030am', label: 'Saturday 10:30-11:30am (Grades 8-12)' },
-        { id: 'mon_430pm', label: 'Monday 4:30-5:30pm (Grades 4-7)' },
-        { id: 'mon_530pm', label: 'Monday 5:30-6:30pm (Grades 8-12)' }
+        { id: 'mon_430pm', label: 'Monday 4:30-5:30pm (Grades 8-12)' },
+        { id: 'mon_530pm', label: 'Monday 5:30-6:30pm (Grades 4-7)' }
       ];
 
       // Only include classes that have enrollments
@@ -963,8 +963,8 @@
       const classPeriods = [
         { id: 'sat_930am', label: 'Saturday 9:30-10:30am (Grades 4-7)', dayOffset: 5 },
         { id: 'sat_1030am', label: 'Saturday 10:30-11:30am (Grades 8-12)', dayOffset: 5 },
-        { id: 'mon_430pm', label: 'Monday 4:30-5:30pm (Grades 4-7)', dayOffset: 0 },
-        { id: 'mon_530pm', label: 'Monday 5:30-6:30pm (Grades 8-12)', dayOffset: 0 }
+        { id: 'mon_430pm', label: 'Monday 4:30-5:30pm (Grades 8-12)', dayOffset: 0 },
+        { id: 'mon_530pm', label: 'Monday 5:30-6:30pm (Grades 4-7)', dayOffset: 0 }
       ];
 
       const calendarDiv = document.getElementById('attendanceCalendar');
@@ -1569,8 +1569,8 @@
       const classPeriodMap = {
         'Saturday 9:30-10:30am (Grades 4-7)': 'sat_930am',
         'Saturday 10:30-11:30am (Grades 8-12)': 'sat_1030am',
-        'Monday 4:30-5:30pm (Grades 4-7)': 'mon_430pm',
-        'Monday 5:30-6:30pm (Grades 8-12)': 'mon_530pm'
+        'Monday 4:30-5:30pm (Grades 8-12)': 'mon_430pm',
+        'Monday 5:30-6:30pm (Grades 4-7)': 'mon_530pm'
       };
       enrollmentUpdates.class_period_id = classPeriodMap[enrollmentUpdates.class_time] || null;
 
