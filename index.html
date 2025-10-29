@@ -623,7 +623,7 @@
 
         .instructor-badge {
             position: absolute;
-            bottom: -1rem;
+            bottom: 1rem;
             left: 50%;
             transform: translateX(-50%);
             background: linear-gradient(135deg, #ea580c 0%, #dc2626 100%);
@@ -633,6 +633,7 @@
             font-weight: 600;
             box-shadow: 0 10px 15px -3px rgba(0,0,0,0.1);
             white-space: nowrap;
+            font-size: 0.95rem;
         }
 
         .instructor-content > div:last-child {
@@ -782,13 +783,42 @@
             }
         }
 
+        @media (max-width: 768px) {
+            /* Comparison table - make scrollable on mobile */
+            section table {
+                font-size: 0.875rem;
+            }
+
+            section table th,
+            section table td {
+                padding: 0.875rem !important;
+            }
+
+            section table th {
+                font-size: 0.95rem !important;
+            }
+
+            /* Hero headline adjustments for tablet */
+            .hero h1 {
+                font-size: 2.25rem !important;
+            }
+
+            .hero p[style*="font-size: 1.375rem"] {
+                font-size: 1.125rem !important;
+            }
+
+            .hero p[style*="font-size: 1.25rem"] {
+                font-size: 1.05rem !important;
+            }
+        }
+
         @media (max-width: 480px) {
             .container {
                 padding: 0 0.75rem;
             }
 
             .hero h1 {
-                font-size: 2rem;
+                font-size: 2rem !important;
                 line-height: 1.2;
             }
 
@@ -797,7 +827,26 @@
             }
 
             .hero p[style*="font-size: 1.375rem"] {
-                font-size: 1.125rem !important;
+                font-size: 1rem !important;
+            }
+
+            .hero p[style*="font-size: 1.25rem"] {
+                font-size: 0.95rem !important;
+            }
+
+            /* Urgency banner smaller on mobile */
+            section div p[style*="🔥"] {
+                font-size: 0.95rem !important;
+            }
+
+            /* Comparison table even smaller on small mobile */
+            section table {
+                font-size: 0.8rem;
+            }
+
+            section table th,
+            section table td {
+                padding: 0.75rem !important;
             }
 
             .section-title {
@@ -905,64 +954,27 @@
     <section id="home" class="hero">
         <div class="container">
             <div class="hero-content" style="max-width: 1000px; margin: 0 auto;">
-                <div class="hero-badge">
-                    🏫 Local In-Person Classes in Suwanee, GA — Serving North Gwinnett Students
-                </div>
-
-                <h1 style="margin-bottom: 2rem;">
-                    Learn to 3D Design & 3D Print<br>
-                    <span class="hero-highlight">Hands-On Classes for Students</span>
+                <h1 style="margin-bottom: 1.5rem; font-size: 3.5rem; line-height: 1.1; max-width: 900px; margin-left: auto; margin-right: auto;">
+                    Getting Your Kid a 3D Printer for Christmas?<br>
+                    <span class="hero-highlight">Don't Let It Collect Dust.</span>
                 </h1>
 
-                <!-- Key Info Box -->
-                <div style="max-width: 750px; margin: 0 auto 2.5rem; background: white; padding: 2rem; border-radius: 1rem; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1); border: 2px solid #e5e7eb;">
-                    <p style="font-size: 1.5rem; color: #111827; margin-bottom: 1rem; font-weight: 700; text-align: center;">
-                        <span style="color: #ea580c; font-size: 2rem;">$40/week</span> • No contracts • Pay as you go
-                    </p>
-                    <p style="font-size: 1.125rem; color: #374151; margin-bottom: 1rem; text-align: center; font-weight: 600;">
-                        📍 In-Person Classes in Suwanee, GA
-                    </p>
-                    <p style="font-size: 1rem; color: #6b7280; margin-bottom: 1.5rem; text-align: center;">
-                        Saturday OR Monday classes • Grades 4-12 • Max 10 students per class
-                    </p>
+                <p style="font-size: 1.5rem; color: #374151; margin-bottom: 3rem; max-width: 800px; margin-left: auto; margin-right: auto; line-height: 1.5;">
+                    Most kids print a few trinkets, lose interest, and never touch it again. <strong style="color: #ea580c;">Teach them to DESIGN</strong> their own creations from scratch—turn that printer into a career-building skill.
+                </p>
 
-                    <!-- Trust Badges Inline -->
-                    <div style="display: flex; justify-content: center; gap: 2rem; flex-wrap: wrap; padding-top: 1rem; border-top: 1px solid #e5e7eb;">
-                        <div style="display: flex; align-items: center; gap: 0.5rem;">
-                            <span style="color: #059669; font-size: 1.25rem;">✓</span>
-                            <span style="font-size: 0.875rem; color: #374151; font-weight: 500;">Money-Back Guarantee</span>
-                        </div>
-                        <div style="display: flex; align-items: center; gap: 0.5rem;">
-                            <span style="color: #059669; font-size: 1.25rem;">✓</span>
-                            <span style="font-size: 0.875rem; color: #374151; font-weight: 500;">No Contracts</span>
-                        </div>
-                        <div style="display: flex; align-items: center; gap: 0.5rem;">
-                            <span style="color: #059669; font-size: 1.25rem;">✓</span>
-                            <span style="font-size: 0.875rem; color: #374151; font-weight: 500;">Cancel Anytime</span>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="hero-actions">
-                    <a href="enroll.html" class="btn btn-primary" style="font-size: 1.125rem; padding: 1rem 2rem;">
-                        Reserve Your Child's Spot →
-                    </a>
-                    <a href="#projects" class="btn btn-outline">
-                        See Student Projects ↓
+                <div class="hero-actions" style="margin-bottom: 2rem;">
+                    <a href="enroll.html" class="btn btn-primary" style="font-size: 1.25rem; padding: 1.25rem 2.5rem;">
+                        Reserve Your Spot for January 5th →
                     </a>
                 </div>
 
-                <!-- Scroll indicator -->
-                <div style="margin-top: 3rem; text-align: center;">
-                    <p style="color: #6b7280; font-size: 0.95rem; margin-bottom: 0.5rem; font-weight: 600;">
-                        Not sure yet? See what makes us different ↓
-                    </p>
-                    <div style="animation: bounce 2s infinite;">
-                        <svg xmlns="http://www.w3.org/2000/svg" style="width: 32px; height: 32px; margin: 0 auto; color: #ea580c;" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M19 14l-7 7m0 0l-7-7m7 7V3" />
-                        </svg>
-                    </div>
-                </div>
+                <p style="color: #6b7280; font-size: 1rem; margin-bottom: 0.5rem;">
+                    $40/week • No contracts • Suwanee, GA • Grades 4-12
+                </p>
+                <p style="color: #059669; font-size: 0.95rem; font-weight: 600;">
+                    ✓ First Class 100% Money-Back Guarantee
+                </p>
             </div>
         </div>
     </section>
@@ -977,6 +989,75 @@
             }
         }
     </style>
+
+    <!-- "But My Kid Already Has a 3D Printer" Section -->
+    <section class="section" style="background: #ffffff; padding: 4rem 0;">
+        <div class="container">
+            <h2 style="text-align: center; font-size: 2.5rem; font-weight: 800; color: #111827; margin-bottom: 1rem;">
+                Planning to Buy a 3D Printer This Christmas?
+            </h2>
+            <p style="text-align: center; font-size: 1.25rem; color: #6b7280; margin-bottom: 1rem; max-width: 750px; margin-left: auto; margin-right: auto;">
+                Without CAD design skills, it'll just collect dust. Here's why:
+            </p>
+            <p style="text-align: center; font-size: 1.125rem; color: #ea580c; font-weight: 600; margin-bottom: 3rem; max-width: 700px; margin-left: auto; margin-right: auto;">
+                Most parents don't realize: Downloading models ≠ Learning to design
+            </p>
+
+            <div style="max-width: 900px; margin: 0 auto; overflow-x: auto;">
+                <table style="width: 100%; border-collapse: separate; border-spacing: 0; border: 2px solid #e5e7eb; border-radius: 1rem; overflow: hidden; background: white;">
+                    <thead>
+                        <tr style="background: linear-gradient(135deg, #f3f4f6 0%, #e5e7eb 100%);">
+                            <th style="padding: 1.5rem; text-align: left; font-weight: 700; color: #111827; border-bottom: 2px solid #e5e7eb; font-size: 1.125rem;"></th>
+                            <th style="padding: 1.5rem; text-align: center; font-weight: 700; color: #dc2626; border-bottom: 2px solid #e5e7eb; border-left: 2px solid #e5e7eb; font-size: 1.125rem;">Downloading & Printing</th>
+                            <th style="padding: 1.5rem; text-align: center; font-weight: 700; color: #059669; border-bottom: 2px solid #e5e7eb; border-left: 2px solid #e5e7eb; font-size: 1.125rem;">Professional CAD Design</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td style="padding: 1.25rem; font-weight: 600; color: #374151; border-bottom: 1px solid #e5e7eb;">Skill Type</td>
+                            <td style="padding: 1.25rem; text-align: center; color: #6b7280; border-bottom: 1px solid #e5e7eb; border-left: 2px solid #e5e7eb;">Consumer skill</td>
+                            <td style="padding: 1.25rem; text-align: center; color: #6b7280; border-bottom: 1px solid #e5e7eb; border-left: 2px solid #e5e7eb; background: #f0fdf4;">Career-building skill</td>
+                        </tr>
+                        <tr>
+                            <td style="padding: 1.25rem; font-weight: 600; color: #374151; border-bottom: 1px solid #e5e7eb;">What They Learn</td>
+                            <td style="padding: 1.25rem; text-align: center; color: #6b7280; border-bottom: 1px solid #e5e7eb; border-left: 2px solid #e5e7eb;">How to search & print</td>
+                            <td style="padding: 1.25rem; text-align: center; color: #6b7280; border-bottom: 1px solid #e5e7eb; border-left: 2px solid #e5e7eb; background: #f0fdf4;">How to design anything from scratch</td>
+                        </tr>
+                        <tr>
+                            <td style="padding: 1.25rem; font-weight: 600; color: #374151; border-bottom: 1px solid #e5e7eb;">Career Value</td>
+                            <td style="padding: 1.25rem; text-align: center; color: #6b7280; border-bottom: 1px solid #e5e7eb; border-left: 2px solid #e5e7eb;">Hobby</td>
+                            <td style="padding: 1.25rem; text-align: center; color: #6b7280; border-bottom: 1px solid #e5e7eb; border-left: 2px solid #e5e7eb; background: #f0fdf4;">$60K-120K/year skills</td>
+                        </tr>
+                        <tr>
+                            <td style="padding: 1.25rem; font-weight: 600; color: #374151; border-bottom: 1px solid #e5e7eb;">College Applications</td>
+                            <td style="padding: 1.25rem; text-align: center; color: #6b7280; border-bottom: 1px solid #e5e7eb; border-left: 2px solid #e5e7eb;">Not impressive</td>
+                            <td style="padding: 1.25rem; text-align: center; color: #6b7280; border-bottom: 1px solid #e5e7eb; border-left: 2px solid #e5e7eb; background: #f0fdf4;">Portfolio-worthy projects</td>
+                        </tr>
+                        <tr>
+                            <td style="padding: 1.25rem; font-weight: 600; color: #374151;">Software Used</td>
+                            <td style="padding: 1.25rem; text-align: center; color: #6b7280; border-left: 2px solid #e5e7eb;">Thingiverse, slicer only</td>
+                            <td style="padding: 1.25rem; text-align: center; color: #6b7280; border-left: 2px solid #e5e7eb; background: #f0fdf4;">Fusion360 (professional CAD)</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <div style="text-align: center; margin-top: 2.5rem;">
+                <p style="font-size: 1.25rem; color: #111827; font-weight: 600; margin-bottom: 0.5rem;">
+                    Don't let that $300 Christmas gift sit unused by February.
+                </p>
+                <p style="font-size: 1.125rem; color: #6b7280; margin-bottom: 1.5rem;">
+                    <span style="color: #ea580c; font-weight: 600;">Gift them the CLASS to make their 3D printer actually useful.</span>
+                </p>
+                <a href="enroll.html" class="btn btn-primary" style="font-size: 1.125rem; padding: 1rem 2rem;">
+                    Reserve Your Spot for January Classes →
+                </a>
+                <p style="color: #6b7280; font-size: 0.875rem; margin-top: 1rem;">
+                    Classes start January 6th • $40/week • No contracts
+                </p>
+            </div>
+        </div>
+    </section>
 
     <!-- Social Proof Stats -->
     <section class="section" style="background: linear-gradient(135deg, #fed7aa 0%, #ffffff 100%); padding: 3rem 0;">
@@ -1078,45 +1159,12 @@
         </div>
     </section>
 
-    <!-- Lead Magnet CTA Section -->
-    <section class="section" style="background: linear-gradient(135deg, #fef3c7 0%, #fed7aa 100%); padding: 4rem 0;">
-        <div class="container">
-            <div style="max-width: 700px; margin: 0 auto; text-align: center;">
-                <div style="font-size: 3rem; margin-bottom: 1rem;">📚</div>
-                <h2 style="font-size: 2rem; font-weight: 800; color: #111827; margin-bottom: 1rem;">
-                    Not Ready to Enroll Yet?
-                </h2>
-                <p style="font-size: 1.125rem; color: #374151; margin-bottom: 2rem; line-height: 1.6;">
-                    Get our free guide: <strong style="color: #ea580c;">"5 Signs Your Kid is Ready for 3D Printing"</strong>
-                </p>
-
-                <form id="inline-lead-magnet-form" style="max-width: 500px; margin: 0 auto;">
-                    <div style="display: flex; gap: 0.75rem; flex-direction: column;">
-                        <input
-                            type="email"
-                            id="inline-email"
-                            placeholder="Enter your email"
-                            required
-                            style="flex: 1; padding: 1rem; border: 2px solid #e5e7eb; border-radius: 0.5rem; font-size: 1rem; width: 100%;">
-                        <button type="submit" class="btn btn-primary" style="font-size: 1rem; padding: 1rem 2rem; white-space: nowrap;">
-                            Send Me The Free Guide
-                        </button>
-                    </div>
-                </form>
-
-                <p style="color: #6b7280; font-size: 0.875rem; margin-top: 1rem;">
-                    Learn if your child is ready for professional CAD training • Free, no spam
-                </p>
-            </div>
-        </div>
-    </section>
-
     <!-- What Makes Us Different Section -->
     <section class="section" style="background: #f9fafb;">
         <div class="container">
-            <h2 class="section-title">What Makes 3D Jumpstart Different</h2>
+            <h2 class="section-title">Your Kid Will Design, Not Just Print</h2>
             <p class="section-subtitle">
-                Professional CAD software. Real 3D printing. Small classes. Portfolio projects.
+                Watch them transform from consumers to creators in just weeks
             </p>
 
             <!-- Video -->
@@ -1137,26 +1185,26 @@
             <div class="feature-grid">
                 <div class="feature-card">
                     <div class="feature-icon">💻</div>
-                    <h3>Professional CAD Software</h3>
-                    <p>Learn Fusion360 - professional CAD software used by engineers and product designers worldwide. Real skills, not toy software.</p>
+                    <h3>Turn Ideas Into Real Objects</h3>
+                    <p>Learn the same design software NASA engineers use to turn ideas in their head into real, physical creations. No more searching for models—they design whatever they imagine.</p>
                 </div>
 
                 <div class="feature-card">
                     <div class="feature-icon">🖨️</div>
-                    <h3>Learn 3D Printing</h3>
-                    <p>Master how to operate a 3D printer. Learn slicing, settings, troubleshooting, and best practices.</p>
+                    <h3>Make Your 3D Printer Useful</h3>
+                    <p>Finally unlock the full potential of your 3D printer. Students learn to design original creations from scratch, not just download what others made.</p>
                 </div>
 
                 <div class="feature-card">
                     <div class="feature-icon">👥</div>
-                    <h3>Small Classes</h3>
-                    <p>Small group sizes mean every student gets personal attention and help when they need it.</p>
+                    <h3>Personal Attention, Not Lectures</h3>
+                    <p>Max 10 students per class means your child gets real help when stuck, not just YouTube tutorials. They'll actually finish projects instead of getting frustrated.</p>
                 </div>
 
                 <div class="feature-card">
                     <div class="feature-icon">📁</div>
-                    <h3>Build Your Portfolio</h3>
-                    <p>Create projects that look great on college applications and resumes.</p>
+                    <h3>Build Real Portfolio Projects</h3>
+                    <p>Create impressive projects that stand out on college applications. Engineering programs want to see students who can design, not just print.</p>
                 </div>
             </div>
         </div>
@@ -1330,7 +1378,7 @@
                         <li style="padding: 0.5rem 0; color: #374151;">✓ Learn to operate your own 3D printer</li>
                     </ul>
                     <a href="enroll.html" class="btn btn-primary" style="width: 100%; margin-bottom: 1rem;">
-                        Reserve Your Child's Spot Now →
+                        Reserve Your Spot for January →
                     </a>
                     <div style="background: #ecfdf5; border: 2px solid #059669; border-radius: 0.5rem; padding: 1rem; margin-top: 1rem;">
                         <p style="color: #059669; font-weight: 600; font-size: 0.95rem; margin: 0;">
@@ -1341,7 +1389,7 @@
                         </p>
                     </div>
                     <p style="color: #6b7280; font-size: 0.875rem; margin: 1rem 0 0 0;">
-                        Rolling enrollment - start anytime
+                        Classes start January 5th, 2026 • Limited to 10 students per class
                     </p>
                 </div>
             </div>
@@ -1418,10 +1466,10 @@
                     <p style="color: #111827; font-size: 1.125rem; font-weight: 600;">— OR —</p>
                 </div>
 
-                <h3 style="color: #ea580c; font-size: 1.5rem; text-align: center; margin-bottom: 1.5rem;">Monday Evening</h3>
-                <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 2rem;">
+                <h3 style="color: #ea580c; font-size: 1.5rem; text-align: center; margin-bottom: 1.5rem;">Weeknight Classes</h3>
+                <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 2rem; margin-bottom: 2rem;">
                     <a href="enroll.html" class="card" style="text-align: center; text-decoration: none; cursor: pointer;">
-                        <h3 style="color: #ea580c; font-size: 1.25rem; margin-bottom: 0.5rem;">4:30-5:30 PM</h3>
+                        <h3 style="color: #ea580c; font-size: 1.25rem; margin-bottom: 0.5rem;">Monday 4:30-5:30 PM</h3>
                         <p style="color: #374151; margin-bottom: 1rem;">Grades 8-12</p>
                         <div class="btn btn-outline" style="display: inline-block; padding: 0.5rem 1rem; font-size: 0.875rem;">
                             Reserve This Time →
@@ -1429,7 +1477,39 @@
                     </a>
 
                     <a href="enroll.html" class="card" style="text-align: center; text-decoration: none; cursor: pointer;">
-                        <h3 style="color: #ea580c; font-size: 1.25rem; margin-bottom: 0.5rem;">5:30-6:30 PM</h3>
+                        <h3 style="color: #ea580c; font-size: 1.25rem; margin-bottom: 0.5rem;">Monday 5:30-6:30 PM</h3>
+                        <p style="color: #374151; margin-bottom: 1rem;">Grades 4-7</p>
+                        <div class="btn btn-outline" style="display: inline-block; padding: 0.5rem 1rem; font-size: 0.875rem;">
+                            Reserve This Time →
+                        </div>
+                    </a>
+
+                    <a href="enroll.html" class="card" style="text-align: center; text-decoration: none; cursor: pointer;">
+                        <h3 style="color: #ea580c; font-size: 1.25rem; margin-bottom: 0.5rem;">Tuesday 4:30-5:30 PM</h3>
+                        <p style="color: #374151; margin-bottom: 1rem;">Grades 8-12</p>
+                        <div class="btn btn-outline" style="display: inline-block; padding: 0.5rem 1rem; font-size: 0.875rem;">
+                            Reserve This Time →
+                        </div>
+                    </a>
+
+                    <a href="enroll.html" class="card" style="text-align: center; text-decoration: none; cursor: pointer;">
+                        <h3 style="color: #ea580c; font-size: 1.25rem; margin-bottom: 0.5rem;">Tuesday 5:30-6:30 PM</h3>
+                        <p style="color: #374151; margin-bottom: 1rem;">Grades 4-7</p>
+                        <div class="btn btn-outline" style="display: inline-block; padding: 0.5rem 1rem; font-size: 0.875rem;">
+                            Reserve This Time →
+                        </div>
+                    </a>
+
+                    <a href="enroll.html" class="card" style="text-align: center; text-decoration: none; cursor: pointer;">
+                        <h3 style="color: #ea580c; font-size: 1.25rem; margin-bottom: 0.5rem;">Thursday 4:30-5:30 PM</h3>
+                        <p style="color: #374151; margin-bottom: 1rem;">Grades 8-12</p>
+                        <div class="btn btn-outline" style="display: inline-block; padding: 0.5rem 1rem; font-size: 0.875rem;">
+                            Reserve This Time →
+                        </div>
+                    </a>
+
+                    <a href="enroll.html" class="card" style="text-align: center; text-decoration: none; cursor: pointer;">
+                        <h3 style="color: #ea580c; font-size: 1.25rem; margin-bottom: 0.5rem;">Thursday 5:30-6:30 PM</h3>
                         <p style="color: #374151; margin-bottom: 1rem;">Grades 4-7</p>
                         <div class="btn btn-outline" style="display: inline-block; padding: 0.5rem 1rem; font-size: 0.875rem;">
                             Reserve This Time →
@@ -1438,15 +1518,42 @@
                 </div>
             </div>
 
-            <div style="text-align: center; margin-top: 2rem;">
-                <div class="card" style="max-width: 600px; margin: 0 auto; background: linear-gradient(135deg, #fef3c7 0%, #fed7aa 100%); border: 2px solid #ea580c;">
-                    <p style="color: #111827; font-size: 1.125rem; font-weight: 700; margin-bottom: 0.5rem;">
-                        📍 In-Person Classes Held in North Suwanee
-                    </p>
-                    <p style="color: #374151; font-size: 0.95rem; margin: 0;">
-                        Exact address sent via email after enrollment for safety.<br>
-                        <span style="font-weight: 600;">Easily accessible from Suwanee, Buford, Duluth, Cumming, Sugar Hill, and Johns Creek</span>
-                    </p>
+            <div style="text-align: center; margin-top: 3rem;">
+                <h3 style="color: #111827; font-size: 1.75rem; font-weight: 700; margin-bottom: 1.5rem;">
+                    📍 Class Location
+                </h3>
+
+                <div style="max-width: 800px; margin: 0 auto;">
+                    <div class="card" style="background: white; padding: 2rem; margin-bottom: 2rem;">
+                        <p style="color: #ea580c; font-size: 1.375rem; font-weight: 700; margin-bottom: 0.75rem;">
+                            Private Teaching Studio in North Suwanee
+                        </p>
+                        <p style="color: #374151; font-size: 1.05rem; margin-bottom: 1.5rem; line-height: 1.6;">
+                            Classes are held at my dedicated teaching workshop in North Suwanee (near Peachtree Parkway).<br>
+                            <span style="font-size: 0.95rem; color: #6b7280;">Exact address provided after enrollment to maintain a safe, private learning environment.</span>
+                        </p>
+
+                        <!-- Map placeholder -->
+                        <div style="width: 100%; height: 300px; background: #f3f4f6; border-radius: 0.75rem; border: 2px solid #e5e7eb; margin-bottom: 1.5rem; overflow: hidden;">
+                            <iframe
+                                src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d26438.742935471963!2d-84.08693344999999!3d34.051722!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x88f59e4b3a6a29a1%3A0x7c0c6e7c1b8f7a5e!2sSuwanee%2C%20GA!5e0!3m2!1sen!2sus!4v1234567890"
+                                width="100%"
+                                height="300"
+                                style="border:0;"
+                                allowfullscreen=""
+                                loading="lazy"
+                                referrerpolicy="no-referrer-when-downgrade">
+                            </iframe>
+                        </div>
+
+                        <div style="background: #f0fdf4; border: 2px solid #059669; border-radius: 0.75rem; padding: 1.25rem;">
+                            <p style="color: #047857; font-weight: 600; font-size: 1rem; margin: 0;">
+                                ✓ Easy access from Suwanee, Buford, Duluth, Cumming, Sugar Hill & Johns Creek<br>
+                                ✓ Safe facility with dedicated parking<br>
+                                ✓ 10-15 minute drive from most North Gwinnett areas
+                            </p>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
@@ -1560,13 +1667,13 @@
                     </p>
                 </div>
 
-                <!-- Class formation -->
+                <!-- Class start dates -->
                 <div style="padding: 2rem 0;">
                     <h3 style="color: #111827; font-size: 1.25rem; margin-bottom: 0.75rem; font-weight: 700;">
-                        Are all class times guaranteed to start?
+                        When do classes start?
                     </h3>
                     <p style="color: #6b7280; line-height: 1.6; font-size: 1.05rem;">
-                        Classes launch based on enrollment. If your preferred time slot doesn't have enough students by the start date, we'll contact you personally to either switch to an available time or wait until your preferred slot fills. <strong>Full refunds available</strong> if neither option works for you.
+                        <strong>Classes start January 5th, 2026</strong>—the first Monday after winter break. This gives your child's Christmas 3D printer time to arrive, and lets them start the new year building real design skills. <strong>Spots are limited to 10 students per class.</strong>
                     </p>
                 </div>
 
@@ -1584,18 +1691,18 @@
     <section class="section" style="background: linear-gradient(135deg, #ea580c 0%, #dc2626 100%); color: white;">
         <div class="container" style="text-align: center;">
             <h2 style="font-size: 2.5rem; font-weight: 800; margin-bottom: 1rem; color: white;">
-                Ready to Get Started?
+                Turn That Christmas 3D Printer Into a Career Skill
             </h2>
             <p style="font-size: 1.25rem; margin-bottom: 3rem; color: rgba(255, 255, 255, 0.9);">
-                Rolling enrollment - start anytime • $40/week
+                Classes Start January 5th • $40/week • No Contracts
             </p>
 
             <div style="display: flex; flex-direction: column; gap: 1rem; align-items: center; margin-bottom: 2rem;">
                 <a href="enroll.html" class="btn" style="background: white; color: #ea580c; font-size: 1.125rem; padding: 1rem 2rem; border: none;">
-                    Reserve Your Child's Spot →
+                    Reserve Your Spot for January →
                 </a>
                 <p style="color: rgba(255, 255, 255, 0.9); font-size: 0.95rem; margin: 0;">
-                    Takes 2 minutes • No payment required to browse availability
+                    Reserve in 2 minutes • First class satisfaction guarantee
                 </p>
                 <p style="color: white; font-size: 1rem; margin: 0.5rem 0; font-weight: 600;">
                     ✓ First Class Satisfaction Guarantee - Full refund if they don't love it
@@ -1626,31 +1733,6 @@
             </div>
         </div>
     </footer>
-
-    <!-- Exit Intent Popup -->
-    <div id="exit-popup" style="display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.7); z-index: 9999; align-items: center; justify-content: center;">
-        <div style="background: white; border-radius: 1rem; max-width: 500px; margin: 2rem; padding: 2.5rem; position: relative; box-shadow: 0 25px 50px -12px rgba(0,0,0,0.5);">
-            <button onclick="closeExitPopup()" style="position: absolute; top: 1rem; right: 1rem; background: none; border: none; font-size: 1.5rem; color: #6b7280; cursor: pointer; padding: 0.5rem; line-height: 1;">&times;</button>
-
-            <h3 style="font-size: 1.75rem; font-weight: 700; color: #111827; margin-bottom: 1rem;">
-                Wait! Before You Go...
-            </h3>
-            <p style="color: #6b7280; margin-bottom: 1.5rem; line-height: 1.6;">
-                Not ready to enroll yet? Get our free guide: <strong style="color: #ea580c;">"5 Signs Your Kid is Ready for 3D Printing"</strong>
-            </p>
-
-            <form id="lead-magnet-form" style="margin-bottom: 1rem;">
-                <input type="email" id="popup-email" placeholder="Enter your email" required style="width: 100%; padding: 0.75rem; border: 2px solid #e5e7eb; border-radius: 0.5rem; font-size: 1rem; margin-bottom: 1rem;">
-                <button type="submit" class="btn btn-primary" style="width: 100%; font-size: 1rem; padding: 0.875rem;">
-                    Send Me The Free Guide
-                </button>
-            </form>
-
-            <p style="color: #9ca3af; font-size: 0.875rem; text-align: center; margin: 0;">
-                We respect your privacy. Unsubscribe anytime.
-            </p>
-        </div>
-    </div>
 
     <script>
         // Lazy load and autoplay video when scrolled into view
@@ -1710,155 +1792,6 @@
             }
         });
 
-        // Exit Intent Popup
-        let exitPopupShown = false;
-
-        function closeExitPopup() {
-            document.getElementById('exit-popup').style.display = 'none';
-            sessionStorage.setItem('exitPopupClosed', 'true');
-        }
-
-        function showExitPopup() {
-            if (!exitPopupShown && !sessionStorage.getItem('exitPopupClosed')) {
-                document.getElementById('exit-popup').style.display = 'flex';
-                exitPopupShown = true;
-            }
-        }
-
-        // Detect exit intent (mouse leaving top of page)
-        document.addEventListener('mouseout', function(e) {
-            if (e.clientY < 50 && e.relatedTarget == null && !exitPopupShown) {
-                showExitPopup();
-            }
-        });
-
-        // Close popup when clicking outside
-        document.getElementById('exit-popup').addEventListener('click', function(e) {
-            if (e.target === this) {
-                closeExitPopup();
-            }
-        });
-
-        // Handle inline lead magnet form
-        document.getElementById('inline-lead-magnet-form').addEventListener('submit', async function(e) {
-            e.preventDefault();
-            const email = document.getElementById('inline-email').value;
-            const submitButton = e.target.querySelector('button[type="submit"]');
-            const originalText = submitButton.textContent;
-
-            // Disable button and show loading state
-            submitButton.disabled = true;
-            submitButton.textContent = 'Sending...';
-
-            try {
-                // Call Supabase Edge Function to send email
-                const response = await fetch('https://hucjmggkasahwpjgnwia.supabase.co/functions/v1/send-lead-magnet', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                    },
-                    body: JSON.stringify({ email: email })
-                });
-
-                const data = await response.json();
-
-                if (!response.ok || !data.success) {
-                    throw new Error(data.error || 'Failed to send email');
-                }
-
-                // Track with Facebook Pixel
-                if (typeof fbq !== 'undefined') {
-                    fbq('track', 'Lead', {
-                        content_name: '5 Signs Lead Magnet - Inline',
-                        status: 'success'
-                    });
-                }
-
-                // Show success message
-                const form = document.getElementById('inline-lead-magnet-form');
-                form.innerHTML = `
-                    <div style="background: #ecfdf5; border: 2px solid #059669; border-radius: 0.75rem; padding: 2rem; text-align: center;">
-                        <div style="font-size: 3rem; margin-bottom: 1rem;">✓</div>
-                        <h3 style="font-size: 1.5rem; font-weight: 700; color: #059669; margin-bottom: 0.75rem;">
-                            Check Your Email!
-                        </h3>
-                        <p style="color: #047857; margin: 0;">
-                            We've sent the guide to <strong>${email}</strong><br>
-                            <span style="font-size: 0.875rem;">(Check spam if you don't see it in a few minutes)</span>
-                        </p>
-                    </div>
-                `;
-            } catch (error) {
-                console.error('Error sending lead magnet:', error);
-
-                // Show error message
-                submitButton.disabled = false;
-                submitButton.textContent = originalText;
-
-                alert('Oops! Something went wrong. Please try again or email jeremiah@3djumpstart.com directly.');
-            }
-        });
-
-        // Handle exit popup form submission
-        document.getElementById('lead-magnet-form').addEventListener('submit', async function(e) {
-            e.preventDefault();
-            const email = document.getElementById('popup-email').value;
-            const submitButton = e.target.querySelector('button[type="submit"]');
-
-            // Disable button and show loading state
-            submitButton.disabled = true;
-            submitButton.textContent = 'Sending...';
-
-            try {
-                // Call Supabase Edge Function to send email
-                const response = await fetch('https://hucjmggkasahwpjgnwia.supabase.co/functions/v1/send-lead-magnet', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                    },
-                    body: JSON.stringify({ email: email })
-                });
-
-                const data = await response.json();
-
-                if (!response.ok || !data.success) {
-                    throw new Error(data.error || 'Failed to send email');
-                }
-
-                // Track with Facebook Pixel
-                if (typeof fbq !== 'undefined') {
-                    fbq('track', 'Lead', {
-                        content_name: '5 Signs Lead Magnet',
-                        status: 'success'
-                    });
-                }
-
-                // Show success message
-                const popup = document.getElementById('exit-popup').querySelector('div');
-                popup.innerHTML = `
-                    <h3 style="font-size: 1.75rem; font-weight: 700; color: #059669; margin-bottom: 1rem; text-align: center;">
-                        ✓ Check Your Email!
-                    </h3>
-                    <p style="color: #6b7280; margin-bottom: 1.5rem; line-height: 1.6; text-align: center;">
-                        We've sent the "5 Signs Your Kid is Ready for 3D Printing" guide to <strong>${email}</strong>
-                    </p>
-                    <p style="color: #6b7280; margin-bottom: 1.5rem; line-height: 1.6; text-align: center;">
-                        Check your spam folder if you don't see it in a few minutes.
-                    </p>
-                    <button onclick="closeExitPopup()" class="btn btn-primary" style="width: 100%;">
-                        Close
-                    </button>
-                `;
-            } catch (error) {
-                console.error('Error sending lead magnet:', error);
-
-                // Show error message
-                submitButton.disabled = false;
-                submitButton.textContent = 'Send Me The Free Guide';
-
-                alert('Oops! Something went wrong. Please try again or email jeremiah@3djumpstart.com directly.');
-            }
-        });
     </script>
 </body>
 </html>
